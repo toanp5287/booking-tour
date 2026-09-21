@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Đánh giá | TravelGo</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="min-h-screen bg-[#070b12] text-white">
+    <!-- =====================================================
+         BACKGROUND - SUNSET
+    ====================================================== -->
+
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+      <img
+        src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2400&q=95"
+        alt="Travel sunset"
+        class="absolute inset-0 h-full w-full object-cover object-center"
+      />
+
+      <!-- Dark cinematic overlay -->
+      <div class="absolute inset-0 bg-[#070b12]/78"></div>
+
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-[#070b12]/40 via-[#070b12]/75 to-[#070b12]"
+      ></div>
+
+      <!-- Sunset glow -->
+      <div
+        class="absolute left-1/2 top-[5%] h-[450px] w-[750px] -translate-x-1/2 rounded-full bg-orange-400/10 blur-[150px]"
+      ></div>
+
+      <!-- Bottom darkness -->
+      <div
+        class="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#070b12] to-transparent"
+      ></div>
+    </div>
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header
+      class="sticky top-0 z-50 border-b border-white/10 bg-[#070b12]/75 backdrop-blur-2xl"
+    >
+      <div
+        class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10"
+      >
+        <!-- LOGO -->
+
+        <a href="index.html" class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 shadow-lg"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-5"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <div class="text-lg font-bold tracking-tight">
+              Travel<span class="text-white/40">Go</span>
+            </div>
+
+            <div class="text-[8px] uppercase tracking-[0.3em] text-white/35">
+              Travel & Experience
+            </div>
+          </div>
+        </a>
+
+        <!-- NAV -->
+
+        <nav class="hidden items-center gap-7 text-sm text-white/45 lg:flex">
+          <a href="index.html" class="transition hover:text-white">
+            Trang chủ
+          </a>
+
+          <a href="tours.html" class="transition hover:text-white"> Tours </a>
+
+          <a href="destinations.html" class="transition hover:text-white">
+            Điểm đến
+          </a>
+
+          <a href="community.html" class="transition hover:text-white">
+            Cộng đồng
+          </a>
+
+          <a href="reviews.html" class="font-semibold text-white"> Đánh giá </a>
+
+          <a href="ai-planner.html" class="transition hover:text-white">
+            TravelGo AI
+          </a>
+        </nav>
+
+        <!-- USER -->
+
+        <div class="flex items-center gap-3">
+          <a
+            href="my-bookings.html"
+            class="hidden text-sm text-white/45 transition hover:text-white md:block"
+          >
+            Chuyến đi của tôi
+          </a>
+
+          <a
+            href="profile.html"
+            class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-sm font-bold shadow-lg"
+          >
+            V
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
+      <!-- =====================================================
+           HERO
+      ====================================================== -->
+
+      <section class="mb-10">
+        <div class="max-w-3xl">
+          <div
+            class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60 backdrop-blur-xl"
+          >
+            <span class="h-2 w-2 rounded-full bg-orange-300"></span>
+
+            Travel Reviews
+          </div>
+
+          <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+            Trải nghiệm thật.
+            <span class="text-white/35"> Đánh giá thật. </span>
+          </h1>
+
+          <p
+            class="mt-4 max-w-2xl text-sm leading-7 text-white/45 sm:text-base"
+          >
+            Khám phá những đánh giá thực tế từ những người đã trải nghiệm các
+            tour và điểm đến cùng TravelGo.
+          </p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           REVIEW SUMMARY
+      ====================================================== -->
+
+      <section
+        class="mb-8 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.07] shadow-2xl backdrop-blur-2xl"
+      >
+        <div class="grid lg:grid-cols-[280px_1fr_260px]">
+          <!-- OVERALL SCORE -->
+
+          <div class="border-b border-white/10 p-7 lg:border-b-0 lg:border-r">
+            <p class="text-xs text-white/35">Đánh giá tổng thể</p>
+
+            <div class="mt-3 flex items-end gap-2">
+              <span class="text-5xl font-bold tracking-tight"> 4.8 </span>
+
+              <span class="pb-2 text-sm text-white/30"> / 5 </span>
+            </div>
+
+            <div class="mt-2 text-lg text-yellow-300">★★★★★</div>
+
+            <p class="mt-2 text-xs text-white/35">Dựa trên 1,284 đánh giá</p>
+          </div>
+
+          <!-- RATING BARS -->
+
+          <div class="p-7">
+            <div class="space-y-3">
+              <!-- 5 -->
+
+              <div class="flex items-center gap-3">
+                <span class="w-8 text-xs text-white/50"> 5 ★ </span>
+
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div class="h-full w-[82%] rounded-full bg-yellow-300"></div>
+                </div>
+
+                <span class="w-10 text-right text-xs text-white/35"> 82% </span>
+              </div>
+
+              <!-- 4 -->
+
+              <div class="flex items-center gap-3">
+                <span class="w-8 text-xs text-white/50"> 4 ★ </span>
+
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div
+                    class="h-full w-[13%] rounded-full bg-yellow-300/80"
+                  ></div>
+                </div>
+
+                <span class="w-10 text-right text-xs text-white/35"> 13% </span>
+              </div>
+
+              <!-- 3 -->
+
+              <div class="flex items-center gap-3">
+                <span class="w-8 text-xs text-white/50"> 3 ★ </span>
+
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div
+                    class="h-full w-[3%] rounded-full bg-yellow-300/60"
+                  ></div>
+                </div>
+
+                <span class="w-10 text-right text-xs text-white/35"> 3% </span>
+              </div>
+
+              <!-- 2 -->
+
+              <div class="flex items-center gap-3">
+                <span class="w-8 text-xs text-white/50"> 2 ★ </span>
+
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div
+                    class="h-full w-[1%] rounded-full bg-yellow-300/40"
+                  ></div>
+                </div>
+
+                <span class="w-10 text-right text-xs text-white/35"> 1% </span>
+              </div>
+
+              <!-- 1 -->
+
+              <div class="flex items-center gap-3">
+                <span class="w-8 text-xs text-white/50"> 1 ★ </span>
+
+                <div
+                  class="h-2 flex-1 overflow-hidden rounded-full bg-white/10"
+                >
+                  <div
+                    class="h-full w-[1%] rounded-full bg-yellow-300/30"
+                  ></div>
+                </div>
+
+                <span class="w-10 text-right text-xs text-white/35"> 1% </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- WRITE REVIEW -->
+
+          <div
+            class="flex flex-col justify-center border-t border-white/10 p-7 lg:border-l lg:border-t-0"
+          >
+            <p class="text-sm font-semibold">Bạn vừa hoàn thành chuyến đi?</p>
+
+            <p class="mt-2 text-xs leading-5 text-white/35">
+              Chia sẻ trải nghiệm để giúp những du khách khác lựa chọn hành
+              trình phù hợp.
+            </p>
+
+            <a
+              href="create-review.html"
+              class="mt-5 rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-white/90"
+            >
+              ✦ Viết đánh giá
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           FILTER
+      ====================================================== -->
+
+      <section class="mb-8">
+        <div
+          class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
+        >
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <button
+              class="shrink-0 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900"
+            >
+              Tất cả
+            </button>
+
+            <button
+              class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+            >
+              ★ 5
+            </button>
+
+            <button
+              class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+            >
+              ★ 4
+            </button>
+
+            <button
+              class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+            >
+              Có hình ảnh
+            </button>
+
+            <button
+              class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+            >
+              Tour
+            </button>
+
+            <button
+              class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+            >
+              Điểm đến
+            </button>
+          </div>
+
+          <select
+            class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 outline-none backdrop-blur-xl"
+          >
+            <option class="bg-[#101722]">Mới nhất</option>
+
+            <option class="bg-[#101722]">Đánh giá cao nhất</option>
+
+            <option class="bg-[#101722]">Đánh giá thấp nhất</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           CONTENT
+      ====================================================== -->
+
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <!-- ===================================================
+             REVIEWS
+        ==================================================== -->
+
+        <section class="space-y-5">
+          <!-- REVIEW 1 -->
+
+          <article
+            class="rounded-[26px] border border-white/10 bg-white/[0.06] p-6 shadow-xl backdrop-blur-2xl transition hover:border-white/15"
+          >
+            <!-- USER -->
+
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold shadow-lg"
+                >
+                  M
+                </div>
+
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-semibold">Minh Anh</h3>
+
+                    <span
+                      class="rounded-full bg-emerald-400/10 px-2 py-1 text-[9px] font-medium text-emerald-300"
+                    >
+                      Đã xác minh
+                    </span>
+                  </div>
+
+                  <p class="mt-1 text-xs text-white/30">2 ngày trước</p>
+                </div>
+              </div>
+
+              <button class="text-xl text-white/25 transition hover:text-white">
+                ···
+              </button>
+            </div>
+
+            <!-- TOUR -->
+
+            <a
+              href="tour-detail.html"
+              class="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/15 p-3 transition hover:bg-white/5"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=300&q=80"
+                class="h-14 w-14 rounded-xl object-cover"
+                alt="Hạ Long"
+              />
+
+              <div class="flex-1">
+                <p class="text-xs text-white/30">Tour đã trải nghiệm</p>
+
+                <h4 class="mt-1 text-sm font-semibold">Hạ Long 3N2Đ</h4>
+              </div>
+
+              <span class="text-white/30"> → </span>
+            </a>
+
+            <!-- RATING -->
+
+            <div class="mt-5 flex items-center gap-3">
+              <div class="text-yellow-300">★★★★★</div>
+
+              <span class="text-sm font-semibold"> 5.0 </span>
+
+              <span class="text-xs text-white/30"> Tuyệt vời </span>
+            </div>
+
+            <!-- REVIEW TEXT -->
+
+            <p class="mt-4 text-sm leading-7 text-white/65">
+              Một chuyến đi thực sự đáng nhớ. Lịch trình được sắp xếp rất hợp
+              lý, hướng dẫn viên nhiệt tình và hỗ trợ rất tốt. Đặc biệt cảnh Hạ
+              Long lúc chiều tà cực kỳ đẹp.
+            </p>
+
+            <!-- IMAGES -->
+
+            <div class="mt-5 grid grid-cols-3 gap-2">
+              <img
+                src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=700&q=90"
+                class="h-32 w-full rounded-xl object-cover"
+                alt=""
+              />
+
+              <img
+                src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=90"
+                class="h-32 w-full rounded-xl object-cover"
+                alt=""
+              />
+
+              <div class="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1476673160081-cf065607f449?auto=format&fit=crop&w=700&q=90"
+                  class="h-32 w-full rounded-xl object-cover brightness-60"
+                  alt=""
+                />
+
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span class="font-semibold"> +4 </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ACTION -->
+
+            <div
+              class="mt-5 flex items-center gap-6 border-t border-white/10 pt-4"
+            >
+              <button
+                class="text-sm text-white/40 transition hover:text-red-400"
+              >
+                ♡ 128
+              </button>
+
+              <button class="text-sm text-white/40 transition hover:text-white">
+                💬 18
+              </button>
+
+              <button class="text-sm text-white/40 transition hover:text-white">
+                ↗ Chia sẻ
+              </button>
+            </div>
+          </article>
+
+          <!-- REVIEW 2 -->
+
+          <article
+            class="rounded-[26px] border border-white/10 bg-white/[0.06] p-6 shadow-xl backdrop-blur-2xl"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-300 to-blue-600 font-bold"
+                >
+                  K
+                </div>
+
+                <div>
+                  <h3 class="text-sm font-semibold">Khánh Linh</h3>
+
+                  <p class="mt-1 text-xs text-white/30">5 ngày trước</p>
+                </div>
+              </div>
+
+              <button class="text-xl text-white/25">···</button>
+            </div>
+
+            <a
+              href="tour-detail.html"
+              class="mt-5 block text-sm font-medium text-white/75 transition hover:text-white"
+            >
+              Đà Nẵng 4N3Đ
+              <span class="ml-2 text-xs text-white/30"> → </span>
+            </a>
+
+            <div class="mt-3 text-yellow-300">
+              ★★★★★
+              <span class="ml-2 text-xs text-white/40"> 4.8 </span>
+            </div>
+
+            <p class="mt-4 text-sm leading-7 text-white/60">
+              Tour rất ổn, lịch trình vừa phải và không bị quá mệt. Đồ ăn ngon,
+              khách sạn sạch sẽ và hướng dẫn viên thân thiện.
+            </p>
+
+            <div
+              class="mt-5 flex items-center gap-6 border-t border-white/10 pt-4"
+            >
+              <button class="text-sm text-white/40 hover:text-red-400">
+                ♡ 86
+              </button>
+
+              <button class="text-sm text-white/40 hover:text-white">
+                💬 13
+              </button>
+
+              <button class="text-sm text-white/40 hover:text-white">
+                ↗ Chia sẻ
+              </button>
+            </div>
+          </article>
+
+          <!-- REVIEW 3 -->
+
+          <article
+            class="rounded-[26px] border border-white/10 bg-white/[0.06] p-6 shadow-xl backdrop-blur-2xl"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-purple-300 to-purple-600 font-bold"
+              >
+                T
+              </div>
+
+              <div>
+                <h3 class="text-sm font-semibold">Tuấn Nguyễn</h3>
+
+                <p class="mt-1 text-xs text-white/30">1 tuần trước</p>
+              </div>
+            </div>
+
+            <div
+              class="mt-5 rounded-2xl border border-white/10 bg-black/15 p-5"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-xs text-white/30">Điểm đến</p>
+
+                  <a
+                    href="destination-detail.html"
+                    class="mt-1 block font-semibold hover:text-white"
+                  >
+                    Sapa
+                  </a>
+                </div>
+
+                <div class="text-right">
+                  <div class="text-yellow-300">★★★★★</div>
+
+                  <p class="mt-1 text-xs text-white/30">4.7 / 5</p>
+                </div>
+              </div>
+
+              <p class="mt-4 text-sm leading-7 text-white/60">
+                Sapa rất đẹp, đặc biệt là buổi sáng sớm. Không khí trong lành và
+                cảnh núi cực kỳ ấn tượng.
+              </p>
+            </div>
+
+            <div class="mt-5 flex items-center gap-6">
+              <button class="text-sm text-white/40 hover:text-red-400">
+                ♡ 42
+              </button>
+
+              <button class="text-sm text-white/40 hover:text-white">
+                💬 8
+              </button>
+
+              <button class="text-sm text-white/40 hover:text-white">
+                ↗ Chia sẻ
+              </button>
+            </div>
+          </article>
+
+          <!-- LOAD MORE -->
+
+          <button
+            class="w-full rounded-2xl border border-white/10 bg-white/[0.04] py-4 text-sm font-medium text-white/50 transition hover:bg-white/10 hover:text-white"
+          >
+            Xem thêm đánh giá
+          </button>
+        </section>
+
+        <!-- ===================================================
+             SIDEBAR
+        ==================================================== -->
+
+        <aside class="space-y-5">
+          <!-- WRITE REVIEW -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.07] p-5 shadow-xl backdrop-blur-2xl"
+          >
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-400/10 text-xl"
+            >
+              ✦
+            </div>
+
+            <h3 class="mt-4 text-sm font-semibold">Chia sẻ trải nghiệm</h3>
+
+            <p class="mt-2 text-xs leading-6 text-white/35">
+              Bạn chỉ có thể đánh giá những tour đã hoàn thành.
+            </p>
+
+            <a
+              href="create-review.html"
+              class="mt-5 block rounded-xl bg-white py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-white/90"
+            >
+              Viết đánh giá
+            </a>
+          </div>
+
+          <!-- REVIEW CATEGORIES -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          >
+            <h3 class="text-sm font-semibold">Đánh giá theo tiêu chí</h3>
+
+            <div class="mt-5 space-y-4">
+              <div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-white/40"> Lịch trình </span>
+
+                  <span> 4.9 </span>
+                </div>
+
+                <div class="mt-2 h-1.5 rounded-full bg-white/10">
+                  <div class="h-full w-[92%] rounded-full bg-orange-300"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-white/40"> Hướng dẫn viên </span>
+
+                  <span> 4.8 </span>
+                </div>
+
+                <div class="mt-2 h-1.5 rounded-full bg-white/10">
+                  <div class="h-full w-[88%] rounded-full bg-orange-300"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-white/40"> Dịch vụ </span>
+
+                  <span> 4.7 </span>
+                </div>
+
+                <div class="mt-2 h-1.5 rounded-full bg-white/10">
+                  <div class="h-full w-[85%] rounded-full bg-orange-300"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs">
+                  <span class="text-white/40"> Giá trị </span>
+
+                  <span> 4.8 </span>
+                </div>
+
+                <div class="mt-2 h-1.5 rounded-full bg-white/10">
+                  <div class="h-full w-[89%] rounded-full bg-orange-300"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MOST REVIEWED -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          >
+            <h3 class="text-sm font-semibold">Điểm đến được đánh giá nhiều</h3>
+
+            <div class="mt-5 space-y-4">
+              <a
+                href="destination-detail.html"
+                class="group flex items-center gap-3"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=300&q=80"
+                  class="h-12 w-12 rounded-xl object-cover"
+                  alt="Hạ Long"
+                />
+
+                <div class="flex-1">
+                  <p class="text-sm font-medium">Hạ Long</p>
+
+                  <p class="mt-1 text-xs text-white/30">★ 4.9 · 320 đánh giá</p>
+                </div>
+              </a>
+
+              <a
+                href="destination-detail.html"
+                class="group flex items-center gap-3"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=300&q=80"
+                  class="h-12 w-12 rounded-xl object-cover"
+                  alt="Đà Nẵng"
+                />
+
+                <div class="flex-1">
+                  <p class="text-sm font-medium">Đà Nẵng</p>
+
+                  <p class="mt-1 text-xs text-white/30">★ 4.8 · 286 đánh giá</p>
+                </div>
+              </a>
+
+              <a
+                href="destination-detail.html"
+                class="group flex items-center gap-3"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1512553353614-82a7370096dc?auto=format&fit=crop&w=300&q=80"
+                  class="h-12 w-12 rounded-xl object-cover"
+                  alt="Sapa"
+                />
+
+                <div class="flex-1">
+                  <p class="text-sm font-medium">Sapa</p>
+
+                  <p class="mt-1 text-xs text-white/30">★ 4.8 · 241 đánh giá</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- VERIFIED REVIEW -->
+
+          <div
+            class="rounded-[24px] border border-orange-300/10 bg-gradient-to-br from-orange-300/10 to-transparent p-5"
+          >
+            <div class="text-xl">✓</div>
+
+            <h3 class="mt-3 text-sm font-semibold">Đánh giá được xác minh</h3>
+
+            <p class="mt-2 text-xs leading-6 text-white/35">
+              Những đánh giá có nhãn
+              <span class="text-emerald-300"> Đã xác minh </span>
+              đến từ khách hàng thực sự đã hoàn thành chuyến đi.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="mt-10 border-t border-white/10 bg-[#070b12]/80">
+      <div
+        class="mx-auto flex max-w-7xl flex-col justify-between gap-3 px-5 py-7 text-xs text-white/25 sm:flex-row sm:px-8 lg:px-10"
+      >
+        <p>© 2026 TravelGo. All rights reserved.</p>
+
+        <p>Discover · Travel · Experience</p>
+      </div>
+    </footer>
+  </body>
+</html>

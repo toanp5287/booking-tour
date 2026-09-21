@@ -1,0 +1,796 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================
+// PERMISSIONS
+// =====================================================
+
+model permissions {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @unique @db.VarChar(100)
+  description String?
+  module      String?   @db.VarChar(50)
+  action      String?   @db.VarChar(50)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  role_permissions role_permissions[]
+
+  @@index([module])
+  @@index([deleted_at])
+  @@map("permissions")
+}
+
+// =====================================================
+// USERS
+// =====================================================
+
+model users {
+  id            BigInt    @id @default(autoincrement())
+  full_name     String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(150)
+  password_hash String
+  phone         String?   @unique @db.VarChar(20)
+  avatar_url    String?
+  date_of_birth DateTime? @db.Date
+  gender        String?   @db.VarChar(20)
+  address       String?
+
+  // active / inactive / blocked
+  status String @default("active") @db.VarChar(20)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  user_roles user_roles[]
+
+  tour_operators tour_operators[]
+
+  bookings bookings[]
+
+  booking_status_histories booking_status_histories[]
+
+  @@index([status])
+  @@index([deleted_at])
+  @@map("users")
+}
+
+// =====================================================
+// ROLES
+// =====================================================
+
+model roles {
+  id          BigInt  @id @default(autoincrement())
+  name        String  @unique @db.VarChar(50)
+  description String?
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  is_singleton Boolean @default(false)
+
+  role_permissions role_permissions[]
+
+  user_roles user_roles[]
+
+  @@index([deleted_at])
+  @@map("roles")
+}
+
+// =====================================================
+// USER ROLES
+// =====================================================
+
+model user_roles {
+  id      BigInt @id @default(autoincrement())
+  user_id BigInt
+  role_id BigInt
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  user users @relation(
+    fields: [user_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  role roles @relation(
+    fields: [role_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@unique([user_id, role_id])
+  @@index([user_id])
+  @@index([role_id])
+  @@index([deleted_at])
+  @@map("user_roles")
+}
+
+// =====================================================
+// ROLE PERMISSIONS
+// =====================================================
+
+model role_permissions {
+  id            BigInt @id @default(autoincrement())
+  role_id       BigInt
+  permission_id BigInt
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  permission permissions @relation(
+    fields: [permission_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  role roles @relation(
+    fields: [role_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@unique([role_id, permission_id])
+  @@index([role_id])
+  @@index([permission_id])
+  @@index([deleted_at])
+  @@map("role_permissions")
+}
+
+// =====================================================
+// TOUR OPERATORS
+// =====================================================
+
+model tour_operators {
+  id             BigInt @id @default(autoincrement())
+  user_id        BigInt
+
+  company_name   String  @db.VarChar(150)
+  description    String? @db.Text
+  phone          String? @db.VarChar(20)
+  email          String? @db.VarChar(150)
+  address        String? @db.Text
+  logo_url       String? @db.VarChar(500)
+  license_number String? @db.VarChar(100)
+
+  // pending / approved / rejected / inactive
+  status String @default("pending") @db.VarChar(20)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  user users @relation(
+    fields: [user_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  tours tours[]
+
+  @@index([user_id])
+  @@index([status])
+  @@index([deleted_at])
+  @@map("tour_operators")
+}
+
+// =====================================================
+// CATEGORIES
+// =====================================================
+
+model categories {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  image       String?   @db.VarChar(500)
+
+  // active / inactive
+  status String @default("active") @db.VarChar(30)
+
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  tours tours[]
+
+  destinations destinations[]
+
+  @@index([status])
+  @@index([deleted_at])
+  @@map("categories")
+}
+
+// =====================================================
+// DESTINATIONS
+// =====================================================
+
+model destinations {
+  id          BigInt  @id @default(autoincrement())
+  category_id BigInt?
+
+  name        String  @db.VarChar(200)
+  description String? @db.Text
+
+  address  String? @db.VarChar(500)
+  province String? @db.VarChar(100)
+
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+
+  image String? @db.VarChar(500)
+
+  // ===================================================
+  // AI / ITINERARY DATA
+  // ===================================================
+
+  estimated_visit_time Int?
+
+  opening_time DateTime? @db.Time(0)
+  closing_time DateTime? @db.Time(0)
+
+  average_cost Decimal? @db.Decimal(15, 2)
+
+  best_time      String? @db.VarChar(200)
+  weather_note   String? @db.Text
+  age_suitable   String? @db.VarChar(200)
+  activity_types String? @db.Text
+
+  // active / inactive
+  status String @default("active") @db.VarChar(30)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  category categories? @relation(
+    fields: [category_id],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  tour_destinations tour_destinations[]
+
+  itinerary_activities itinerary_activities[]
+
+  @@index([category_id])
+  @@index([province])
+  @@index([status])
+  @@index([deleted_at])
+  @@map("destinations")
+}
+
+// =====================================================
+// TOURS
+// =====================================================
+
+model tours {
+  id BigInt @id @default(autoincrement())
+
+  operator_id BigInt
+  category_id BigInt
+
+  name        String  @db.VarChar(200)
+  slug        String  @unique @db.VarChar(220)
+  description String? @db.Text
+
+  price Decimal @db.Decimal(15, 2)
+
+  duration_days   Int
+  duration_nights Int
+
+  max_people Int
+
+  difficulty_level String? @db.VarChar(50)
+  transportation   String? @db.VarChar(100)
+
+  thumbnail String? @db.VarChar(500)
+
+  // active / inactive / closed
+  status String @default("active") @db.VarChar(30)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  operator tour_operators @relation(
+    fields: [operator_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  category categories @relation(
+    fields: [category_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  images tour_images[]
+
+  schedules tour_schedules[]
+
+  destinations tour_destinations[]
+
+  itineraries tour_itineraries[]
+
+  bookings bookings[]
+
+  @@index([operator_id])
+  @@index([category_id])
+  @@index([status])
+  @@index([price])
+  @@index([name])
+  @@index([deleted_at])
+  @@map("tours")
+}
+
+// =====================================================
+// TOUR IMAGES
+// =====================================================
+
+model tour_images {
+  id         BigInt @id @default(autoincrement())
+  tour_id    BigInt
+  image_url  String @db.VarChar(500)
+  sort_order Int    @default(0)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  tour tours @relation(
+    fields: [tour_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@index([tour_id])
+  @@index([tour_id, sort_order])
+  @@index([deleted_at])
+  @@map("tour_images")
+}
+
+// =====================================================
+// TOUR SCHEDULES
+// =====================================================
+
+model tour_schedules {
+  id      BigInt @id @default(autoincrement())
+  tour_id BigInt
+
+  departure_date DateTime @db.Date
+  departure_time DateTime @db.Time(0)
+
+  return_date DateTime? @db.Date
+  return_time DateTime? @db.Time(0)
+
+  total_slots     Int
+  available_slots Int
+
+  // open / closed / full / completed
+  status String @default("open") @db.VarChar(30)
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  tour tours @relation(
+    fields: [tour_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  bookings bookings[]
+
+  @@index([tour_id])
+  @@index([departure_date])
+  @@index([status])
+  @@index([deleted_at])
+  @@map("tour_schedules")
+}
+
+// =====================================================
+// TOUR DESTINATIONS
+// =====================================================
+
+model tour_destinations {
+  id             BigInt @id @default(autoincrement())
+  tour_id        BigInt
+  destination_id BigInt
+
+  visit_order Int
+  day_number  Int
+
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  tour tours @relation(
+    fields: [tour_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  destination destinations @relation(
+    fields: [destination_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@unique([tour_id, destination_id, day_number])
+
+  @@index([tour_id])
+  @@index([destination_id])
+  @@index([tour_id, day_number])
+  @@index([tour_id, visit_order])
+  @@index([deleted_at])
+
+  @@map("tour_destinations")
+}
+
+// =====================================================
+// TOUR ITINERARIES
+// =====================================================
+
+model tour_itineraries {
+  id         BigInt @id @default(autoincrement())
+  tour_id    BigInt
+  day_number Int
+
+  title       String  @db.VarChar(200)
+  description String? @db.Text
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+
+  tour tours @relation(
+    fields: [tour_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  activities itinerary_activities[]
+
+  @@unique([tour_id, day_number])
+
+  @@index([tour_id])
+  @@index([deleted_at])
+
+  @@map("tour_itineraries")
+}
+
+// =====================================================
+// ITINERARY ACTIVITIES
+// =====================================================
+//
+// KHONG CO deleted_at
+//
+// KHONG HO TRO DELETE
+//
+// CHI HO TRO:
+// CREATE
+// GET
+// UPDATE
+// REORDER
+//
+// visit_order duoc quan ly rieng trong tung itinerary
+// =====================================================
+
+model itinerary_activities {
+  id           BigInt @id @default(autoincrement())
+  itinerary_id BigInt
+
+  destination_id BigInt?
+
+  start_time DateTime? @db.Time(0)
+  end_time   DateTime? @db.Time(0)
+
+  title       String  @db.VarChar(200)
+  description String? @db.Text
+
+  activity_type String? @db.VarChar(100)
+
+  visit_order Int
+
+  transportation String? @db.VarChar(100)
+
+  estimated_cost Decimal? @db.Decimal(15, 2)
+
+  note String? @db.Text
+
+  itinerary tour_itineraries @relation(
+    fields: [itinerary_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  destination destinations? @relation(
+    fields: [destination_id],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  // Quan trong:
+  // Moi activity trong cung itinerary
+  // phai co visit_order duy nhat
+
+  @@unique([itinerary_id, visit_order])
+
+  @@index([itinerary_id])
+  @@index([destination_id])
+
+  @@map("itinerary_activities")
+}
+
+// =====================================================
+// BOOKINGS
+// =====================================================
+
+model bookings {
+  id BigInt @id @default(autoincrement())
+
+  user_id     BigInt
+  tour_id     BigInt
+  schedule_id BigInt
+
+  total_people Int
+
+  total_amount Decimal @db.Decimal(15, 2)
+
+  // pending
+  // confirmed
+  // rejected
+  // cancelled
+  // tour_cancelled
+  // completed
+  // no_show
+
+  status String @default("pending") @db.VarChar(30)
+
+  special_request String? @db.Text
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user users @relation(
+    fields: [user_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  tour tours @relation(
+    fields: [tour_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  schedule tour_schedules @relation(
+    fields: [schedule_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  details booking_details[]
+
+  status_histories booking_status_histories[]
+
+  payments payments[]
+
+  refunds refunds[]
+
+  ticket tickets?
+
+  @@index([user_id])
+  @@index([tour_id])
+  @@index([schedule_id])
+  @@index([status])
+  @@index([created_at])
+
+  @@map("bookings")
+}
+
+// =====================================================
+// BOOKING DETAILS
+// =====================================================
+
+model booking_details {
+  id         BigInt @id @default(autoincrement())
+  booking_id BigInt
+
+  full_name String @db.VarChar(100)
+
+  phone String? @db.VarChar(20)
+  email String? @db.VarChar(150)
+
+  date_of_birth DateTime? @db.Date
+
+  gender String? @db.VarChar(20)
+
+  identity_number String? @db.VarChar(50)
+
+  special_request String? @db.Text
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  booking bookings @relation(
+    fields: [booking_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@index([booking_id])
+
+  @@map("booking_details")
+}
+
+// =====================================================
+// BOOKING STATUS HISTORIES
+// =====================================================
+
+model booking_status_histories {
+  id         BigInt @id @default(autoincrement())
+  booking_id BigInt
+
+  old_status String? @db.VarChar(30)
+  new_status String  @db.VarChar(30)
+
+  changed_by BigInt?
+
+  reason String? @db.Text
+
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  booking bookings @relation(
+    fields: [booking_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  user users? @relation(
+    fields: [changed_by],
+    references: [id],
+    onDelete: SetNull
+  )
+
+  @@index([booking_id])
+  @@index([changed_by])
+  @@index([created_at])
+
+  @@map("booking_status_histories")
+}
+
+// =====================================================
+// PAYMENTS
+// =====================================================
+
+model payments {
+  id         BigInt @id @default(autoincrement())
+  booking_id BigInt
+
+  payment_code     String? @unique @db.VarChar(100)
+  transaction_code String? @unique @db.VarChar(150)
+
+  amount Decimal @db.Decimal(15, 2)
+
+  // momo / vnpay / banking / cash
+  payment_method String @db.VarChar(50)
+
+  // pending
+  // processing
+  // paid
+  // failed
+  // refund_pending
+  // refunded
+
+  status String @default("pending") @db.VarChar(30)
+
+  paid_at DateTime? @db.Timestamptz(6)
+
+  gateway_response Json?
+
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  booking bookings @relation(
+    fields: [booking_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  refunds refunds[]
+
+  @@index([booking_id])
+  @@index([status])
+  @@index([created_at])
+
+  @@map("payments")
+}
+
+// =====================================================
+// REFUNDS
+// =====================================================
+
+model refunds {
+  id BigInt @id @default(autoincrement())
+
+  payment_id BigInt
+  booking_id BigInt
+
+  amount Decimal @db.Decimal(15, 2)
+
+  reason String? @db.Text
+
+  refund_method String? @db.VarChar(50)
+
+  transaction_code String? @unique @db.VarChar(150)
+
+  // pending
+  // processing
+  // completed
+  // failed
+
+  status String @default("pending") @db.VarChar(30)
+
+  requested_at DateTime  @default(now()) @db.Timestamptz(6)
+  processed_at DateTime? @db.Timestamptz(6)
+
+  note String? @db.Text
+
+  payment payments @relation(
+    fields: [payment_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  booking bookings @relation(
+    fields: [booking_id],
+    references: [id],
+    onDelete: Restrict
+  )
+
+  @@index([payment_id])
+  @@index([booking_id])
+  @@index([status])
+  @@index([requested_at])
+
+  @@map("refunds")
+}
+
+// =====================================================
+// TICKETS / QR CODE
+// =====================================================
+
+model tickets {
+  id BigInt @id @default(autoincrement())
+
+  booking_id BigInt @unique
+
+  ticket_code String @unique @db.VarChar(100)
+
+  qr_code String? @db.Text
+
+  // issued
+  // used
+  // cancelled
+
+  status String @default("issued") @db.VarChar(30)
+
+  issued_at DateTime  @default(now()) @db.Timestamptz(6)
+  used_at   DateTime? @db.Timestamptz(6)
+
+  booking bookings @relation(
+    fields: [booking_id],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@index([ticket_code])
+  @@index([status])
+
+  @@map("tickets")
+}

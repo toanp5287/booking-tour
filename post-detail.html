@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Bài viết | TravelGo Community</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="min-h-screen bg-[#070b12] text-white">
+    <!-- =====================================================
+         CINEMATIC SUNSET BACKGROUND
+    ====================================================== -->
+
+    <div class="fixed inset-0 -z-20 overflow-hidden">
+      <img
+        src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2400&q=95"
+        alt="Travel sunset"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+
+      <div class="absolute inset-0 bg-[#070b12]/82"></div>
+
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-[#070b12]/40 via-[#070b12]/80 to-[#070b12]"
+      ></div>
+
+      <div
+        class="absolute left-1/2 top-0 h-[550px] w-[800px] -translate-x-1/2 rounded-full bg-orange-400/10 blur-[150px]"
+      ></div>
+    </div>
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header
+      class="sticky top-0 z-50 border-b border-white/10 bg-[#070b12]/75 backdrop-blur-2xl"
+    >
+      <div
+        class="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10"
+      >
+        <!-- LOGO -->
+
+        <a href="index.html" class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 shadow-xl"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-5"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <div class="text-lg font-bold tracking-tight">
+              Travel<span class="text-white/40">Go</span>
+            </div>
+
+            <div class="text-[8px] uppercase tracking-[0.3em] text-white/35">
+              Travel Community
+            </div>
+          </div>
+        </a>
+
+        <!-- NAV -->
+
+        <nav class="hidden items-center gap-7 text-sm lg:flex">
+          <a
+            href="index.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Trang chủ
+          </a>
+
+          <a
+            href="tours.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Tours
+          </a>
+
+          <a
+            href="destinations.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Điểm đến
+          </a>
+
+          <a href="community.html" class="font-semibold text-white">
+            Cộng đồng
+          </a>
+
+          <a
+            href="ai-planner.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            TravelGo AI
+          </a>
+        </nav>
+
+        <!-- USER -->
+
+        <div class="flex items-center gap-3">
+          <a
+            href="create-post.html"
+            class="hidden rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-lg transition hover:-translate-y-0.5 hover:bg-white/90 sm:block"
+          >
+            + Đăng bài
+          </a>
+
+          <button
+            class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/55 transition hover:bg-white/10 hover:text-white"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.7"
+                d="M15 17h5l-1.5-1.5V11a6.5 6.5 0 00-13 0v4.5L4 17h5m3 4a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 21z"
+              />
+            </svg>
+          </button>
+
+          <a
+            href="profile.html"
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-sm font-bold shadow-lg"
+          >
+            V
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
+      <!-- BACK -->
+
+      <div class="mb-6">
+        <a
+          href="community.html"
+          class="inline-flex items-center gap-2 text-sm text-white/40 transition hover:text-white"
+        >
+          ← Quay lại cộng đồng
+        </a>
+      </div>
+
+      <!-- =====================================================
+           CONTENT GRID
+      ====================================================== -->
+
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_330px]">
+        <!-- ===================================================
+             LEFT CONTENT
+        ==================================================== -->
+
+        <section class="space-y-6">
+          <!-- =================================================
+               POST
+          ================================================== -->
+
+          <article
+            class="overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.055] shadow-2xl backdrop-blur-2xl"
+          >
+            <!-- AUTHOR -->
+
+            <div class="flex items-center justify-between p-6">
+              <div class="flex items-center gap-3">
+                <a
+                  href="profile.html"
+                  class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold shadow-lg"
+                >
+                  A
+                </a>
+
+                <div>
+                  <div class="flex items-center gap-2">
+                    <a
+                      href="profile.html"
+                      class="text-sm font-semibold hover:text-white/70"
+                    >
+                      Anh Minh
+                    </a>
+
+                    <span
+                      class="rounded-full bg-blue-400/10 px-2 py-0.5 text-[9px] font-semibold text-blue-300"
+                    >
+                      ✓ Đã xác minh
+                    </span>
+                  </div>
+
+                  <p class="mt-1 text-xs text-white/30">
+                    25 tháng 8, 2026 · 18:42 · Hà Giang
+                  </p>
+                </div>
+              </div>
+
+              <button
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-xl text-white/30 transition hover:bg-white/5 hover:text-white"
+              >
+                ···
+              </button>
+            </div>
+
+            <!-- TITLE -->
+
+            <div class="px-6 pb-5">
+              <h1
+                class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl"
+              >
+                Hoàng hôn trên đèo Mã Pí Lèng 🌄
+              </h1>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <a
+                  href="destinations.html"
+                  class="rounded-full bg-orange-400/10 px-3 py-1.5 text-xs text-orange-300 transition hover:bg-orange-400/20"
+                >
+                  #HaGiang
+                </a>
+
+                <a
+                  href="destinations.html"
+                  class="rounded-full bg-white/5 px-3 py-1.5 text-xs text-white/45 transition hover:bg-white/10 hover:text-white"
+                >
+                  #MaPiLeng
+                </a>
+
+                <a
+                  href="destinations.html"
+                  class="rounded-full bg-white/5 px-3 py-1.5 text-xs text-white/45 transition hover:bg-white/10 hover:text-white"
+                >
+                  #VietnamTravel
+                </a>
+              </div>
+            </div>
+
+            <!-- HERO IMAGE -->
+
+            <div class="relative">
+              <img
+                src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1800&q=95"
+                alt="Hà Giang"
+                class="max-h-[650px] w-full object-cover"
+              />
+
+              <div
+                class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 to-transparent"
+              ></div>
+
+              <div
+                class="absolute bottom-5 left-5 rounded-xl border border-white/10 bg-black/30 px-4 py-2 text-xs text-white/70 backdrop-blur-xl"
+              >
+                📍 Đèo Mã Pí Lèng · Hà Giang
+              </div>
+            </div>
+
+            <!-- STORY -->
+
+            <div class="p-6">
+              <div class="prose prose-invert max-w-none">
+                <p class="text-[15px] leading-8 text-white/70">
+                  Có những nơi chỉ cần đứng yên vài phút cũng đủ khiến mình quên
+                  mất thời gian.
+                </p>
+
+                <p class="mt-5 text-[15px] leading-8 text-white/70">
+                  Mã Pí Lèng đối với mình chính là một nơi như vậy. Đường lên
+                  đèo không quá dễ, nhưng khi đứng trên cao nhìn xuống dòng sông
+                  Nho Quế và những dãy núi nối tiếp nhau, mọi mệt mỏi gần như
+                  biến mất.
+                </p>
+
+                <p class="mt-5 text-[15px] leading-8 text-white/70">
+                  Mình đến đây vào khoảng 17h30. Đây có lẽ là khoảng thời gian
+                  đẹp nhất trong ngày. Ánh nắng cuối ngày phủ lên những ngọn núi
+                  một màu vàng cam rất nhẹ.
+                </p>
+              </div>
+
+              <!-- LOCATION CARD -->
+
+              <a
+                href="destination-detail.html"
+                class="mt-7 block overflow-hidden rounded-2xl border border-white/10 bg-black/20 transition hover:border-white/20"
+              >
+                <div class="flex items-center gap-4 p-4">
+                  <div
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-400/10 text-xl"
+                  >
+                    📍
+                  </div>
+
+                  <div class="flex-1">
+                    <p class="text-xs text-white/35">Điểm đến</p>
+
+                    <h3 class="mt-1 font-semibold">Đèo Mã Pí Lèng</h3>
+
+                    <p class="mt-1 text-xs text-white/35">
+                      Mèo Vạc · Hà Giang · Việt Nam
+                    </p>
+                  </div>
+
+                  <span class="text-white/30"> → </span>
+                </div>
+              </a>
+
+              <!-- PHOTO GRID -->
+
+              <div
+                class="mt-7 grid grid-cols-2 gap-2 overflow-hidden rounded-2xl"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1000&q=90"
+                  alt="Travel"
+                  class="h-64 w-full object-cover transition duration-500 hover:scale-[1.02]"
+                />
+
+                <img
+                  src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1000&q=90"
+                  alt="Mountain"
+                  class="h-64 w-full object-cover transition duration-500 hover:scale-[1.02]"
+                />
+              </div>
+
+              <!-- TOUR -->
+
+              <div class="mt-7">
+                <p class="text-xs uppercase tracking-[0.2em] text-white/30">
+                  Hành trình liên quan
+                </p>
+
+                <a
+                  href="tour-detail.html"
+                  class="mt-3 flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20 sm:flex-row"
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=500&q=85"
+                    alt="Tour Hà Giang"
+                    class="h-32 w-full rounded-xl object-cover sm:w-44"
+                  />
+
+                  <div class="flex-1">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-xs text-orange-300">TravelGo Tour</p>
+
+                        <h3 class="mt-1 font-semibold">
+                          Hà Giang 3N2Đ · Khám phá cực Bắc
+                        </h3>
+                      </div>
+
+                      <span class="text-sm text-yellow-300"> ★ 4.9 </span>
+                    </div>
+
+                    <p class="mt-3 text-xs leading-5 text-white/35">
+                      Khám phá Mã Pí Lèng, sông Nho Quế và những cung đường đẹp
+                      nhất Hà Giang.
+                    </p>
+
+                    <div class="mt-4 flex items-center justify-between">
+                      <span class="text-sm font-semibold"> 2.890.000đ </span>
+
+                      <span class="text-xs text-white/35"> Xem tour → </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <!-- ACTION BAR -->
+
+            <div class="border-t border-white/10 px-6 py-4">
+              <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-6">
+                  <button
+                    class="flex items-center gap-2 text-sm text-white/45 transition hover:text-red-400"
+                  >
+                    <span class="text-xl">♡</span>
+                    <span>246 lượt thích</span>
+                  </button>
+
+                  <button
+                    class="flex items-center gap-2 text-sm text-white/45 transition hover:text-white"
+                  >
+                    <span class="text-xl">○</span>
+                    <span>38 bình luận</span>
+                  </button>
+                </div>
+
+                <button
+                  class="flex items-center gap-2 text-sm text-white/40 transition hover:text-white"
+                >
+                  ↗ Chia sẻ
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- =================================================
+               COMMENT BOX
+          ================================================== -->
+
+          <section
+            class="rounded-[28px] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-2xl"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold"
+              >
+                V
+              </div>
+
+              <div class="flex-1">
+                <textarea
+                  rows="3"
+                  placeholder="Viết bình luận về hành trình này..."
+                  class="w-full resize-none rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder-white/25 transition focus:border-white/25"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="mt-3 flex items-center justify-between">
+              <button
+                class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/45 transition hover:bg-white/10 hover:text-white"
+              >
+                📷 Thêm ảnh
+              </button>
+
+              <button
+                class="rounded-xl bg-white px-5 py-2.5 text-xs font-semibold text-slate-900 transition hover:bg-white/90"
+              >
+                Bình luận
+              </button>
+            </div>
+          </section>
+
+          <!-- =================================================
+               COMMENTS
+          ================================================== -->
+
+          <section
+            class="rounded-[28px] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-2xl"
+          >
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold">
+                Bình luận
+                <span class="text-white/30">(38)</span>
+              </h2>
+
+              <select
+                class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50 outline-none"
+              >
+                <option class="bg-[#070b12]">Mới nhất</option>
+
+                <option class="bg-[#070b12]">Nhiều tương tác</option>
+              </select>
+            </div>
+
+            <!-- COMMENT 1 -->
+
+            <div class="mt-7 flex gap-3">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-300 to-blue-600 text-sm font-bold"
+              >
+                L
+              </div>
+
+              <div class="flex-1">
+                <div class="rounded-2xl bg-black/20 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold">Linh Nguyễn</h3>
+
+                    <span class="text-[10px] text-white/25">
+                      18 phút trước
+                    </span>
+                  </div>
+
+                  <p class="mt-2 text-sm leading-6 text-white/55">
+                    Ảnh đẹp quá bạn ơi 😍 Mình cũng đang dự định đi Hà Giang vào
+                    tháng sau.
+                  </p>
+                </div>
+
+                <div class="mt-2 flex items-center gap-4 px-2">
+                  <button class="text-xs text-white/35 hover:text-red-400">
+                    ♡ 12
+                  </button>
+
+                  <button class="text-xs text-white/35 hover:text-white">
+                    Trả lời
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- COMMENT 2 -->
+
+            <div class="mt-6 flex gap-3">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-300 to-purple-600 text-sm font-bold"
+              >
+                T
+              </div>
+
+              <div class="flex-1">
+                <div class="rounded-2xl bg-black/20 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold">Tuấn Trần</h3>
+
+                    <span class="text-[10px] text-white/25">
+                      42 phút trước
+                    </span>
+                  </div>
+
+                  <p class="mt-2 text-sm leading-6 text-white/55">
+                    Cho mình hỏi cung đường này đi xe máy có khó không?
+                  </p>
+                </div>
+
+                <div class="mt-2 flex items-center gap-4 px-2">
+                  <button class="text-xs text-white/35 hover:text-red-400">
+                    ♡ 8
+                  </button>
+
+                  <button class="text-xs text-white/35 hover:text-white">
+                    Trả lời
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- COMMENT 3 -->
+
+            <div class="mt-6 flex gap-3">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-300 to-emerald-600 text-sm font-bold"
+              >
+                M
+              </div>
+
+              <div class="flex-1">
+                <div class="rounded-2xl bg-black/20 px-4 py-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <h3 class="text-sm font-semibold">Minh Anh</h3>
+
+                      <span
+                        class="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] text-emerald-300"
+                      >
+                        Đã trải nghiệm
+                      </span>
+                    </div>
+
+                    <span class="text-[10px] text-white/25"> 1 giờ trước </span>
+                  </div>
+
+                  <p class="mt-2 text-sm leading-6 text-white/55">
+                    Mình đi cung này năm ngoái rồi. Cực kỳ đáng đi, đặc biệt là
+                    đoạn sông Nho Quế.
+                  </p>
+                </div>
+
+                <div class="mt-2 flex items-center gap-4 px-2">
+                  <button class="text-xs text-white/35 hover:text-red-400">
+                    ♡ 21
+                  </button>
+
+                  <button class="text-xs text-white/35 hover:text-white">
+                    Trả lời
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="mt-7 w-full rounded-xl border border-white/10 bg-white/[0.03] py-3 text-xs text-white/40 transition hover:bg-white/10 hover:text-white"
+            >
+              Xem thêm bình luận
+            </button>
+          </section>
+        </section>
+
+        <!-- ===================================================
+             SIDEBAR
+        ==================================================== -->
+
+        <aside class="space-y-5">
+          <!-- AUTHOR CARD -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-lg font-bold"
+              >
+                A
+              </div>
+
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="font-semibold">Anh Minh</h3>
+
+                  <span class="text-xs text-blue-300"> ✓ </span>
+                </div>
+
+                <p class="mt-1 text-xs text-white/30">Traveller · Hà Nội</p>
+              </div>
+            </div>
+
+            <div
+              class="mt-5 grid grid-cols-3 border-t border-white/10 pt-5 text-center"
+            >
+              <div>
+                <p class="font-semibold">48</p>
+
+                <p class="mt-1 text-[10px] text-white/30">Bài viết</p>
+              </div>
+
+              <div class="border-x border-white/10">
+                <p class="font-semibold">1.8K</p>
+
+                <p class="mt-1 text-[10px] text-white/30">Theo dõi</p>
+              </div>
+
+              <div>
+                <p class="font-semibold">2.4K</p>
+
+                <p class="mt-1 text-[10px] text-white/30">Followers</p>
+              </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-2 gap-2">
+              <button
+                class="rounded-xl bg-white py-2.5 text-xs font-semibold text-slate-900 transition hover:bg-white/90"
+              >
+                Theo dõi
+              </button>
+
+              <a
+                href="profile.html"
+                class="rounded-xl border border-white/10 bg-white/5 py-2.5 text-center text-xs text-white/50 transition hover:bg-white/10 hover:text-white"
+              >
+                Trang cá nhân
+              </a>
+            </div>
+          </div>
+
+          <!-- LOCATION -->
+
+          <div
+            class="overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.06] backdrop-blur-2xl"
+          >
+            <div class="relative h-40">
+              <img
+                src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=700&q=85"
+                alt="Hà Giang"
+                class="h-full w-full object-cover"
+              />
+
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"
+              ></div>
+
+              <div class="absolute bottom-4 left-4">
+                <p class="text-xs text-white/50">Điểm đến</p>
+
+                <h3 class="mt-1 text-lg font-semibold">Hà Giang</h3>
+              </div>
+            </div>
+
+            <div class="p-5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs text-white/30">Đánh giá cộng đồng</p>
+
+                  <p class="mt-1 font-semibold">★ 4.9</p>
+                </div>
+
+                <a
+                  href="destination-detail.html"
+                  class="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50 hover:bg-white/10 hover:text-white"
+                >
+                  Khám phá
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- RELATED POSTS -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Bài viết liên quan</h3>
+
+              <a
+                href="community.html"
+                class="text-xs text-white/30 hover:text-white"
+              >
+                Xem tất cả
+              </a>
+            </div>
+
+            <div class="mt-5 space-y-4">
+              <a href="post-detail.html" class="group flex gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=300&q=80"
+                  alt="Mountain"
+                  class="h-16 w-16 rounded-xl object-cover"
+                />
+
+                <div class="flex-1">
+                  <p
+                    class="line-clamp-2 text-sm font-medium leading-5 group-hover:text-white/70"
+                  >
+                    Những cung đường đẹp nhất Hà Giang
+                  </p>
+
+                  <p class="mt-2 text-[10px] text-white/30">♡ 128 · ○ 21</p>
+                </div>
+              </a>
+
+              <a href="post-detail.html" class="group flex gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=300&q=80"
+                  alt="Travel"
+                  class="h-16 w-16 rounded-xl object-cover"
+                />
+
+                <div class="flex-1">
+                  <p
+                    class="line-clamp-2 text-sm font-medium leading-5 group-hover:text-white/70"
+                  >
+                    5 địa điểm nhất định phải ghé ở miền Bắc
+                  </p>
+
+                  <p class="mt-2 text-[10px] text-white/30">♡ 94 · ○ 16</p>
+                </div>
+              </a>
+
+              <a href="post-detail.html" class="group flex gap-3">
+                <img
+                  src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=300&q=80"
+                  alt="Travel"
+                  class="h-16 w-16 rounded-xl object-cover"
+                />
+
+                <div class="flex-1">
+                  <p
+                    class="line-clamp-2 text-sm font-medium leading-5 group-hover:text-white/70"
+                  >
+                    Kinh nghiệm đi Sapa tự túc
+                  </p>
+
+                  <p class="mt-2 text-[10px] text-white/30">♡ 76 · ○ 12</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- COMMUNITY -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-gradient-to-br from-orange-400/10 via-white/[0.04] to-transparent p-5"
+          >
+            <div class="text-2xl">🌅</div>
+
+            <h3 class="mt-4 font-semibold">Cùng chia sẻ hành trình</h3>
+
+            <p class="mt-3 text-xs leading-6 text-white/35">
+              Chia sẻ trải nghiệm thật, hình ảnh và những địa điểm bạn đã khám
+              phá cùng cộng đồng TravelGo.
+            </p>
+
+            <a
+              href="create-post.html"
+              class="mt-4 block rounded-xl bg-white py-2.5 text-center text-xs font-semibold text-slate-900 transition hover:bg-white/90"
+            >
+              + Tạo bài viết
+            </a>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="border-t border-white/10 bg-[#070b12]/90">
+      <div
+        class="mx-auto flex max-w-7xl flex-col justify-between gap-4 px-5 py-8 text-xs text-white/25 sm:flex-row sm:px-8 lg:px-10"
+      >
+        <p>© 2026 TravelGo. All rights reserved.</p>
+
+        <div class="flex gap-5">
+          <a href="about.html" class="transition hover:text-white">
+            Về TravelGo
+          </a>
+
+          <a href="contact.html" class="transition hover:text-white">
+            Liên hệ
+          </a>
+
+          <a href="privacy.html" class="transition hover:text-white">
+            Chính sách
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

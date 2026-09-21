@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Thanh toán | TravelGo</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="min-h-screen bg-[#070b12] text-white">
+    <!-- =====================================================
+         SUNSET BACKGROUND
+    ====================================================== -->
+
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+      <img
+        src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2400&q=95"
+        alt="Sunset travel"
+        class="absolute inset-0 h-full w-full object-cover"
+      />
+
+      <!-- Dark cinematic overlay -->
+      <div class="absolute inset-0 bg-black/65"></div>
+
+      <!-- Sunset warm atmosphere -->
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-black/30 via-[#120d0c]/45 to-[#070b12]/95"
+      ></div>
+
+      <!-- Bottom shadow -->
+      <div
+        class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#070b12] via-[#070b12]/80 to-transparent"
+      ></div>
+
+      <!-- Soft sunset glow -->
+      <div
+        class="absolute left-[20%] top-[15%] h-[420px] w-[420px] rounded-full bg-orange-400/10 blur-[130px]"
+      ></div>
+    </div>
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header
+      class="sticky top-0 z-50 border-b border-white/10 bg-[#070b12]/75 backdrop-blur-2xl"
+    >
+      <div
+        class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10"
+      >
+        <!-- LOGO -->
+
+        <a href="index.html" class="group flex items-center gap-3">
+          <div
+            class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-lg backdrop-blur-xl transition group-hover:bg-white/15"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-5"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <div class="text-xl font-bold tracking-tight">
+              Travel<span class="text-white/45">Go</span>
+            </div>
+
+            <div class="text-[9px] uppercase tracking-[0.3em] text-white/35">
+              Travel & Explore
+            </div>
+          </div>
+        </a>
+
+        <!-- STEP -->
+
+        <div class="hidden items-center gap-3 text-xs sm:flex">
+          <span class="text-white/45">1. Đặt tour</span>
+
+          <span class="text-white/20">→</span>
+
+          <span class="font-semibold text-white">2. Thanh toán</span>
+
+          <span class="text-white/20">→</span>
+
+          <span class="text-white/45">3. Hoàn tất</span>
+        </div>
+
+        <!-- SECURITY -->
+
+        <div class="flex items-center gap-2 text-xs text-white/45">
+          <svg
+            class="h-4 w-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v2h8z"
+            />
+          </svg>
+
+          <span class="hidden sm:block">Thanh toán an toàn</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="relative mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
+      <!-- PAGE TITLE -->
+
+      <div class="mb-8">
+        <a
+          href="booking.html"
+          class="inline-flex items-center gap-2 text-sm text-white/45 transition hover:text-white"
+        >
+          <span>←</span>
+          Quay lại đặt tour
+        </a>
+
+        <h1 class="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">
+          Hoàn tất thanh toán
+        </h1>
+
+        <p class="mt-2 text-sm text-white/45">
+          Kiểm tra thông tin và lựa chọn phương thức thanh toán phù hợp.
+        </p>
+      </div>
+
+      <!-- =====================================================
+           CONTENT GRID
+      ====================================================== -->
+
+      <div class="grid gap-7 lg:grid-cols-[1fr_390px]">
+        <!-- ===================================================
+             LEFT
+        ==================================================== -->
+
+        <div class="space-y-6">
+          <!-- TOUR SUMMARY -->
+
+          <section
+            class="overflow-hidden rounded-[2rem] border border-white/15 bg-white/[0.08] shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl"
+          >
+            <div class="border-b border-white/10 px-6 py-5 sm:px-7">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p
+                    class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35"
+                  >
+                    Tour của bạn
+                  </p>
+
+                  <h2 class="mt-1 text-lg font-semibold">
+                    Khám phá Hạ Long 3 ngày 2 đêm
+                  </h2>
+                </div>
+
+                <span
+                  class="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] text-white/55"
+                >
+                  TG-2026-001
+                </span>
+              </div>
+            </div>
+
+            <div class="p-6 sm:p-7">
+              <div class="flex flex-col gap-5 sm:flex-row">
+                <img
+                  src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=900&q=90"
+                  alt="Ha Long Bay"
+                  class="h-40 w-full rounded-2xl object-cover sm:w-56"
+                />
+
+                <div class="flex-1">
+                  <div class="flex flex-wrap gap-2">
+                    <span
+                      class="rounded-full bg-white/10 px-3 py-1 text-[10px] text-white/60"
+                    >
+                      3 ngày 2 đêm
+                    </span>
+
+                    <span
+                      class="rounded-full bg-white/10 px-3 py-1 text-[10px] text-white/60"
+                    >
+                      Hạ Long
+                    </span>
+                  </div>
+
+                  <div class="mt-4 space-y-3 text-sm text-white/55">
+                    <div class="flex items-center gap-3">
+                      <span class="text-white/30">📅</span>
+                      <span>20/09/2026 → 22/09/2026</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                      <span class="text-white/30">👥</span>
+                      <span>2 người lớn</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                      <span class="text-white/30">📍</span>
+                      <span>Hà Nội → Hạ Long</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CUSTOMER INFORMATION -->
+
+          <section
+            class="rounded-[2rem] border border-white/15 bg-white/[0.08] p-6 shadow-[0_25px_70px_rgba(0,0,0,0.3)] backdrop-blur-2xl sm:p-7"
+          >
+            <div class="mb-6">
+              <p
+                class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35"
+              >
+                Thông tin thanh toán
+              </p>
+
+              <h2 class="mt-1 text-lg font-semibold">Thông tin người đặt</h2>
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+              <!-- NAME -->
+
+              <div>
+                <label
+                  for="fullname"
+                  class="mb-2 block text-sm font-medium text-white/75"
+                >
+                  Họ và tên
+                </label>
+
+                <input
+                  id="fullname"
+                  type="text"
+                  value="Nguyễn Văn A"
+                  class="w-full rounded-2xl border border-white/15 bg-black/20 px-4 py-3.5 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/40 focus:bg-black/30 focus:ring-4 focus:ring-white/5"
+                />
+              </div>
+
+              <!-- PHONE -->
+
+              <div>
+                <label
+                  for="phone"
+                  class="mb-2 block text-sm font-medium text-white/75"
+                >
+                  Số điện thoại
+                </label>
+
+                <input
+                  id="phone"
+                  type="tel"
+                  value="0987654321"
+                  class="w-full rounded-2xl border border-white/15 bg-black/20 px-4 py-3.5 text-sm text-white outline-none transition focus:border-white/40 focus:bg-black/30 focus:ring-4 focus:ring-white/5"
+                />
+              </div>
+
+              <!-- EMAIL -->
+
+              <div class="sm:col-span-2">
+                <label
+                  for="email"
+                  class="mb-2 block text-sm font-medium text-white/75"
+                >
+                  Email nhận vé
+                </label>
+
+                <input
+                  id="email"
+                  type="email"
+                  value="example@gmail.com"
+                  class="w-full rounded-2xl border border-white/15 bg-black/20 px-4 py-3.5 text-sm text-white outline-none transition focus:border-white/40 focus:bg-black/30 focus:ring-4 focus:ring-white/5"
+                />
+
+                <p class="mt-2 text-xs text-white/30">
+                  Vé điện tử và thông tin đặt tour sẽ được gửi đến email này.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- PAYMENT METHODS -->
+
+          <section
+            class="rounded-[2rem] border border-white/15 bg-white/[0.08] p-6 shadow-[0_25px_70px_rgba(0,0,0,0.3)] backdrop-blur-2xl sm:p-7"
+          >
+            <div class="mb-6">
+              <p
+                class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35"
+              >
+                Payment
+              </p>
+
+              <h2 class="mt-1 text-lg font-semibold">
+                Chọn phương thức thanh toán
+              </h2>
+            </div>
+
+            <div class="space-y-3">
+              <!-- VNPAY -->
+
+              <label
+                class="group flex cursor-pointer items-center gap-4 rounded-2xl border border-white/20 bg-white/[0.08] p-4 transition hover:border-white/35 hover:bg-white/[0.12]"
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  value="vnpay"
+                  checked
+                  class="h-4 w-4 accent-white"
+                />
+
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0066b3] text-xs font-black text-white shadow-lg"
+                >
+                  VNPAY
+                </div>
+
+                <div class="flex-1">
+                  <p class="text-sm font-semibold">VNPAY</p>
+
+                  <p class="mt-1 text-xs text-white/35">
+                    Thanh toán qua ngân hàng, QR hoặc thẻ.
+                  </p>
+                </div>
+
+                <span class="text-white/30">›</span>
+              </label>
+
+              <!-- MOMO -->
+
+              <label
+                class="group flex cursor-pointer items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.05] p-4 transition hover:border-white/35 hover:bg-white/[0.1]"
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  value="momo"
+                  class="h-4 w-4 accent-white"
+                />
+
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-xl bg-[#a50064] text-sm font-black text-white shadow-lg"
+                >
+                  M
+                </div>
+
+                <div class="flex-1">
+                  <p class="text-sm font-semibold">MoMo</p>
+
+                  <p class="mt-1 text-xs text-white/35">
+                    Thanh toán nhanh qua ví điện tử MoMo.
+                  </p>
+                </div>
+
+                <span class="text-white/30">›</span>
+              </label>
+
+              <!-- CARD -->
+
+              <label
+                class="group flex cursor-pointer items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.05] p-4 transition hover:border-white/35 hover:bg-white/[0.1]"
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  value="card"
+                  class="h-4 w-4 accent-white"
+                />
+
+                <div
+                  class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-white"
+                >
+                  <svg
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect
+                      x="3"
+                      y="5"
+                      width="18"
+                      height="14"
+                      rx="2"
+                      stroke-width="1.6"
+                    />
+
+                    <path stroke-width="1.6" d="M3 10h18" />
+                  </svg>
+                </div>
+
+                <div class="flex-1">
+                  <p class="text-sm font-semibold">Thẻ ngân hàng</p>
+
+                  <p class="mt-1 text-xs text-white/35">
+                    Visa, Mastercard và các loại thẻ hỗ trợ.
+                  </p>
+                </div>
+
+                <span class="text-white/30">›</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- VOUCHER -->
+
+          <section
+            class="rounded-[2rem] border border-white/15 bg-white/[0.08] p-6 backdrop-blur-2xl sm:p-7"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10"
+              >
+                🎟️
+              </div>
+
+              <div>
+                <h2 class="text-sm font-semibold">Mã giảm giá</h2>
+
+                <p class="mt-1 text-xs text-white/35">
+                  Nhập mã nếu bạn có voucher.
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-5 flex gap-3">
+              <input
+                type="text"
+                placeholder="Nhập mã voucher"
+                class="min-w-0 flex-1 rounded-2xl border border-white/15 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/40"
+              />
+
+              <button
+                type="button"
+                class="rounded-2xl border border-white/20 bg-white/10 px-5 text-sm font-semibold transition hover:bg-white/15"
+              >
+                Áp dụng
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===================================================
+             RIGHT - ORDER SUMMARY
+        ==================================================== -->
+
+        <aside class="lg:sticky lg:top-28 lg:self-start">
+          <div
+            class="overflow-hidden rounded-[2rem] border border-white/20 bg-[#0b1018]/85 shadow-[0_35px_100px_rgba(0,0,0,0.5)] backdrop-blur-2xl"
+          >
+            <!-- SUMMARY HEADER -->
+
+            <div class="border-b border-white/10 bg-white/[0.04] p-6">
+              <p
+                class="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35"
+              >
+                Order summary
+              </p>
+
+              <h2 class="mt-1 text-xl font-bold">Chi tiết thanh toán</h2>
+            </div>
+
+            <!-- PRICE -->
+
+            <div class="space-y-4 p-6">
+              <div class="flex justify-between text-sm">
+                <span class="text-white/45"> 2 × Người lớn </span>
+
+                <span class="font-medium"> 4.000.000₫ </span>
+              </div>
+
+              <div class="flex justify-between text-sm">
+                <span class="text-white/45"> Phí dịch vụ </span>
+
+                <span class="font-medium"> 100.000₫ </span>
+              </div>
+
+              <div class="flex justify-between text-sm">
+                <span class="text-white/45"> Giảm giá </span>
+
+                <span class="font-medium text-emerald-400"> -200.000₫ </span>
+              </div>
+
+              <div class="my-5 h-px bg-white/10"></div>
+
+              <div class="flex items-end justify-between">
+                <div>
+                  <p class="text-xs text-white/35">Tổng thanh toán</p>
+
+                  <p class="mt-1 text-2xl font-bold">3.900.000₫</p>
+                </div>
+
+                <span class="text-xs text-white/30"> VNĐ </span>
+              </div>
+
+              <!-- PAY BUTTON -->
+
+              <button
+                type="button"
+                class="group relative mt-3 w-full overflow-hidden rounded-2xl bg-white py-4 text-sm font-bold text-slate-900 shadow-[0_15px_40px_rgba(0,0,0,0.3)] transition hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4)] active:translate-y-0"
+              >
+                <span
+                  class="absolute inset-y-0 -left-full w-1/2 skew-x-[-20deg] bg-gradient-to-r from-transparent via-black/5 to-transparent transition-all duration-700 group-hover:left-[130%]"
+                ></span>
+
+                <span class="relative flex items-center justify-center gap-2">
+                  Thanh toán 3.900.000₫
+
+                  <svg
+                    class="h-4 w-4 transition group-hover:translate-x-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 12h14M13 6l6 6-6 6"
+                    />
+                  </svg>
+                </span>
+              </button>
+
+              <!-- SECURITY -->
+
+              <div class="pt-3">
+                <div
+                  class="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3"
+                >
+                  <svg
+                    class="mt-0.5 h-4 w-4 shrink-0 text-white/40"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                      d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"
+                    />
+                  </svg>
+
+                  <p class="text-[11px] leading-5 text-white/35">
+                    Thông tin thanh toán của bạn được bảo vệ bằng kết nối bảo
+                    mật. TravelGo không lưu thông tin thẻ của bạn.
+                  </p>
+                </div>
+              </div>
+
+              <!-- SUPPORT -->
+
+              <div
+                class="flex items-center justify-center gap-2 pt-2 text-[11px] text-white/30"
+              >
+                <span>✓</span>
+                <span>Đặt tour an toàn</span>
+
+                <span class="text-white/15">•</span>
+
+                <span>✓</span>
+                <span>Hỗ trợ 24/7</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BACK -->
+
+          <div class="mt-5 text-center">
+            <a
+              href="booking.html"
+              class="inline-flex items-center gap-2 text-sm text-white/40 transition hover:text-white"
+            >
+              ← Quay lại thông tin đặt tour
+            </a>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="relative mt-10 border-t border-white/10 bg-[#070b12]/90">
+      <div
+        class="mx-auto flex max-w-7xl flex-col justify-between gap-3 px-5 py-6 text-xs text-white/25 sm:flex-row sm:px-8 lg:px-10"
+      >
+        <p>© 2026 TravelGo. All rights reserved.</p>
+
+        <p>Secure payment · Discover · Travel · Experience</p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Yêu thích | TravelGo</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="min-h-screen bg-[#070b12] text-white">
+    <!-- =====================================================
+         CINEMATIC SUNSET BACKGROUND
+    ====================================================== -->
+
+    <div class="fixed inset-0 -z-20 overflow-hidden">
+      <img
+        src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2400&q=95"
+        alt="Travel sunset"
+        class="absolute inset-0 h-full w-full object-cover object-center"
+      />
+
+      <div class="absolute inset-0 bg-[#070b12]/80"></div>
+
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-[#070b12]/45 via-[#070b12]/80 to-[#070b12]"
+      ></div>
+
+      <div
+        class="absolute left-1/2 top-0 h-[550px] w-[800px] -translate-x-1/2 rounded-full bg-orange-400/10 blur-[150px]"
+      ></div>
+    </div>
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header
+      class="sticky top-0 z-50 border-b border-white/10 bg-[#070b12]/75 backdrop-blur-2xl"
+    >
+      <div
+        class="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10"
+      >
+        <!-- LOGO -->
+
+        <a href="index.html" class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10 shadow-xl"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-5"
+              />
+            </svg>
+          </div>
+
+          <div>
+            <div class="text-lg font-bold tracking-tight">
+              Travel<span class="text-white/40">Go</span>
+            </div>
+
+            <div class="text-[8px] uppercase tracking-[0.3em] text-white/35">
+              Your saved journeys
+            </div>
+          </div>
+        </a>
+
+        <!-- NAV -->
+
+        <nav class="hidden items-center gap-7 text-sm lg:flex">
+          <a
+            href="index.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Trang chủ
+          </a>
+
+          <a
+            href="tours.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Tours
+          </a>
+
+          <a
+            href="destinations.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Điểm đến
+          </a>
+
+          <a
+            href="community.html"
+            class="text-white/45 transition hover:text-white"
+          >
+            Cộng đồng
+          </a>
+
+          <a href="ai.html" class="text-white/45 transition hover:text-white">
+            TravelGo AI
+          </a>
+        </nav>
+
+        <!-- USER -->
+
+        <div class="flex items-center gap-3">
+          <a
+            href="chat.html"
+            class="hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white sm:flex"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.7"
+                d="M8 10h8M8 14h5m7-2a8 8 0 01-8 8H5l-3 2 1.5-4A8 8 0 1119 12z"
+              />
+            </svg>
+          </a>
+
+          <a
+            href="profile.html"
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-sm font-bold shadow-lg"
+          >
+            V
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
+      <!-- ===================================================
+           PAGE HEADER
+      ==================================================== -->
+
+      <section class="mb-10">
+        <div
+          class="flex flex-col justify-between gap-6 md:flex-row md:items-end"
+        >
+          <div>
+            <div
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60 backdrop-blur-xl"
+            >
+              <span class="h-2 w-2 rounded-full bg-orange-300"></span>
+
+              Saved journeys
+            </div>
+
+            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+              Những điều bạn
+              <span class="text-white/40"> muốn khám phá. </span>
+            </h1>
+
+            <p
+              class="mt-4 max-w-2xl text-sm leading-7 text-white/45 sm:text-base"
+            >
+              Lưu lại những tour, điểm đến, bài viết và lịch trình bạn yêu thích
+              để dễ dàng quay lại khi chuẩn bị cho chuyến đi.
+            </p>
+          </div>
+
+          <!-- TOTAL -->
+
+          <div
+            class="flex w-fit items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-4 backdrop-blur-xl"
+          >
+            <div
+              class="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-400/10 text-xl"
+            >
+              ♡
+            </div>
+
+            <div>
+              <p class="text-2xl font-bold">18</p>
+
+              <p class="text-xs text-white/35">mục đã lưu</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================
+           CATEGORY TABS
+      ==================================================== -->
+
+      <div class="mb-8 flex gap-2 overflow-x-auto pb-2">
+        <button
+          class="shrink-0 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 shadow-lg"
+        >
+          Tất cả
+        </button>
+
+        <button
+          class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 backdrop-blur-xl transition hover:bg-white/10 hover:text-white"
+        >
+          ✈️ Tours
+        </button>
+
+        <button
+          class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 backdrop-blur-xl transition hover:bg-white/10 hover:text-white"
+        >
+          📍 Điểm đến
+        </button>
+
+        <button
+          class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 backdrop-blur-xl transition hover:bg-white/10 hover:text-white"
+        >
+          📝 Bài viết
+        </button>
+
+        <button
+          class="shrink-0 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 backdrop-blur-xl transition hover:bg-white/10 hover:text-white"
+        >
+          ✨ Lịch trình AI
+        </button>
+      </div>
+
+      <!-- ===================================================
+           SEARCH + SORT
+      ==================================================== -->
+
+      <div
+        class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div class="relative">
+          <svg
+            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linecap="round"
+              stroke-width="1.7"
+              d="M21 21l-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"
+            />
+          </svg>
+
+          <input
+            type="text"
+            placeholder="Tìm trong mục yêu thích..."
+            class="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none backdrop-blur-xl transition focus:border-orange-300/30 sm:w-72"
+          />
+        </div>
+
+        <button
+          class="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50 transition hover:bg-white/10 hover:text-white"
+        >
+          Mới lưu gần đây ▾
+        </button>
+      </div>
+
+      <!-- ===================================================
+           CONTENT
+      ==================================================== -->
+
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <!-- =================================================
+             SAVED CONTENT
+        ================================================== -->
+
+        <section>
+          <div class="grid gap-5 md:grid-cols-2">
+            <!-- =================================================
+                 TOUR CARD
+            ================================================== -->
+
+            <article
+              class="group overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.055] shadow-2xl backdrop-blur-2xl"
+            >
+              <div class="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=90"
+                  alt="Hạ Long"
+                  class="h-60 w-full object-cover transition duration-700 group-hover:scale-105"
+                />
+
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"
+                ></div>
+
+                <div
+                  class="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1.5 text-[10px] font-medium backdrop-blur-xl"
+                >
+                  TOUR
+                </div>
+
+                <button
+                  class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-red-300 backdrop-blur-xl transition hover:bg-black/60"
+                >
+                  ♥
+                </button>
+
+                <div class="absolute bottom-4 left-4 right-4">
+                  <div class="flex items-end justify-between gap-3">
+                    <div>
+                      <p class="text-xs text-white/50">Hạ Long · Quảng Ninh</p>
+
+                      <h2 class="mt-1 text-lg font-semibold">Hạ Long 3N2Đ</h2>
+                    </div>
+
+                    <div class="text-right">
+                      <p class="text-xs text-white/40">từ</p>
+
+                      <p class="font-bold">3.490.000₫</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-5">
+                <div class="flex items-center justify-between">
+                  <div class="flex gap-1 text-sm text-yellow-300">★★★★★</div>
+
+                  <span class="text-xs text-white/30">
+                    4.9 · 320 đánh giá
+                  </span>
+                </div>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <span
+                    class="rounded-lg bg-white/5 px-2.5 py-1.5 text-[10px] text-white/40"
+                  >
+                    3 ngày 2 đêm
+                  </span>
+
+                  <span
+                    class="rounded-lg bg-white/5 px-2.5 py-1.5 text-[10px] text-white/40"
+                  >
+                    Xe du lịch
+                  </span>
+
+                  <span
+                    class="rounded-lg bg-white/5 px-2.5 py-1.5 text-[10px] text-white/40"
+                  >
+                    Khách sạn
+                  </span>
+                </div>
+
+                <a
+                  href="tour-detail.html"
+                  class="mt-5 block rounded-xl bg-white py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-white/90"
+                >
+                  Xem tour
+                </a>
+              </div>
+            </article>
+
+            <!-- =================================================
+                 TOUR CARD 2
+            ================================================== -->
+
+            <article
+              class="group overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.055] shadow-2xl backdrop-blur-2xl"
+            >
+              <div class="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=90"
+                  alt="Đà Nẵng"
+                  class="h-60 w-full object-cover transition duration-700 group-hover:scale-105"
+                />
+
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent"
+                ></div>
+
+                <div
+                  class="absolute left-4 top-4 rounded-full bg-black/45 px-3 py-1.5 text-[10px] font-medium backdrop-blur-xl"
+                >
+                  TOUR
+                </div>
+
+                <button
+                  class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-red-300 backdrop-blur-xl"
+                >
+                  ♥
+                </button>
+
+                <div class="absolute bottom-4 left-4">
+                  <p class="text-xs text-white/50">Đà Nẵng · Hội An</p>
+
+                  <h2 class="mt-1 text-lg font-semibold">
+                    Đà Nẵng - Hội An 4N3Đ
+                  </h2>
+                </div>
+              </div>
+
+              <div class="p-5">
+                <div class="flex items-center justify-between">
+                  <div class="text-sm tracking-widest text-yellow-300">
+                    ★★★★★
+                  </div>
+
+                  <span class="text-xs text-white/30">
+                    4.8 · 286 đánh giá
+                  </span>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between">
+                  <div>
+                    <p class="text-xs text-white/30">Giá từ</p>
+
+                    <p class="mt-1 text-lg font-bold">4.290.000₫</p>
+                  </div>
+
+                  <span
+                    class="rounded-full bg-emerald-400/10 px-3 py-1.5 text-[10px] text-emerald-300"
+                  >
+                    Còn chỗ
+                  </span>
+                </div>
+
+                <a
+                  href="tour-detail.html"
+                  class="mt-5 block rounded-xl bg-white py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-white/90"
+                >
+                  Xem tour
+                </a>
+              </div>
+            </article>
+
+            <!-- =================================================
+                 DESTINATION
+            ================================================== -->
+
+            <article
+              class="group overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.055] shadow-2xl backdrop-blur-2xl"
+            >
+              <div class="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=90"
+                  alt="Hạ Long"
+                  class="h-60 w-full object-cover transition duration-700 group-hover:scale-105"
+                />
+
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"
+                ></div>
+
+                <div
+                  class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-red-300 backdrop-blur-xl"
+                >
+                  ♥
+                </div>
+
+                <div class="absolute bottom-5 left-5">
+                  <p class="text-xs text-white/50">Điểm đến</p>
+
+                  <h2 class="mt-1 text-2xl font-bold">Hạ Long</h2>
+
+                  <p class="mt-1 text-xs text-white/50">
+                    Quảng Ninh · Việt Nam
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-yellow-300"> ★ 4.9 </span>
+
+                  <span class="text-xs text-white/30"> 320 đánh giá </span>
+                </div>
+
+                <p class="mt-4 text-sm leading-6 text-white/45">
+                  Vịnh biển nổi tiếng với những đảo đá vôi, cảnh hoàng hôn tuyệt
+                  đẹp và nhiều hoạt động khám phá.
+                </p>
+
+                <a
+                  href="destination-detail.html"
+                  class="mt-5 block rounded-xl border border-white/10 bg-white/5 py-3 text-center text-sm font-medium text-white/60 transition hover:bg-white/10 hover:text-white"
+                >
+                  Khám phá điểm đến
+                </a>
+              </div>
+            </article>
+
+            <!-- =================================================
+                 COMMUNITY POST
+            ================================================== -->
+
+            <article
+              class="rounded-[26px] border border-white/10 bg-white/[0.055] p-5 shadow-2xl backdrop-blur-2xl"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold"
+                  >
+                    A
+                  </div>
+
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <p class="text-sm font-semibold">Anh Minh</p>
+
+                      <span class="text-xs text-blue-300"> ✓ </span>
+                    </div>
+
+                    <p class="mt-1 text-xs text-white/30">
+                      2 ngày trước · Hà Giang
+                    </p>
+                  </div>
+                </div>
+
+                <button class="text-white/30 hover:text-white">♥</button>
+              </div>
+
+              <div class="mt-5">
+                <span
+                  class="rounded-full bg-orange-400/10 px-3 py-1.5 text-[10px] text-orange-300"
+                >
+                  Bài viết
+                </span>
+
+                <h2 class="mt-4 text-lg font-semibold">
+                  Hoàng hôn trên đèo Mã Pí Lèng 🌄
+                </h2>
+
+                <p class="mt-3 line-clamp-4 text-sm leading-7 text-white/50">
+                  Có những nơi chỉ cần đứng yên vài phút cũng đủ khiến mình quên
+                  mất thời gian. Hà Giang chắc chắn là một trong những nơi như
+                  vậy...
+                </p>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <span class="text-xs text-orange-300/70"> #HaGiang </span>
+
+                  <span class="text-xs text-white/30"> #MaPiLeng </span>
+
+                  <span class="text-xs text-white/30"> #TravelVietnam </span>
+                </div>
+              </div>
+
+              <div
+                class="mt-5 flex items-center justify-between border-t border-white/10 pt-4"
+              >
+                <div class="flex gap-5 text-xs text-white/35">
+                  <span> ♡ 246 </span>
+
+                  <span> ○ 38 </span>
+                </div>
+
+                <a
+                  href="post-detail.html"
+                  class="text-xs text-white/50 transition hover:text-white"
+                >
+                  Xem bài viết →
+                </a>
+              </div>
+            </article>
+
+            <!-- =================================================
+                 AI ITINERARY
+            ================================================== -->
+
+            <article
+              class="relative overflow-hidden rounded-[26px] border border-orange-300/15 bg-gradient-to-br from-orange-400/10 via-white/[0.05] to-transparent p-6 shadow-2xl"
+            >
+              <div
+                class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-orange-300/10 blur-3xl"
+              ></div>
+
+              <div class="relative">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <span
+                      class="rounded-full border border-orange-300/20 bg-orange-300/10 px-3 py-1.5 text-[10px] font-semibold text-orange-300"
+                    >
+                      ✨ AI ITINERARY
+                    </span>
+
+                    <h2 class="mt-5 text-xl font-bold">Đà Nẵng 4 ngày 3 đêm</h2>
+
+                    <p class="mt-2 text-sm text-white/40">
+                      Lịch trình được tạo bởi TravelGo AI
+                    </p>
+                  </div>
+
+                  <button class="text-red-300">♥</button>
+                </div>
+
+                <div class="mt-6 space-y-3">
+                  <div
+                    class="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3"
+                  >
+                    <span
+                      class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-xs font-bold"
+                    >
+                      01
+                    </span>
+
+                    <div>
+                      <p class="text-sm font-medium">Bán đảo Sơn Trà</p>
+
+                      <p class="text-xs text-white/30">08:00 · 11:30</p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-3"
+                  >
+                    <span
+                      class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-xs font-bold"
+                    >
+                      02
+                    </span>
+
+                    <div>
+                      <p class="text-sm font-medium">Phố cổ Hội An</p>
+
+                      <p class="text-xs text-white/30">16:00 · 21:00</p>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href="ai.html"
+                  class="mt-5 block rounded-xl bg-white py-3 text-center text-sm font-semibold text-slate-900 transition hover:bg-white/90"
+                >
+                  Mở lịch trình
+                </a>
+              </div>
+            </article>
+          </div>
+
+          <!-- LOAD MORE -->
+
+          <button
+            class="mt-6 w-full rounded-2xl border border-white/10 bg-white/[0.04] py-4 text-sm font-medium text-white/40 transition hover:bg-white/[0.08] hover:text-white"
+          >
+            Xem thêm mục đã lưu
+          </button>
+        </section>
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
+        <aside class="space-y-5">
+          <!-- SAVED SUMMARY -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          >
+            <h3 class="font-semibold">Bộ sưu tập của bạn</h3>
+
+            <p class="mt-1 text-xs text-white/30">
+              Những gì bạn đã lưu trên TravelGo
+            </p>
+
+            <div class="mt-5 space-y-3">
+              <div
+                class="flex items-center justify-between rounded-xl bg-white/5 p-3"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="text-lg"> ✈️ </span>
+
+                  <span class="text-sm"> Tours </span>
+                </div>
+
+                <span class="text-xs text-white/30"> 6 </span>
+              </div>
+
+              <div
+                class="flex items-center justify-between rounded-xl bg-white/5 p-3"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="text-lg"> 📍 </span>
+
+                  <span class="text-sm"> Điểm đến </span>
+                </div>
+
+                <span class="text-xs text-white/30"> 5 </span>
+              </div>
+
+              <div
+                class="flex items-center justify-between rounded-xl bg-white/5 p-3"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="text-lg"> 📝 </span>
+
+                  <span class="text-sm"> Bài viết </span>
+                </div>
+
+                <span class="text-xs text-white/30"> 4 </span>
+              </div>
+
+              <div
+                class="flex items-center justify-between rounded-xl bg-white/5 p-3"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="text-lg"> ✨ </span>
+
+                  <span class="text-sm"> Lịch trình AI </span>
+                </div>
+
+                <span class="text-xs text-white/30"> 3 </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPCOMING -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          >
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Sắp đi?</h3>
+
+              <span class="text-xs text-orange-300"> 01 chuyến </span>
+            </div>
+
+            <div
+              class="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-black/20"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=700&q=85"
+                alt="Hạ Long"
+                class="h-32 w-full object-cover"
+              />
+
+              <div class="p-4">
+                <p class="text-xs text-white/30">18 - 20 Sep 2026</p>
+
+                <h4 class="mt-1 font-semibold">Hạ Long 3N2Đ</h4>
+
+                <p class="mt-2 text-xs text-white/40">Tour đã lưu</p>
+
+                <a
+                  href="booking.html"
+                  class="mt-4 block rounded-xl bg-white py-2.5 text-center text-xs font-semibold text-slate-900"
+                >
+                  Đặt tour
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI SUGGESTION -->
+
+          <div
+            class="rounded-[24px] border border-orange-300/10 bg-gradient-to-br from-orange-400/10 to-transparent p-5"
+          >
+            <div class="text-2xl">✨</div>
+
+            <h3 class="mt-4 font-semibold">Chưa biết đi đâu?</h3>
+
+            <p class="mt-3 text-xs leading-6 text-white/35">
+              TravelGo AI có thể dựa trên những điểm đến bạn yêu thích để đề
+              xuất hành trình phù hợp.
+            </p>
+
+            <a
+              href="ai.html"
+              class="mt-5 block rounded-xl border border-white/10 bg-white/10 py-3 text-center text-xs font-medium text-white/70 transition hover:bg-white/15 hover:text-white"
+            >
+              Khám phá với AI →
+            </a>
+          </div>
+
+          <!-- TIP -->
+
+          <div
+            class="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
+          >
+            <div class="flex gap-3">
+              <div class="text-xl">💡</div>
+
+              <div>
+                <h3 class="text-sm font-semibold">Mẹo nhỏ</h3>
+
+                <p class="mt-2 text-xs leading-6 text-white/30">
+                  Bạn có thể lưu tour hoặc điểm đến từ trang chi tiết bằng biểu
+                  tượng ♥ để quay lại nhanh hơn.
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="border-t border-white/10 bg-[#070b12]/90">
+      <div class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
+        <div
+          class="flex flex-col justify-between gap-4 text-xs text-white/25 sm:flex-row"
+        >
+          <p>© 2026 TravelGo. All rights reserved.</p>
+
+          <div class="flex gap-5">
+            <a href="about.html" class="transition hover:text-white">
+              Về TravelGo
+            </a>
+
+            <a href="contact.html" class="transition hover:text-white">
+              Liên hệ
+            </a>
+
+            <a href="privacy.html" class="transition hover:text-white">
+              Chính sách
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

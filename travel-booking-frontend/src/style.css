@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@theme {
+  /* ================= FONT ================= */
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+
+  /* ================= TRAVEL COLORS ================= */
+  --color-travel-dark: #07090d;
+  --color-travel-panel: #0d1118;
+  --color-travel-orange: #ffb36b;
+  --color-travel-gold: #f5c27a;
+
+  /* ================= SHADOW ================= */
+  --shadow-glass: 0 25px 80px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.25);
+
+  /* ================= ANIMATION ================= */
+  --animate-tour-slide: tour-slide 35s linear infinite;
+
+  @keyframes tour-slide {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* ================= GLOBAL ================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-travel-dark);
+  color: #ffffff;
+}
+
+/* ================= SCROLLBAR ================= */
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-travel-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ================= SELECTION ================= */
+
+::selection {
+  background: rgba(251, 146, 60, 0.35);
+  color: white;
+}
