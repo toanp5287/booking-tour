@@ -90,7 +90,7 @@ const routes = [
       {
         path: "createPost",
         name: "createPost",
-        component: () => import("@/view/customer/Community/CreatePost.vue"),
+        component: () => import("@/view/customer/community/CreatePost.vue"),
         meta: { hasHeroBg: true },
       },
       {
