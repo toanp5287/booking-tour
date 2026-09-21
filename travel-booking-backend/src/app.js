@@ -18,10 +18,24 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://booking-tour-fkd0rk6q7-vinhabc.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      // Cho phép request không có Origin
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Local
+      if (origin === "http://localhost:5173") {
+        return callback(null, true);
+      }
+
+      // Vercel
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
