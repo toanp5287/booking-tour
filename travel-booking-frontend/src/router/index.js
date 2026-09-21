@@ -48,7 +48,7 @@ const routes = [
       {
         path: "myBooking",
         name: "myBooking",
-        component: () => import("@/view/customer/booking/Mybookings.vue"),
+        component: () => import("@/view/customer/booking/MyBookings.vue"),
         meta: { hasHeroBg: true },
       },
       {
