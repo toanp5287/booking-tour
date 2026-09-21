@@ -78,13 +78,13 @@ const routes = [
       {
         path: "community",
         name: "community",
-        component: () => import("@/view/customer/Community/Community.vue"),
+        component: () => import("@/view/customer/community/Community.vue"),
         meta: { hasHeroBg: true },
       },
       {
         path: "postDetail/:idArticle",
         name: "postDetail",
-        component: () => import("@/view/customer/Community/PostDetail.vue"),
+        component: () => import("@/view/customer/community/PostDetail.vue"),
         meta: { hasHeroBg: true },
       },
       {
