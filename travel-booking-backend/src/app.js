@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://booking-tour-cvmxu1wxp-vinhabc.vercel.app",
+      "https://booking-tour-fkd0rk6q7-vinhabc.vercel.app",
     ],
     credentials: true,
   }),
