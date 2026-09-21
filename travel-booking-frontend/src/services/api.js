@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080",
-  // BỎ HOÀN TOÀN headers ở đây, để Axios tự động nhận diện data gửi lên
+  baseURL: "https://booking-tour-lo20.onrender.com",
 });
 
 api.interceptors.request.use(
