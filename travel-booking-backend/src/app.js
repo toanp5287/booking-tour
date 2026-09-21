@@ -18,7 +18,10 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://booking-tour-cvmxu1wxp-vinhabc.vercel.app",
+    ],
     credentials: true,
   }),
 );
