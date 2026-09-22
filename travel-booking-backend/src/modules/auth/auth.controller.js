@@ -45,7 +45,7 @@ export const googleCallback = async (req, res, next) => {
     });
 
     return res.redirect(
-      `http://localhost:5173/login?token=${encodeURIComponent(token)}`,
+      `${process.env.FRONTEND_URL}/login?token=${encodeURIComponent(token)}`,
     );
   } catch (error) {
     next(error);
