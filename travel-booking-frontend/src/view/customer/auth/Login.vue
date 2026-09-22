@@ -46,7 +46,7 @@ const handleLogin = async () => {
 };
 
 const loginWithGoogle = () => {
-  window.location.href = "http://localhost:8080/auth/google";
+  window.location.href = "https://booking-tour-lo20.onrender.com/google";
 };
 onMounted(() => {
   const token = route.query.token;
