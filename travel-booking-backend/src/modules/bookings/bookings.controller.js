@@ -1949,10 +1949,8 @@ export const refund_pending = async (req, res, next) => {
 };
 // huỷ đơn -> hoàn lại số lượng -->
 const hoanTien = async (bookingId, tx) => {
-  // Dùng prisma instance nếu không truyền tx từ transaction ngoài vào
   const prismaClient = tx || prisma;
 
-  // 1. Lấy booking
   const booking = await prismaClient.bookings.findUnique({
     where: { id: bookingId },
     include: {
