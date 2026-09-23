@@ -1,15 +1,36 @@
 import crypto from "crypto";
 import qs from "qs";
 
-// FORMAT DATE
+// FORMAT DATE - GMT+7 (Vietnam)
 const formatDate = (date) => {
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  });
+
+  const parts = formatter.formatToParts(date);
+
+  const values = {};
+
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      values[part.type] = part.value;
+    }
+  }
+
   return (
-    date.getFullYear().toString() +
-    String(date.getMonth() + 1).padStart(2, "0") +
-    String(date.getDate()).padStart(2, "0") +
-    String(date.getHours()).padStart(2, "0") +
-    String(date.getMinutes()).padStart(2, "0") +
-    String(date.getSeconds()).padStart(2, "0")
+    `${values.year}` +
+    `${values.month}` +
+    `${values.day}` +
+    `${values.hour}` +
+    `${values.minute}` +
+    `${values.second}`
   );
 };
 
@@ -17,16 +38,20 @@ const formatDate = (date) => {
 export const createVNPayUrl = ({ paymentCode, amount, ipAddr }) => {
   const tmnCode = process.env.VNP_TMNCODE;
   const secretKey = (process.env.VNP_HASH_SECRET || "").trim();
-
   const vnpUrl = process.env.VNP_URL;
   const returnUrl = process.env.VNP_RETURN_URL;
 
+  if (!tmnCode || !secretKey || !vnpUrl || !returnUrl) {
+    throw new Error("Thiếu cấu hình VNPAY trong Environment Variables");
+  }
+
   const now = new Date();
 
+  // Thời gian tạo giao dịch
   const createDate = formatDate(now);
 
+  // Hết hạn sau 15 phút
   const expireDate = new Date(now.getTime() + 15 * 60 * 1000);
-
   const vnpExpireDate = formatDate(expireDate);
 
   const vnpParams = {
@@ -34,6 +59,7 @@ export const createVNPayUrl = ({ paymentCode, amount, ipAddr }) => {
     vnp_Command: "pay",
     vnp_TmnCode: tmnCode,
 
+    // VNPAY yêu cầu số tiền x100
     vnp_Amount: Math.round(Number(amount) * 100),
 
     vnp_CurrCode: "VND",
@@ -48,26 +74,37 @@ export const createVNPayUrl = ({ paymentCode, amount, ipAddr }) => {
 
     vnp_ReturnUrl: returnUrl,
 
-    vnp_IpAddr: ipAddr,
+    vnp_IpAddr: ipAddr || "127.0.0.1",
 
     vnp_CreateDate: createDate,
 
     vnp_ExpireDate: vnpExpireDate,
   };
 
+  // Sắp xếp tham số theo alphabet để tạo chuỗi ký
   const signData = qs.stringify(vnpParams, {
     sort: (a, b) => a.localeCompare(b),
-
     encodeValuesOnly: false,
-
     format: "RFC1738",
   });
 
-  const hmac = crypto.createHmac("sha512", secretKey);
+  // Tạo chữ ký HMAC SHA512
+  const secureHash = crypto
+    .createHmac("sha512", secretKey)
+    .update(signData, "utf-8")
+    .digest("hex");
 
-  const secureHash = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+  const paymentUrl = `${vnpUrl}?${signData}&vnp_SecureHash=${secureHash}`;
 
-  return `${vnpUrl}?${signData}&vnp_SecureHash=${secureHash}`;
+  console.log("========== VNPAY ==========");
+  console.log("CreateDate:", createDate);
+  console.log("ExpireDate:", vnpExpireDate);
+  console.log("Amount:", vnpParams.vnp_Amount);
+  console.log("TxnRef:", vnpParams.vnp_TxnRef);
+  console.log("ReturnUrl:", returnUrl);
+  console.log("===========================");
+
+  return paymentUrl;
 };
 
 // VERIFY VNPAY
