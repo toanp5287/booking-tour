@@ -287,14 +287,17 @@ const formatDate = (isoStr) => {
   });
 };
 
-const formatTimeOnly = (isoStr) => {
-  if (!isoStr) return "";
-  const date = new Date(isoStr);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const formatTimeOnly = (timeStr) => {
+  if (!timeStr) return "";
+
+  const time = String(timeStr).trim();
+
+  // TIME từ PostgreSQL: HH:mm:ss
+  const match = time.match(/^(\d{2}):(\d{2})/);
+
+  if (!match) return "";
+
+  return `${match[1]}:${match[2]}`;
 };
 
 const getThumbnailUrl = (path) => {
