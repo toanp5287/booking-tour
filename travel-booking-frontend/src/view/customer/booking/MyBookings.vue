@@ -222,50 +222,52 @@ const canCancel = (booking) => {
 
   const status = normalizeStatus(booking.status);
 
-  // Các trạng thái chưa thanh toán
+  // Chưa thanh toán:
+  // pending / confirmed vẫn được hủy
   if (!isPaymentPaid(booking)) {
     return ["pending", "confirmed"].includes(status);
   }
 
-  // Đã thanh toán nhưng chỉ được hủy nếu còn >= 7 ngày
+  // Đã thanh toán nhưng không ở trạng thái paid thì không cho hủy
   if (status !== "paid") {
     return false;
   }
 
+  // Lấy ngày khởi hành
   const departureValue = booking?.schedule?.departure_date;
+  if (!departureValue) return false;
 
-  if (!departureValue) {
-    return false;
-  }
-
-  // PostgreSQL DATE: YYYY-MM-DD
   const match = String(departureValue)
     .trim()
     .match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-  if (!match) {
-    return false;
-  }
+  if (!match) return false;
 
   const [, year, month, day] = match;
 
-  // Dùng UTC để chỉ tính ngày, không bị lệch timezone
-  const departureDate = Date.UTC(Number(year), Number(month) - 1, Number(day));
-
-  const now = new Date();
-
-  const todayDate = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const diffDays = Math.floor(
-    (departureDate - todayDate) / (1000 * 60 * 60 * 24),
+  // Ngày khởi hành
+  const departureDate = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day)
   );
 
-  // Còn dưới 7 ngày → không hiện nút
-  if (diffDays < 7) {
-    return false;
-  }
+  // Ngày hiện tại
+  const now = new Date();
+  const todayDate = Date.UTC(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
 
-  return true;
+  // Số ngày còn lại đến ngày đi
+  const diffDays = Math.floor(
+    (departureDate - todayDate) / (1000 * 60 * 60 * 24)
+  );
+
+  // Còn từ 7 ngày trở lên -> hiện nút Hủy
+  // Dưới 7 ngày -> ẩn hoàn toàn
+  return diffDays >= 7;
 };
 
 const canRefund = (booking) => {
