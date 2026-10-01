@@ -1808,6 +1808,20 @@ export const duyetDon = async (req, res, next) => {
 
     // 4. HỦY ĐƠN (Chưa hoàn tiền hoặc hủy đơn thường)
     if (status === "cancelled") {
+      const schedule = await prisma.tour_schedules.findUnique({
+        where: { id: booking.schedule_id },
+      });
+      const now = new Date();
+      const departureDate = new Date(schedule.departure_date);
+
+      const diffTime = departureDate.getTime() - now.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      if (diffDays < 7) {
+        return res.status(400).json({
+          success: false,
+          message: `Chỉ còn ${diffDays} khởi hành nên ko thể huỷ`,
+        });
+      }
       const allowedToCancel = ["pending", "confirmed", "paid"];
       if (!allowedToCancel.includes(statusHienTai)) {
         return res.status(400).json({

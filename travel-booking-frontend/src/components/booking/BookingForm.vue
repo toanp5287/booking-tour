@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { useBookingStore } from "@/stores/booking";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 
 const bookingStore = useBookingStore();
 
@@ -8,11 +9,14 @@ const showMembers = ref(false);
 
 // ================= NGƯỜI ĐẶT =================
 
-const booker_name = ref(bookingStore.bookingData.booker_name || "");
+const user = localStorage.getItem("user");
+const userLogin = JSON.parse(user);
 
-const booker_phone = ref(bookingStore.bookingData.booker_phone || "");
+const booker_name = ref(userLogin.full_name || "");
 
-const booker_email = ref(bookingStore.bookingData.booker_email || "");
+const booker_phone = ref(userLogin.phone || "");
+
+const booker_email = ref(userLogin.email || "");
 
 const booker_identity_number = ref(
   bookingStore.bookingData.booker_identity_number || "",
