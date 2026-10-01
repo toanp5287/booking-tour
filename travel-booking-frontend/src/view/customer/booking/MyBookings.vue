@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 
 import bookingService from "../../../services/booking.service";
 import reviewService from "../../../services/review.service";
+import paymentService from "../../../services/payment.service";
 
 const router = useRouter();
 const queryClient = useQueryClient();
@@ -623,6 +624,35 @@ const createReviewsTour = async () => {
     isSubmitting.value = false;
   }
 };
+
+const thanhToanSau = async (bookingId) => {
+  try {
+    const response = await paymentService.thanhToanSau(bookingId);
+
+    const paymentUrl = response?.data?.data?.payment_url;
+
+    if (!paymentUrl) {
+      throw new Error(
+        response?.data?.message || "Không lấy được link thanh toán.",
+      );
+    }
+
+    window.location.href = paymentUrl;
+  } catch (error) {
+    console.error("Lỗi thanh toán sau:", error);
+
+    await Swal.fire({
+      title: "Không thể thanh toán",
+      text:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tạo link thanh toán. Vui lòng thử lại.",
+      icon: "error",
+      confirmButtonText: "Đóng",
+      confirmButtonColor: "#f97316",
+    });
+  }
+};
 </script>
 
 <template>
@@ -935,7 +965,7 @@ const createReviewsTour = async () => {
                   <button
                     v-if="canPay(upcomingTrip)"
                     type="button"
-                    @click="handlePayNow(upcomingTrip)"
+                    @click="thanhToanSau(upcomingTrip.id)"
                     class="cursor-pointer rounded-xl bg-orange-400 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-lg transition hover:bg-orange-300"
                   >
                     Thanh toán ngay

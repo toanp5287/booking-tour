@@ -3,13 +3,18 @@ import express from "express";
 import { verifyToken } from "../../middlewares/auth.middleware.js";
 import { authorize } from "../../middlewares/permission.middleware.js";
 
-import { getPaymentByBooking, getWalletUser } from "./payments.controller.js";
+import {
+  getPaymentByBooking,
+  getWalletUser,
+  payBooking,
+} from "./payments.controller.js";
 
 const router = express.Router();
 
 // ==========================================
 // LẤY PAYMENT THEO BOOKING
 // ==========================================
+router.post("/booking/:booking_id/pay", verifyToken, payBooking);
 router.get(
   "/booking/:booking_id",
   verifyToken,

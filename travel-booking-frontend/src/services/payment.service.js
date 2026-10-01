@@ -13,6 +13,9 @@ const paymentService = {
   wallet() {
     return api.get("/payment/wallet");
   },
+  thanhToanSau(bookingId) {
+    return api.post(`booking/${bookingId}/pay`);
+  },
 };
 
 export default paymentService;
