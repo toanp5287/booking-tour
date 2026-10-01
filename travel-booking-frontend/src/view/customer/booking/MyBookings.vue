@@ -276,15 +276,19 @@ const formatCurrency = (value) => {
   return number.toLocaleString("vi-VN") + " ₫";
 };
 
-const formatDate = (isoStr) => {
-  if (!isoStr) return "--/--/----";
-  const date = new Date(isoStr);
-  if (Number.isNaN(date.getTime())) return "--/--/----";
-  return date.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+const formatDate = (dateStr) => {
+  if (!dateStr) return "--/--/----";
+
+  const value = String(dateStr).trim();
+
+  // PostgreSQL DATE: YYYY-MM-DD
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (!match) return "--/--/----";
+
+  const [, year, month, day] = match;
+
+  return `${day}/${month}/${year}`;
 };
 
 const formatTimeOnly = (timeStr) => {
