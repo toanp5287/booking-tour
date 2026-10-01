@@ -1480,7 +1480,7 @@ const thanhToanSau = async (bookingId) => {
                     <button
                       v-if="canPay(booking)"
                       type="button"
-                      @click="handlePayNow(booking)"
+                      @click="thanhToanSau(upcomingTrip.id)"
                       class="cursor-pointer rounded-xl bg-orange-400 px-3.5 py-2 text-[11px] font-bold text-slate-950 shadow transition hover:bg-orange-300"
                     >
                       Thanh toán ngay
