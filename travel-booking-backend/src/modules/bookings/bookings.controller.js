@@ -200,6 +200,7 @@ export const createBooking = async (req, res, next) => {
       booker_email,
       booker_identity_number,
       departure,
+      pointPayer,
       special_request,
       details = [],
       payment_method,
@@ -359,7 +360,7 @@ export const createBooking = async (req, res, next) => {
           booker_identity_number: booker_identity_number?.trim() || null,
 
           departure: departure?.trim() || null,
-
+          pointPayer: pointPayer?.trim() || null,
           special_request: special_request?.trim() || null,
 
           total_people: people,
