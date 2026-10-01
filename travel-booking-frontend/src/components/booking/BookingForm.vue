@@ -26,8 +26,8 @@ const special_request = ref(bookingStore.bookingData.special_request || "");
 
 // ================= ĐIỂM ĐÓN =================
 
-const departure = ref(bookingStore.bookingData.departure || "");
-
+const departure = ref("");
+const pointPayer = ref("");
 // ================= SỐ LƯỢNG NGƯỜI =================
 
 const memberCount = ref(Number(bookingStore.bookingData.people) || 1);
@@ -99,7 +99,11 @@ watch(departure, (value) => {
     departure: value,
   });
 });
-
+watch(pointPayer, (value) => {
+  bookingStore.setBooking({
+    pointPayer: value,
+  });
+});
 // ================= THAY ĐỔI SỐ LƯỢNG =================
 
 const changeMemberCount = (value) => {
@@ -232,6 +236,19 @@ watch(
             v-model="departure"
             type="text"
             placeholder="Nhập điểm đón của bạn"
+            class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-white/40"
+          />
+        </div>
+        <!-- ĐIỂM Trả -->
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-xs font-semibold text-white/70">
+            Điểm trả
+          </label>
+
+          <input
+            v-model="pointPayer"
+            type="text"
+            placeholder="Nhập điểm trả của bạn"
             class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 outline-none transition focus:border-white/40"
           />
         </div>

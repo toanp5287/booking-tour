@@ -411,7 +411,7 @@ model bookings {
   booker_email           String? @db.VarChar(150)
   booker_identity_number String? @db.VarChar(50)
   departure              String? @db.VarChar(255)
-
+pointPayer   String? @db.VarChar(255) // điểm trả người
   // Thống kê số lượng từng loại vé
   total_people Int
   adult_count  Int @default(1)

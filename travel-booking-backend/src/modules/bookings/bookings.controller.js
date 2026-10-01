@@ -1811,15 +1811,33 @@ export const duyetDon = async (req, res, next) => {
       const schedule = await prisma.tour_schedules.findUnique({
         where: { id: booking.schedule_id },
       });
+
+      if (!schedule) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy lịch khởi hành",
+        });
+      }
+
       const now = new Date();
+
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
       const departureDate = new Date(schedule.departure_date);
 
-      const diffTime = departureDate.getTime() - now.getTime();
+      const departureDay = new Date(
+        departureDate.getFullYear(),
+        departureDate.getMonth(),
+        departureDate.getDate(),
+      );
+
+      const diffTime = departureDay.getTime() - today.getTime();
       const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
       if (diffDays < 7) {
         return res.status(400).json({
           success: false,
-          message: `Chỉ còn ${diffDays} khởi hành nên ko thể huỷ`,
+          message: `Không thể hủy đơn vì chỉ còn ${diffDays} ngày trước ngày khởi hành.`,
         });
       }
       const allowedToCancel = ["pending", "confirmed", "paid"];
