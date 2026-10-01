@@ -219,9 +219,33 @@ const canPay = (booking) => {
 
 const canCancel = (booking) => {
   if (!booking) return false;
-  if (isPaymentPaid(booking)) return false;
 
   const status = normalizeStatus(booking.status);
+
+  // Nếu đã thanh toán thì kiểm tra ngày khởi hành
+  if (isPaymentPaid(booking)) {
+    const departureValue = booking?.schedule?.departure_date;
+
+    if (!departureValue) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const departureDate = new Date(departureValue);
+    if (Number.isNaN(departureDate.getTime())) return false;
+
+    departureDate.setHours(0, 0, 0, 0);
+
+    const diffTime = departureDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 7) {
+      return false;
+    }
+
+    return ["paid"].includes(status);
+  }
+
   return ["pending", "confirmed"].includes(status);
 };
 
