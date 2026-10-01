@@ -31,6 +31,11 @@ const bookingService = {
   refund_pending(idBooking) {
     return api.patch(`/booking/${idBooking}/refund_pending`);
   },
+  cancelBooking(id) {
+    return api.patch(`/booking/${id}/duyet`, {
+      status: "cancelled",
+    });
+  },
 };
 
 export default bookingService;
