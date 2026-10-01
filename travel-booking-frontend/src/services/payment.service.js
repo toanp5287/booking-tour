@@ -14,7 +14,7 @@ const paymentService = {
     return api.get("/payment/wallet");
   },
   thanhToanSau(bookingId) {
-    return api.post(`booking/${bookingId}/pay`);
+    return api.post(`payment/booking/${bookingId}/pay`);
   },
 };
 
