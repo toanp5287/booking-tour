@@ -42,7 +42,7 @@ const filteredTours = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="tour-card-list space-y-6">
     <!-- THANH THỐNG KÊ KẾT QUẢ KHI CÓ TỪ KHÓA TÌM KIẾM -->
     <div
       v-if="props.shearch && props.shearch.trim() && !isLoading && !isError"
@@ -147,9 +147,9 @@ const filteredTours = computed(() => {
             class="absolute left-3.5 right-3.5 top-3.5 flex items-center justify-between"
           >
             <span
-              class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200/20 bg-[#07090d]/85 px-2.5 py-1 text-[10px] font-medium tracking-wide text-amber-200/90 backdrop-blur-md"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200/60 bg-slate-950/75 px-2.5 py-1 text-[10px] font-medium tracking-wide text-blue-100 backdrop-blur-md"
             >
-              <span class="h-1.5 w-1.5 rounded-full bg-amber-300/70"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-blue-300"></span>
               Nổi bật
             </span>
 
@@ -253,3 +253,42 @@ const filteredTours = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.tour-card-list :deep([class*="bg-[#0e121a"]),
+.tour-card-list :deep([class*="bg-[#121622"]) {
+  background-color: #fff !important;
+}
+
+.tour-card-list :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.tour-card-list :deep([class*="bg-white/"]) {
+  background-color: #f8fafc !important;
+}
+
+.tour-card-list :deep(article h3) {
+  color: #1e293b !important;
+}
+
+.tour-card-list :deep(article:hover h3) {
+  color: #2563eb !important;
+}
+
+.tour-card-list :deep(article p[class*="text-amber-200/95"]) {
+  color: #2563eb !important;
+}
+
+.tour-card-list :deep(article > div:last-child a) {
+  border-color: #bfdbfe !important;
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.tour-card-list :deep(article > div:last-child a:hover) {
+  border-color: #2563eb !important;
+  background-color: #2563eb !important;
+  color: #fff !important;
+}
+</style>

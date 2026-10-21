@@ -117,7 +117,7 @@ const createComment = async (post_id) => {
 </script>
 
 <template>
-  <section class="space-y-6">
+  <section class="community-feed space-y-6">
     <!-- CREATE POST -->
     <div
       class="rounded-[24px] border border-white/15 bg-white/[0.07] p-5 backdrop-blur-2xl"
@@ -253,13 +253,13 @@ const createComment = async (post_id) => {
           <img
             :src="`http://localhost:8080/${value.images[0]}`"
             alt="Ảnh bài viết"
-            class="h-[430px] w-full object-cover"
+            class="community-photo h-[430px] w-full object-cover"
           />
 
           <!-- LOCATION -->
           <div
             v-if="value.location"
-            class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5 pt-24"
+            class="photo-caption absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-5 pt-24"
           >
             <div
               class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-3.5 py-2 text-xs font-semibold text-white backdrop-blur-xl"
@@ -477,3 +477,42 @@ const createComment = async (post_id) => {
     </button>
   </section>
 </template>
+
+<style scoped>
+.community-feed > div:not(.space-y-6) {
+  border-color: #e2e8f0;
+}
+
+.community-feed :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.community-feed :deep([class*="bg-black/"]),
+.community-feed :deep([class*="bg-white/"]) {
+  background-color: #f8fafc !important;
+}
+
+.community-feed :deep([class*="text-white"]) {
+  color: #334155 !important;
+}
+
+.community-feed :deep([class*="text-white/"]) {
+  color: #64748b !important;
+}
+
+.community-feed :deep([class*="text-orange-300"]) {
+  color: #2563eb !important;
+}
+
+.community-feed :deep(.photo-caption [class*="bg-black/"]) {
+  background-color: rgba(15, 23, 42, 0.72) !important;
+}
+
+.community-feed :deep(.photo-caption [class*="text-white"]) {
+  color: #fff !important;
+}
+
+.community-photo {
+  height: clamp(240px, 55vw, 430px) !important;
+}
+</style>

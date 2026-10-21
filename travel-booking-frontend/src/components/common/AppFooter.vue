@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-  <footer class="relative overflow-hidden text-white border-t border-white/10">
+  <footer class="site-footer relative overflow-hidden border-t">
     <!-- =================================================
          LỚP NỀN (Tách biệt hoàn toàn, không bọc chữ vào đây)
     ================================================== -->
@@ -47,7 +47,9 @@ defineProps({
     <!-- =================================================
          NỘI DUNG CHỮ (Luôn hiển thị với relative z-10)
     ================================================== -->
-    <div class="relative z-10 mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
+    <div
+      class="footer-content relative z-10 mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10"
+    >
       <!-- TOP DECORATION -->
       <div class="mb-12 flex items-center justify-center">
         <div
@@ -266,3 +268,13 @@ defineProps({
     </div>
   </footer>
 </template>
+
+<style scoped>
+.site-footer :deep([class*="text-orange-"]) {
+  color: #2563eb !important;
+}
+
+.site-footer :deep([class*="bg-orange-"]) {
+  background-color: #2563eb !important;
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <section class="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10">
+  <section class="destination-reviews mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10">
     <div class="flex items-end justify-between">
       <div>
         <p
@@ -25,7 +25,7 @@
       <article class="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
         <div class="flex items-center gap-3">
           <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-amber-500 font-bold text-slate-900"
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 font-bold text-white"
           >
             M
           </div>
@@ -93,3 +93,21 @@
     </div>
   </section>
 </template>
+
+<style scoped>
+.destination-reviews {
+  color: #1e293b;
+}
+
+.destination-reviews :deep([class*="text-white/"]) {
+  color: #64748b !important;
+}
+
+.destination-reviews :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.destination-reviews :deep([class*="bg-white/"]) {
+  background-color: #fff !important;
+}
+</style>

@@ -106,6 +106,12 @@ const routes = [
         meta: { hasHeroBg: true },
       },
       {
+        path: "myGroupRequests",
+        name: "myGroupRequests",
+        component: () => import("@/view/customer/tours/MyGroupRequests.vue"),
+        meta: { hasHeroBg: true },
+      },
+      {
         path: "aiTripPlanner",
         name: "aiTripPlanner",
         component: () => import("@/view/customer/ai/AITripPlanner.vue"),
@@ -243,6 +249,10 @@ const routes = [
         path: "roles",
         name: "roles",
         component: () => import("@/view/admin/users/roles.vue"),
+      }, {
+        path: "yeuCauTour",
+        name: "yeuCauTour",
+        component: () => import("@/view/admin/tours/yeuCauTourDoan.vue"),
       },
     ],
   },

@@ -1,10 +1,10 @@
 <template>
   <header
-    class="sticky top-0 z-40 border-b border-white/[0.07] bg-[#080b10]/80 backdrop-blur-2xl"
+    class="admin-topbar sticky top-0 z-40 border-b"
   >
     <div class="flex h-[82px] items-center justify-between px-5 sm:px-8">
       <div>
-        <p class="text-[10px] uppercase tracking-[0.25em] text-orange-300/60">
+        <p class="text-[10px] uppercase tracking-[0.25em] text-blue-600">
           Booking Management
         </p>
 

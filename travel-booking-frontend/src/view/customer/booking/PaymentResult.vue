@@ -1,15 +1,28 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
+import { useBookingStore } from "@/stores/booking";
 
 const route = useRoute();
 const router = useRouter();
+const bookingStore = useBookingStore();
 
 const status = computed(() => route.query.status);
 const paymentCode = computed(() => route.query.payment_code);
 const bookingId = computed(() => route.query.booking_id);
 
 const isSuccess = computed(() => status.value === "success");
+
+onMounted(() => {
+  if (isSuccess.value) {
+    localStorage.removeItem("bookingData");
+
+    if (bookingStore.clearBooking) {
+      bookingStore.clearBooking();
+    }
+  }
+});
 
 const goToBooking = () => {
   router.push("/myBooking");
@@ -18,11 +31,15 @@ const goToBooking = () => {
 const goHome = () => {
   router.push("/");
 };
+
+const goToGroupRequests = () => {
+  router.push("/myGroupRequests");
+};
 </script>
 
 <template>
   <div
-    class="min-h-screen bg-[#07090d] text-white flex items-center justify-center px-4"
+    class="customer-redesign min-h-screen bg-[#07090d] text-white flex items-center justify-center px-4"
   >
     <div
       class="w-full max-w-lg rounded-[24px] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl"
@@ -51,17 +68,24 @@ const goHome = () => {
           <p class="mt-1 font-medium">#{{ bookingId }}</p>
         </div>
 
-        <div class="mt-6 flex gap-3">
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
           <button
             @click="goToBooking"
-            class="flex-1 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-black transition hover:bg-orange-400"
+            class="flex-1 rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
           >
             Xem booking
           </button>
 
           <button
+            @click="goToGroupRequests"
+            class="flex-1 rounded-xl bg-blue-600/80 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+          >
+            Yêu cầu tour đoàn
+          </button>
+
+          <button
             @click="goHome"
-            class="flex-1 rounded-xl border border-white/10 px-4 py-3 font-semibold text-white transition hover:bg-white/5"
+            class="flex-1 rounded-xl border border-slate-200 px-4 py-3 font-semibold text-slate-600 transition hover:bg-slate-50"
           >
             Về trang chủ
           </button>
@@ -84,7 +108,7 @@ const goHome = () => {
 
         <button
           @click="goHome"
-          class="mt-6 rounded-xl bg-orange-500 px-6 py-3 font-semibold text-black transition hover:bg-orange-400"
+          class="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
         >
           Về trang chủ
         </button>
@@ -92,3 +116,50 @@ const goHome = () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

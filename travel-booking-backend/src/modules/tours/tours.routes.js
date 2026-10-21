@@ -1,6 +1,7 @@
 import express from "express";
 
 import { verifyToken } from "../../middlewares/auth.middleware.js";
+import { optionalToken } from "../../middlewares/auth.optionalToken.js";
 import { authorize } from "../../middlewares/permission.middleware.js";
 import { validate } from "../../middlewares/error.middleware.js";
 import {
@@ -31,6 +32,11 @@ import {
   getDeletedSchedules,
   getAllItineraries,
   getSchedulesByTour,
+  getAllTourPublic,
+  reqTourDoan,
+  allYeuCauTourDoan,
+  phanHoi,
+  layRaLichSuPhanHoi
 } from "./tours.controller.js";
 import { upload } from "../../middlewares/upload.middleware.js";
 import {
@@ -40,6 +46,21 @@ import {
   updateTourSchema,
   createTourSchedulesSchema,
 } from "./tours.validation.js";
+import {
+  createQuotation,
+  getQuotationsByRequest,
+  getQuotation,
+  updateQuotation,
+  sendQuotation,
+  getMyGroupRequests,
+  getMyQuotation,
+  respondQuotation,
+} from "./tourQuotations.controller.js";
+import {
+  createQuotationSchema,
+  updateQuotationSchema,
+  respondQuotationSchema,
+} from "./tourQuotations.validation.js";
 
 const router = express.Router();
 
@@ -92,7 +113,8 @@ router.post(
   createTourController,
 );
 
-router.get("/all", getAllTour);
+router.get("/all", optionalToken, getAllTour);
+router.get("/pulic", getAllTourPublic);
 
 router.get("/:id/getOneTour", getOneTour);
 router.patch(
@@ -199,4 +221,66 @@ router.get(
   authorize("tour:view"),
   getAllItineraries,
 );
+
+
+
+router.post("/tour-doan", verifyToken, reqTourDoan);
+
+router.post("/phan-hoi", verifyToken, authorize("tour:view"), phanHoi);
+router.get("/all-yeu-cau-tour", verifyToken, authorize('tour:view'), allYeuCauTourDoan);
+router.get(
+  "/lich-su-phan-hoi/:request_id",
+  verifyToken,
+  authorize("tour:view"),
+  layRaLichSuPhanHoi
+);
+
+// =================================================================
+// BÁO GIÁ TOUR ĐOÀN
+// =================================================================
+
+// Khách hàng (kiểm tra chủ sở hữu trong controller)
+router.get("/yeu-cau-cua-toi", verifyToken, getMyGroupRequests);
+router.get("/bao-gia-cua-toi/:id", verifyToken, getMyQuotation);
+router.post(
+  "/bao-gia/:id/phan-hoi",
+  verifyToken,
+  validate(respondQuotationSchema),
+  respondQuotation,
+);
+
+// Quản trị / nhân viên
+router.post(
+  "/bao-gia",
+  verifyToken,
+  validate(createQuotationSchema),
+  authorize("tour:create"),
+  createQuotation,
+);
+router.get(
+  "/bao-gia/theo-yeu-cau/:request_id",
+  verifyToken,
+  authorize("tour:view"),
+  getQuotationsByRequest,
+);
+router.get(
+  "/bao-gia/:id",
+  verifyToken,
+  authorize("tour:view"),
+  getQuotation,
+);
+router.patch(
+  "/bao-gia/:id",
+  verifyToken,
+  validate(updateQuotationSchema),
+  authorize("tour:update"),
+  updateQuotation,
+);
+router.post(
+  "/bao-gia/:id/gui",
+  verifyToken,
+  authorize("tour:update"),
+  sendQuotation,
+);
+
 export default router;

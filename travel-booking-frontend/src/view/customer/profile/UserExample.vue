@@ -13,11 +13,11 @@ const { data: wallet } = useQuery({
 </script>
 
 <template>
-  <div class="relative min-h-screen text-white pt-20 pb-16">
+  <div class="wallet-page relative min-h-screen text-white pt-20 pb-16">
     <!-- ================================================== -->
     <!-- BACKGROUND -->
     <!-- ================================================== -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="wallet-background fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Background"
@@ -296,3 +296,31 @@ const { data: wallet } = useQuery({
     </main>
   </div>
 </template>
+
+<style scoped>
+.wallet-page {
+  background: #f8fafc;
+  color: #1e293b !important;
+}
+
+.wallet-background {
+  display: none;
+}
+
+.wallet-page :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.wallet-page :deep([class*="bg-white/"]),
+.wallet-page :deep([class*="bg-black/"]) {
+  background-color: #fff !important;
+}
+
+.wallet-page :deep([class*="text-white"]) {
+  color: #334155 !important;
+}
+
+.wallet-page :deep([class*="text-white/"]) {
+  color: #64748b !important;
+}
+</style>

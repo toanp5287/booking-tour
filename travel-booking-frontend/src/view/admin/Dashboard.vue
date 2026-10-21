@@ -1,7 +1,7 @@
 <script setup></script>
 
 <template>
-  <main class="min-w-0 flex-1 min-h-screen lg:flex">
+  <main class="admin-page min-w-0 flex-1 min-h-screen lg:flex">
     <!-- =====================================================
          TOPBAR
     ====================================================== -->
@@ -14,7 +14,7 @@
       <!-- WELCOME -->
 
       <section
-        class="relative mb-8 overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.04]"
+        class="admin-welcome relative mb-8 overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.04]"
       >
         <img
           src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=85"
@@ -842,3 +842,105 @@
     ====================================================== -->
   </main>
 </template>
+
+<style scoped>
+.admin-page {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.admin-page :deep(h1),
+.admin-page :deep(h2),
+.admin-page :deep(h3),
+.admin-page :deep(h4) {
+  color: #0f172a;
+}
+
+.admin-page :deep([class*="text-orange-200"]) {
+  color: #2563eb;
+}
+
+.admin-page :deep([class*="bg-gradient-to-r"][class~="absolute"]) {
+  display: none;
+}
+
+.admin-page :deep(:is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"])),
+.admin-page :deep([class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"])),
+.admin-page :deep([class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"])),
+.admin-page :deep([class*="bg-slate-800"]),
+.admin-page :deep([class*="bg-slate-900"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.admin-page :deep([class*="border-white/"]) {
+  border-color: #e2e8f0;
+}
+
+.admin-page :deep([class~="text-white"]),
+.admin-page :deep([class~="text-slate-100"]),
+.admin-page :deep([class~="text-slate-200"]),
+.admin-page :deep([class*="text-gray-300"]) {
+  color: #334155;
+}
+
+.admin-page :deep([class*="text-white/"]),
+.admin-page :deep([class*="text-slate-300"]),
+.admin-page :deep([class*="text-slate-400"]),
+.admin-page :deep([class*="text-slate-500"]),
+.admin-page :deep([class*="text-slate-600"]),
+.admin-page :deep([class*="text-gray-400"]) {
+  color: #64748b;
+}
+
+.admin-page :deep([class*="bg-gradient"][class*="text-white"]),
+.admin-page :deep([class*="bg-gradient"] [class*="text-white"]),
+.admin-page :deep([class*="bg-orange-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-emerald-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-green-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-red-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-rose-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-blue-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-sky-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-amber-"] [class*="text-white"]) {
+  color: #fff;
+}
+
+.admin-page :deep(input),
+.admin-page :deep(select),
+.admin-page :deep(textarea) {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #1e293b;
+}
+
+.admin-page :deep(input::placeholder),
+.admin-page :deep(textarea::placeholder) {
+  color: #94a3b8;
+}
+
+.admin-page :deep(input:focus),
+.admin-page :deep(select:focus),
+.admin-page :deep(textarea:focus) {
+  border-color: #2563eb;
+  outline-color: #2563eb;
+}
+
+.admin-page :deep(th) {
+  background-color: #f8fafc;
+  color: #475569;
+}
+
+.admin-page :deep(td),
+.admin-page :deep(th) {
+  border-color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .admin-page :deep(table) {
+    min-width: 640px;
+  }
+}
+</style>

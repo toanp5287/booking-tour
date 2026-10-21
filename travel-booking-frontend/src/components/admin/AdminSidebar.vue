@@ -23,7 +23,7 @@ const canAccessOperations = computed(() => {
 
 <template>
   <aside
-    class="fixed inset-y-0 left-0 z-50 hidden w-[265px] border-r border-white/[0.08] bg-[#090c11]/90 backdrop-blur-2xl lg:flex lg:flex-col"
+    class="admin-sidebar fixed inset-y-0 left-0 z-50 hidden w-[265px] border-r lg:flex lg:flex-col"
   >
     <!-- LOGO -->
     <div class="flex h-[82px] items-center border-b border-white/[0.07] px-6">
@@ -51,7 +51,7 @@ const canAccessOperations = computed(() => {
             Travel<span class="text-white/40">Go</span>
           </div>
           <div
-            class="text-[9px] uppercase tracking-[0.25em] text-orange-300/60"
+            class="text-[9px] uppercase tracking-[0.25em] text-blue-600"
           >
             {{ isAdminOrStaff ? "Administration" : "Operator Portal" }}
           </div>
@@ -72,7 +72,7 @@ const canAccessOperations = computed(() => {
         to="/admin"
         exact
         class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-        exact-active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+        exact-active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
       >
         <span>▦</span>
         Dashboard
@@ -90,7 +90,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/tours"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>◈</span>
           {{ isOperator ? "Tour của tôi" : "Tất cả Tours" }}
@@ -100,7 +100,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/itineraries"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>☷</span>
           Lịch trình
@@ -110,18 +110,25 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/bookingList"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>▣</span>
           Đơn đặt tour
         </RouterLink>
-
+         <RouterLink
+          to="/admin/yeuCauTour"
+          class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
+        >
+          <span>☷</span>
+          Yêu cầu thiết kế tour
+        </RouterLink>
         <!-- Điểm đến: Chỉ Admin/Staff quản lý danh mục dùng chung -->
         <RouterLink
           v-if="isAdminOrStaff"
           to="/admin/destinations"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>⌖</span>
           Điểm đến
@@ -140,7 +147,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/reviews"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>☆</span>
           Đánh giá
@@ -151,7 +158,7 @@ const canAccessOperations = computed(() => {
           <RouterLink
             to="/admin/posts"
             class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-            active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+            active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
           >
             <span>▤</span>
             Bài viết
@@ -160,7 +167,7 @@ const canAccessOperations = computed(() => {
           <RouterLink
             to="/admin/reports"
             class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-            active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+            active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
           >
             <span>⚑</span>
             Báo cáo vi phạm
@@ -179,7 +186,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/users"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>♙</span>
           Người dùng
@@ -188,7 +195,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/roles"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>♜</span>
           Vai trò & quyền
@@ -206,7 +213,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/vouchers"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>◇</span>
           Voucher sàn
@@ -215,7 +222,7 @@ const canAccessOperations = computed(() => {
         <RouterLink
           to="/admin/ai-management"
           class="mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/45 transition hover:bg-white/5 hover:text-white"
-          active-class="!border !border-orange-300/10 !bg-orange-300/[0.07] !font-semibold !text-orange-200"
+          active-class="!border !border-blue-200 !bg-blue-50 !font-semibold !text-blue-800"
         >
           <span>✦</span>
           TravelGo AI
@@ -230,7 +237,7 @@ const canAccessOperations = computed(() => {
         class="flex items-center gap-3 rounded-2xl p-3 transition hover:bg-white/5"
       >
         <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-300 font-bold text-slate-900"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 font-bold text-white"
         >
           {{ user?.full_name ? user.full_name.charAt(0).toUpperCase() : "U" }}
         </div>

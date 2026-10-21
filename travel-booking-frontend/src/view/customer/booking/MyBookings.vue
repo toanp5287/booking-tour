@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from "vue";
-import { RouterLink, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import Swal from "sweetalert2";
 
@@ -25,7 +25,7 @@ const currentUser = computed(() => {
 const userId = computed(() => currentUser.value?.id);
 
 // ======================================================
-// 2. BOOKINGS DATA RETRIEVAL
+// 2. FETCH BOOKINGS
 // ======================================================
 const { data: rawBookings, isLoading } = useQuery({
   queryKey: ["myBookingData", userId],
@@ -42,276 +42,349 @@ const bookings = computed(() => {
 });
 
 // ======================================================
-// 3. NORMALIZE STATUS (Duy nhất 1 khai báo)
+// 3. CHUẨN HÓA TRẠNG THÁI BOOKING
 // ======================================================
+
 const normalizeStatus = (status) => {
-  const s = String(status || "")
-    .toLowerCase()
-    .trim();
+  if (status == null || String(status).trim() === "") {
+    return "PENDING";
+  }
 
-  if (["confirm", "confirmed"].includes(s)) return "confirmed";
-  if (["ready", "locked", "processing"].includes(s)) return "ready";
-  if (["ongoing", "in_progress"].includes(s)) return "ongoing";
-  if (s === "paid") return "paid";
-  if (["refund_pending", "refundpending"].includes(s)) return "refund_pending";
-  if (["refunded", "refund"].includes(s)) return "refunded";
-  if (s === "completed") return "completed";
-  if (["cancelled", "canceled"].includes(s)) return "cancelled";
+  const s = String(status)
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
 
-  return "pending";
+  const aliasMap = {
+    CONFIRM: "CONFIRMED",
+    READY: "CONFIRMED",
+    PAID: "CONFIRMED",
+    ONGOING: "IN_PROGRESS",
+    CANCELED: "CANCELLED",
+    CANCEL: "CANCELLED",
+    COMPLETE: "COMPLETED",
+    FINISHED: "COMPLETED",
+    NOT_ATTENDED: "NO_SHOW",
+  };
+
+  // "paid" là trạng thái thanh toán, không phải trạng thái tour.
+  // Tạm thời giữ nguyên để không gán sai trạng thái booking.
+  return aliasMap[s] || s;
 };
 
 // ======================================================
-// 4. PAYMENT HELPERS
+// 4. BADGE TRẠNG THÁI HIỂN THỊ
+// ======================================================
+const getBadge = (status) => {
+  const s = normalizeStatus(status);
+
+  const badges = {
+    PENDING: {
+      text: "Chờ thanh toán",
+      class: "border-amber-400/30 bg-amber-400/15 text-amber-300",
+    },
+    CONFIRMED: {
+      text: "Đã xác nhận",
+      class: "border-sky-400/30 bg-sky-400/15 text-sky-300",
+    },
+    CHECKED_IN: {
+      text: "Đã đón khách",
+      class: "border-indigo-400/30 bg-indigo-400/15 text-indigo-300",
+    },
+    IN_PROGRESS: {
+      text: "Tour đang diễn ra",
+      class: "border-blue-400/30 bg-blue-400/15 text-blue-300",
+    },
+    COMPLETED: {
+      text: "Đã hoàn thành",
+      class: "border-purple-400/30 bg-purple-400/15 text-purple-300",
+    },
+    NO_SHOW: {
+      text: "Khách không tham gia",
+      class: "border-zinc-500/30 bg-zinc-500/15 text-zinc-300",
+    },
+    CANCELLED: {
+      text: "Đã hủy",
+      class: "border-rose-400/30 bg-rose-400/15 text-rose-300",
+    },
+    REFUND_PENDING: {
+      text: "Chờ xử lý hoàn tiền",
+      class: "border-orange-400/30 bg-orange-400/15 text-orange-300",
+    },
+    REFUNDED: {
+      text: "Đã hoàn tiền",
+      class: "border-teal-400/30 bg-teal-400/15 text-teal-300",
+    },
+  };
+
+  return (
+    badges[s] || {
+      text: `Trạng thái khác (${s})`,
+      class: "border-white/20 bg-white/10 text-white/80",
+    }
+  );
+};
+
+// ======================================================
+// 5. THANH TOÁN & SỐ TIỀN
 // ======================================================
 const getPayments = (booking) => {
   return Array.isArray(booking?.payments) ? booking.payments : [];
 };
 
-const getPaidPayment = (booking) => {
-  return getPayments(booking).find((payment) => {
-    return (
-      String(payment?.status || "")
-        .toLowerCase()
-        .trim() === "paid"
-    );
-  });
+const getPaidPayments = (booking) => {
+  return getPayments(booking).filter(
+    (p) =>
+      String(p?.status || "")
+        .trim()
+        .toUpperCase() === "PAID",
+  );
+};
+
+const getTotalAmount = (booking) => Number(booking?.total_amount || 0);
+
+const getPaidAmount = (booking) => {
+  if (!booking) return 0;
+  if (booking.paid_amount !== undefined && booking.paid_amount !== null) {
+    return Number(booking.paid_amount || 0);
+  }
+  return getPaidPayments(booking).reduce(
+    (total, p) => total + Number(p?.amount || 0),
+    0,
+  );
+};
+
+const getRemainingAmount = (booking) => {
+  if (
+    booking?.remaining_amount !== undefined &&
+    booking?.remaining_amount !== null
+  ) {
+    return Number(booking.remaining_amount || 0);
+  }
+  return Math.max(getTotalAmount(booking) - getPaidAmount(booking), 0);
 };
 
 const isPaymentPaid = (booking) => {
-  if (!booking) return false;
-  if (normalizeStatus(booking.status) === "paid") return true;
-  return !!getPaidPayment(booking);
+  const total = getTotalAmount(booking);
+  return total > 0 && getPaidAmount(booking) >= total;
 };
 
-const getLatestPayment = (booking) => {
-  const payments = getPayments(booking);
-  return payments.length ? payments[0] : null;
+const isPartiallyPaid = (booking) => {
+  const total = getTotalAmount(booking);
+  const paid = getPaidAmount(booking);
+  return total > 0 && paid > 0 && paid < total;
 };
 
-// ======================================================
-// 5. STATUS BADGE
-// ======================================================
-const getBadge = (status) => {
-  const s = normalizeStatus(status);
-
-  switch (s) {
-    case "pending":
-      return {
-        text: "Đang chờ duyệt",
-        class: "border-amber-400/30 bg-amber-400/15 text-amber-300",
-      };
-    case "confirmed":
-      return {
-        text: "Đã xác nhận",
-        class: "border-blue-400/30 bg-blue-400/15 text-blue-300",
-      };
-    case "paid":
-      return {
-        text: "Đã thanh toán",
-        class: "border-emerald-400/30 bg-emerald-400/15 text-emerald-300",
-      };
-    case "ready":
-      return {
-        text: "Sắp khởi hành (Khóa sổ)",
-        class: "border-cyan-400/30 bg-cyan-400/15 text-cyan-300",
-      };
-    case "ongoing":
-      return {
-        text: "Đang diễn ra",
-        class: "border-teal-400/30 bg-teal-400/15 text-teal-300",
-      };
-    case "refund_pending":
-      return {
-        text: "Chờ hoàn tiền",
-        class: "border-amber-400/30 bg-amber-400/15 text-amber-200",
-      };
-    case "refunded":
-      return {
-        text: "Đã hoàn tiền",
-        class: "border-emerald-400/30 bg-emerald-400/15 text-emerald-200",
-      };
-    case "completed":
-      return {
-        text: "Hoàn thành",
-        class: "border-purple-400/30 bg-purple-400/15 text-purple-300",
-      };
-    case "cancelled":
-      return {
-        text: "Đã hủy",
-        class: "border-red-400/30 bg-red-400/15 text-red-300",
-      };
-    default:
-      return {
-        text: s,
-        class: "border-white/20 bg-white/10 text-white",
-      };
-  }
+const getRefundPaymentState = (booking) => {
+  const statuses = getPayments(booking).map((p) =>
+    String(p?.status || "")
+      .trim()
+      .toUpperCase(),
+  );
+  if (statuses.includes("REFUND_PENDING")) return "REFUND_PENDING";
+  if (statuses.includes("REFUNDED")) return "REFUNDED";
+  return null;
 };
 
-// ======================================================
-// 6. PAYMENT TEXT & COLOR
-// ======================================================
 const getPaymentText = (booking) => {
-  if (!booking) return "Chưa xác định";
+  if (!booking) return "Chưa thanh toán";
+  const st = String(booking?.payment_status || "")
+    .trim()
+    .toUpperCase();
 
-  if (isPaymentPaid(booking)) {
-    return "Đã thanh toán";
+  // Ưu tiên trạng thái hoàn tiền của giao dịch (payments.status)
+  const refundState = getRefundPaymentState(booking);
+  if (refundState === "REFUND_PENDING") return "Chờ hoàn tiền";
+  if (refundState === "REFUNDED") return "Đã hoàn tiền";
+
+  if (
+    booking.payment_type === "full" ||
+    st === "PAID" ||
+    isPaymentPaid(booking)
+  ) {
+    return "Đã thanh toán đủ";
   }
-
-  const payment = getLatestPayment(booking);
-  if (!payment) return "Chưa thanh toán";
-
-  const status = String(payment?.status || "")
-    .toLowerCase()
-    .trim();
-
-  switch (status) {
-    case "pending":
-      return "Chờ thanh toán";
-    case "failed":
-      return "Thanh toán thất bại";
-    case "cancelled":
-    case "canceled":
-      return "Thanh toán đã hủy";
-    default:
-      return "Chưa thanh toán";
+  if (
+    booking.payment_type === "deposit" ||
+    st === "PARTIAL" ||
+    isPartiallyPaid(booking)
+  ) {
+    return "Đã cọc";
   }
+  if (st === "REFUND_PENDING") return "Chờ hoàn tiền";
+  if (st === "REFUNDED") return "Đã hoàn tiền";
+
+  const hasPending = getPayments(booking).some(
+    (p) =>
+      String(p?.status || "")
+        .trim()
+        .toUpperCase() === "PENDING",
+  );
+  if (hasPending) return "Chờ thanh toán";
+
+  return "Chưa thanh toán";
 };
 
 const getPaymentTextColor = (booking) => {
-  if (!booking) return "text-white/60";
+  const refundState = getRefundPaymentState(booking);
+  if (refundState === "REFUND_PENDING") return "text-orange-300";
+  if (refundState === "REFUNDED") return "text-teal-300";
 
-  if (isPaymentPaid(booking)) {
-    return "text-emerald-300";
-  }
+  if (isPaymentPaid(booking)) return "text-emerald-300";
+  if (isPartiallyPaid(booking)) return "text-cyan-300";
 
-  const payment = getLatestPayment(booking);
-  if (!payment) return "text-orange-300";
+  const st = String(booking?.payment_status || "")
+    .trim()
+    .toUpperCase();
+  if (st === "REFUND_PENDING") return "text-orange-300";
+  if (st === "REFUNDED") return "text-teal-300";
 
-  const status = String(payment?.status || "")
-    .toLowerCase()
-    .trim();
-
-  switch (status) {
-    case "pending":
-      return "text-amber-300";
-    case "failed":
-    case "cancelled":
-    case "canceled":
-      return "text-red-300";
-    default:
-      return "text-orange-300";
-  }
+  return "text-amber-300";
 };
 
 // ======================================================
-// 7. BUTTON PERMISSION LOGIC
+// 6. PHÂN QUYỀN NÚT THAO TÁC CỦA KHÁCH
 // ======================================================
 const canPay = (booking) => {
   if (!booking) return false;
-  if (isPaymentPaid(booking)) return false;
+  const remaining = getRemainingAmount(booking);
+  if (remaining <= 0) return false;
 
   const status = normalizeStatus(booking.status);
-  return ["pending", "confirmed"].includes(status);
+  return ["PENDING", "CONFIRMED"].includes(status);
 };
 
 const canCancel = (booking) => {
   if (!booking) return false;
-  if (isPaymentPaid(booking)) return false;
+  // Đã có tiền thanh toán thì phải chuyển qua quy trình Hoàn tiền
+  if (getPaidAmount(booking) > 0) return false;
 
   const status = normalizeStatus(booking.status);
-  return ["pending", "confirmed"].includes(status);
+  return ["PENDING", "CONFIRMED"].includes(status);
 };
 
 const canRefund = (booking) => {
   if (!booking) return false;
-  if (!isPaymentPaid(booking)) return false;
+  if (getPaidAmount(booking) <= 0) return false;
 
   const status = normalizeStatus(booking.status);
-  const blocked = [
-    "refund_pending",
-    "refunded",
-    "ready",
-    "ongoing",
-    "completed",
-    "cancelled",
-  ];
-
-  return !blocked.includes(status);
+  // Khách chỉ được xin hoàn tiền khi đơn ĐÃ XÁC NHẬN hoặc ĐÃ HỦY (chưa hoàn)
+  return ["CONFIRMED", "CANCELLED"].includes(status);
 };
 
 // ======================================================
-// 8. FORMATTERS
+// 7. FORMATTERS
 // ======================================================
-const formatCurrency = (value) => {
-  if (value === null || value === undefined || value === "") return "0 ₫";
-  const number = Number(value);
-  if (Number.isNaN(number)) return "0 ₫";
-  return number.toLocaleString("vi-VN") + " ₫";
+const formatCurrency = (val) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(Number(val || 0));
+
+const formatDate = (val) => {
+  if (!val) return "--/--/----";
+  const d = new Date(val);
+  return Number.isNaN(d.getTime())
+    ? "--/--/----"
+    : d.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
 };
 
-const formatDate = (isoStr) => {
-  if (!isoStr) return "--/--/----";
-  const date = new Date(isoStr);
-  if (Number.isNaN(date.getTime())) return "--/--/----";
-  return date.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
-const formatTimeOnly = (isoStr) => {
-  if (!isoStr) return "";
-  const date = new Date(isoStr);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const formatTime = (val) => {
+  if (!val) return "--:--";
+  const d = new Date(val);
+  return Number.isNaN(d.getTime())
+    ? "--:--"
+    : d.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 };
 
 const getThumbnailUrl = (path) => {
   if (!path) {
-    return "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1000&q=90";
+    return "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=900&q=85";
   }
-  const cleanPath = String(path).replace(/\\/g, "/");
-  return cleanPath.startsWith("http") ? cleanPath : `/${cleanPath}`;
+  const clean = String(path).replace(/\\/g, "/");
+  return clean.startsWith("http") ? clean : `/${clean}`;
+};
+
+const getPickupText = (booking) => {
+  return (
+    booking?.pickup_point?.name ||
+    booking?.pickup_point?.address ||
+    booking?.pickup_note ||
+    "Theo lịch trình của tour"
+  );
 };
 
 // ======================================================
-// 9. ACTIONS
+// 8. HÀNH ĐỘNG: THANH TOÁN NGAY / THANH TOÁN TIẾP
 // ======================================================
-const handlePayNow = (booking) => {
+const handlePayNow = async (booking) => {
   if (!canPay(booking)) return;
-  router.push(`/checkout/${booking.id}`);
+
+  const remaining = getRemainingAmount(booking);
+  const resultConfirm = await Swal.fire({
+    title: "Xác nhận thanh toán?",
+    html: `
+      <div style="text-align:left;line-height:1.7;">
+        <p>Đơn tour: <strong>#BK-${booking.id}</strong></p>
+        <p>Tổng tiền: <strong>${formatCurrency(getTotalAmount(booking))}</strong></p>
+        <p>Đã thanh toán: <strong style="color:#22c55e;">${formatCurrency(getPaidAmount(booking))}</strong></p>
+        <p>Số tiền cần nộp: <strong style="color:#f97316;">${formatCurrency(remaining)}</strong></p>
+      </div>
+    `,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Thanh toán qua VNPAY",
+    cancelButtonText: "Hủy",
+    confirmButtonColor: "#f97316",
+    cancelButtonColor: "#6b7280",
+    reverseButtons: true,
+  });
+
+  if (!resultConfirm.isConfirmed) return;
+
+  try {
+    const res = await bookingService.payFull(booking.id);
+    const url = res?.data?.data?.payment_url || res?.data?.payment_url;
+    if (!url) throw new Error("Không nhận được URL thanh toán từ cổng.");
+    window.location.href = url;
+  } catch (error) {
+    await Swal.fire({
+      icon: "error",
+      title: "Không thể thanh toán",
+      text:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Đã xảy ra lỗi kết nối.",
+    });
+  }
 };
 
-const handleCancelBooking = async (booking) => {
-  if (!canCancel(booking)) {
-    await Swal.fire({
-      title: "Không thể hủy",
-      text: "Booking này không thể hủy trực tiếp.",
-      icon: "warning",
-      confirmButtonText: "Đã hiểu",
-      confirmButtonColor: "#f97316",
-    });
-    return;
-  }
+// ======================================================
+// 9. HÀNH ĐỘNG: HỦY ĐƠN
+// ======================================================
+const handleCancelBooking = async (booking, reason = "Lý do cá nhân") => {
+  if (!canCancel(booking)) return;
 
   const result = await Swal.fire({
     title: "Xác nhận hủy booking?",
     html: `
       <div style="text-align:left;line-height:1.7;">
-        <p>Bạn có chắc muốn hủy đơn: <strong>#BK-${booking.id}</strong>?</p>
-        <p style="color:#f59e0b;margin-top:10px;">Sau khi hủy, đơn đặt tour sẽ không thể khôi phục.</p>
+        <p>Bạn có chắc chắn muốn hủy đơn <strong>#BK-${booking.id}</strong>?</p>
+        <p style="margin-top:8px;"><strong>Lý do:</strong> ${reason}</p>
+        <p style="color:#f59e0b;margin-top:8px;">Đơn sau khi hủy sẽ giải phóng chỗ trống và không thể hoàn tác.</p>
       </div>
     `,
     icon: "warning",
     showCancelButton: true,
-    confirmButtonText: "Hủy booking",
-    cancelButtonText: "Không",
+    confirmButtonText: "Hủy đơn",
+    cancelButtonText: "Quay lại",
     confirmButtonColor: "#ef4444",
     cancelButtonColor: "#6b7280",
     reverseButtons: true,
@@ -320,106 +393,93 @@ const handleCancelBooking = async (booking) => {
   if (!result.isConfirmed) return;
 
   try {
-    await bookingService.cancelBooking(booking.id);
-
-    await queryClient.invalidateQueries({
-      queryKey: ["myBookingData"],
-    });
-
+    await bookingService.cancelBooking(booking.id, reason);
+    await queryClient.invalidateQueries({ queryKey: ["myBookingData"] });
     await Swal.fire({
       title: "Đã hủy booking",
-      text: "Booking của bạn đã được hủy thành công.",
+      text: "Đơn tour của bạn đã được hủy thành công.",
       icon: "success",
-      confirmButtonText: "Đã hiểu",
       confirmButtonColor: "#f97316",
     });
   } catch (error) {
-    console.error("Lỗi hủy booking:", error);
     await Swal.fire({
       title: "Không thể hủy",
-      text: error?.response?.data?.message || "Không thể hủy booking.",
+      text: error?.response?.data?.message || "Đã xảy ra lỗi khi hủy.",
       icon: "error",
-      confirmButtonText: "Đóng",
     });
   }
 };
 
-const handleRefundRequest = async (booking) => {
-  if (!isPaymentPaid(booking)) {
-    await Swal.fire({
-      title: "Không thể hoàn tiền",
-      text: "Booking chưa có thanh toán thành công.",
-      icon: "warning",
-      confirmButtonText: "Đã hiểu",
-      confirmButtonColor: "#f97316",
-    });
-    return;
-  }
+// ======================================================
+// 10. HÀNH ĐỘNG: YÊU CẦU HOÀN TIỀN
+// ======================================================
+const handleRefundRequest = async (booking, reason = "Lý do cá nhân") => {
+  if (!canRefund(booking)) return;
 
-  if (!canRefund(booking)) {
-    await Swal.fire({
-      title: "Không thể hoàn tiền",
-      text: "Booking hiện không ở trạng thái có thể yêu cầu hoàn tiền.",
-      icon: "warning",
-      confirmButtonText: "Đã hiểu",
-      confirmButtonColor: "#f97316",
-    });
-    return;
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const departureValue =
-    booking?.schedule?.departure_date || booking?.start_date;
-  const startDate = new Date(departureValue);
+  const depStr =
+    booking?.schedule?.departure_date || booking?.custom_departure_date;
+  const startDate = new Date(depStr);
+  const createdDate = new Date(booking.created_at);
+  const now = new Date();
 
   if (Number.isNaN(startDate.getTime())) {
     await Swal.fire({
-      title: "Lỗi ngày khởi hành",
-      text: "Không xác định được ngày khởi hành để tính mức hoàn.",
+      title: "Lỗi dữ liệu",
+      text: "Không xác định được ngày khởi hành để tính tỷ lệ hoàn.",
       icon: "error",
-      confirmButtonText: "Đóng",
     });
     return;
   }
 
-  startDate.setHours(0, 0, 0, 0);
-  const diffTime = startDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Số giờ kể từ lúc đặt
+  const hoursSinceBooking =
+    (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60);
 
+  // Số ngày trước khởi hành
+  const depDay = new Date(startDate);
+  const today = new Date();
+  depDay.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil(
+    (depDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  // Tỷ lệ hoàn theo chính sách backend
   let refundPercent = 0;
-  if (diffDays >= 7) refundPercent = 100;
-  else if (diffDays >= 3) refundPercent = 50;
-  else refundPercent = 0;
+  if (hoursSinceBooking >= 0 && hoursSinceBooking <= 48) {
+    refundPercent = 100;
+  } else if (hoursSinceBooking > 48 && diffDays >= 3) {
+    refundPercent = 50;
+  } else {
+    refundPercent = 0;
+  }
 
-  const totalAmount = Number(booking?.total_amount || 0);
-  const refundAmount = (totalAmount * refundPercent) / 100;
+  const paidAmount = getPaidAmount(booking);
+  const refundAmount = Math.round((paidAmount * refundPercent) / 100);
 
   const result = await Swal.fire({
-    title: "Xác nhận yêu cầu hoàn tiền?",
+    title: "Yêu cầu hoàn tiền",
     html: `
-      <div style="text-align:left;line-height:1.7;">
+      <div style="text-align:left;line-height:1.7;font-size:13px;">
         <p>Đơn: <strong>#BK-${booking.id}</strong></p>
-        <p>Ngày khởi hành: <strong>${formatDate(departureValue)}</strong></p>
-        <hr style="margin:12px 0;">
+        <p>Khởi hành: <strong>${formatDate(depStr)}</strong></p>
+        <p>Lý do: <strong>${reason}</strong></p>
+        <hr style="margin:10px 0;border-color:rgba(255,255,255,0.1);">
         <p><strong>Chính sách hoàn tiền:</strong></p>
-        <ul style="padding-left:20px;">
-          <li>Từ 7 ngày trở lên: <strong style="color:#22c55e;">100%</strong></li>
-          <li>Từ 3 - 6 ngày: <strong style="color:#f59e0b;">50%</strong></li>
-          <li>Dưới 3 ngày: <strong style="color:#ef4444;">0% (Không hỗ trợ hoàn)</strong></li>
+        <ul style="padding-left:18px;margin-top:4px;">
+          <li>Trong 48h từ lúc đặt: <strong style="color:#22c55e;">100%</strong></li>
+          <li>Sau 48h & trước ngày đi ≥ 3 ngày: <strong style="color:#f59e0b;">50%</strong></li>
+          <li>Cận ngày đi (&lt; 3 ngày): <strong style="color:#ef4444;">0%</strong></li>
         </ul>
-        <hr style="margin:12px 0;">
-        <p>Còn lại: <strong>${Math.max(diffDays, 0)} ngày</strong></p>
-        <p>Tổng tiền: <strong>${formatCurrency(totalAmount)}</strong></p>
-        <p>Mức hoàn dự kiến: <strong style="color:${refundPercent === 100 ? "#22c55e" : refundPercent === 50 ? "#f59e0b" : "#ef4444"}; font-size:18px;">${refundPercent}%</strong></p>
-        <p>Số tiền nhận về ví: <strong style="color:#22c55e;">${formatCurrency(refundAmount)}</strong></p>
-        <p style="color:#94a3b8;margin-top:10px;font-size:12px;">Yêu cầu sẽ được admin duyệt và tiền sẽ hoàn về ví tài khoản của bạn.</p>
+        <hr style="margin:10px 0;border-color:rgba(255,255,255,0.1);">
+        <p>Đã thanh toán: <strong>${formatCurrency(paidAmount)}</strong></p>
+        <p>Tỷ lệ hoàn tính được: <strong style="color:#f97316;font-size:16px;">${refundPercent}%</strong></p>
+        <p>Số tiền dự kiến hoàn về ví: <strong style="color:#22c55e;font-size:16px;">${formatCurrency(refundAmount)}</strong></p>
       </div>
     `,
     icon: "warning",
     showCancelButton: true,
-    confirmButtonText: "Gửi yêu cầu",
+    confirmButtonText: "Xác nhận gửi yêu cầu",
     cancelButtonText: "Hủy",
     confirmButtonColor: "#f97316",
     cancelButtonColor: "#6b7280",
@@ -429,123 +489,109 @@ const handleRefundRequest = async (booking) => {
   if (!result.isConfirmed) return;
 
   try {
-    const response = await bookingService.refund_pending(booking.id);
-    if (response?.data?.success === false) {
-      throw new Error(
-        response?.data?.message || "Không thể gửi yêu cầu hoàn tiền.",
-      );
-    }
-
-    await queryClient.invalidateQueries({
-      queryKey: ["myBookingData"],
+    const res = await bookingService.refund_pending(booking.id, {
+      reason,
+      refund_percent: refundPercent,
+      refund_amount: refundAmount,
     });
 
+    if (res?.data?.success === false) throw new Error(res?.data?.message);
+
+    await queryClient.invalidateQueries({ queryKey: ["myBookingData"] });
     await Swal.fire({
-      title: "Đã gửi yêu cầu!",
-      text: "Yêu cầu hoàn tiền đã gửi đến hệ thống, vui lòng đợi duyệt.",
+      title: "Đã gửi yêu cầu",
+      text: "Yêu cầu hoàn tiền đã được chuyển tới ban quản trị xử lý.",
       icon: "success",
-      confirmButtonText: "Đã hiểu",
       confirmButtonColor: "#f97316",
     });
   } catch (error) {
-    console.error("Lỗi yêu cầu hoàn tiền:", error);
     await Swal.fire({
-      title: "Không thể gửi yêu cầu",
+      title: "Gửi thất bại",
       text:
         error?.response?.data?.message ||
         error?.message ||
         "Vui lòng thử lại sau.",
       icon: "error",
-      confirmButtonText: "Đóng",
     });
   }
 };
 
 // ======================================================
-// 10. STATS
+// 11. STATS TỔNG QUAN
 // ======================================================
 const stats = computed(() => {
   const list = bookings.value;
-
   return {
     total: list.length,
     upcoming: list.filter((b) =>
-      ["paid", "ready", "ongoing"].includes(normalizeStatus(b.status)),
+      ["CONFIRMED", "CHECKED_IN", "IN_PROGRESS"].includes(
+        normalizeStatus(b.status),
+      ),
     ).length,
-    completed: list.filter((b) => normalizeStatus(b.status) === "completed")
+    completed: list.filter((b) => normalizeStatus(b.status) === "COMPLETED")
       .length,
-    cancelled: list.filter((b) => normalizeStatus(b.status) === "cancelled")
-      .length,
-    totalSpent: list
-      .filter((b) => isPaymentPaid(b))
-      .reduce((total, b) => total + Number(b.total_amount || 0), 0),
+    paid: list.filter((b) => getPaidAmount(b) > 0).length,
+    cancelled: list.filter((b) =>
+      ["CANCELLED", "NO_SHOW", "REFUNDED"].includes(normalizeStatus(b.status)),
+    ).length,
   };
 });
 
 // ======================================================
-// 11. UPCOMING TRIP (Chuyến đi gần nhất)
-// ======================================================
-const upcomingTrip = computed(() => {
-  const list = bookings.value;
-  const activeTrips = list.filter((b) =>
-    ["ongoing", "ready", "paid", "confirmed"].includes(
-      normalizeStatus(b.status),
-    ),
-  );
-  return activeTrips[0] || list[0] || null;
-});
-
-// ======================================================
-// 12. SEARCH + FILTER
+// 12. TABS & FILTER
 // ======================================================
 const searchQuery = ref("");
-const activeTab = ref("all");
+const activeTab = ref("ALL");
 
 const filterCounts = computed(() => {
   const list = bookings.value;
-
   return {
-    all: list.length,
-    pending: list.filter(
-      (b) => normalizeStatus(b.status) === "pending" && !isPaymentPaid(b),
-    ).length,
-    confirmed: list.filter(
-      (b) => normalizeStatus(b.status) === "confirmed" && !isPaymentPaid(b),
-    ).length,
-    ready: list.filter((b) => normalizeStatus(b.status) === "ready").length,
-    ongoing: list.filter((b) => normalizeStatus(b.status) === "ongoing").length,
-    completed: list.filter((b) => normalizeStatus(b.status) === "completed")
+    ALL: list.length,
+    PENDING: list.filter((b) => normalizeStatus(b.status) === "PENDING").length,
+    CONFIRMED: list.filter((b) => normalizeStatus(b.status) === "CONFIRMED")
       .length,
-    cancelled: list.filter((b) => normalizeStatus(b.status) === "cancelled")
+    CHECKED_IN: list.filter((b) => normalizeStatus(b.status) === "CHECKED_IN")
       .length,
+    IN_PROGRESS: list.filter((b) => normalizeStatus(b.status) === "IN_PROGRESS")
+      .length,
+    COMPLETED: list.filter((b) => normalizeStatus(b.status) === "COMPLETED")
+      .length,
+    REFUND: list.filter((b) =>
+      ["REFUND_PENDING", "REFUNDED"].includes(normalizeStatus(b.status)),
+    ).length,
+    CANCELLED: list.filter((b) =>
+      ["CANCELLED", "NO_SHOW"].includes(normalizeStatus(b.status)),
+    ).length,
   };
 });
 
 const filteredBookings = computed(() => {
   let result = bookings.value;
 
-  if (activeTab.value === "pending") {
-    result = result.filter(
-      (b) => normalizeStatus(b.status) === "pending" && !isPaymentPaid(b),
-    );
-  } else if (activeTab.value === "confirmed") {
-    result = result.filter(
-      (b) => normalizeStatus(b.status) === "confirmed" && !isPaymentPaid(b),
-    );
-  } else if (activeTab.value !== "all") {
-    result = result.filter(
-      (b) => normalizeStatus(b.status) === activeTab.value,
-    );
+  if (activeTab.value !== "ALL") {
+    if (activeTab.value === "REFUND") {
+      result = result.filter((b) =>
+        ["REFUND_PENDING", "REFUNDED"].includes(normalizeStatus(b.status)),
+      );
+    } else if (activeTab.value === "CANCELLED") {
+      result = result.filter((b) =>
+        ["CANCELLED", "NO_SHOW"].includes(normalizeStatus(b.status)),
+      );
+    } else {
+      result = result.filter(
+        (b) => normalizeStatus(b.status) === activeTab.value,
+      );
+    }
   }
 
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim();
     result = result.filter((b) => {
-      const tourName = b.tour?.name?.toLowerCase() || "";
-      const bookingId = String(b.id || "").toLowerCase();
-      const departure = b.departure?.toLowerCase() || "";
+      const tourName = b?.tour?.name?.toLowerCase() || "";
+      const bookingId = String(b?.id || "").toLowerCase();
+      const pickup = getPickupText(b).toLowerCase();
       return (
-        tourName.includes(q) || bookingId.includes(q) || departure.includes(q)
+        tourName.includes(q) || bookingId.includes(q) || pickup.includes(q)
       );
     });
   }
@@ -558,6 +604,7 @@ const filteredBookings = computed(() => {
 // ======================================================
 const activeReviewBooking = ref(null);
 const isSubmitting = ref(false);
+
 const formReview = ref({
   tour_id: "",
   rating: 5,
@@ -582,10 +629,9 @@ const closeReviewModal = () => {
 const createReviewsTour = async () => {
   if (!formReview.value.content.trim()) {
     await Swal.fire({
-      title: "Thiếu nội dung",
-      text: "Vui lòng nhập nội dung đánh giá!",
+      title: "Thiếu nhận xét",
+      text: "Vui lòng nhập cảm nhận trải nghiệm của bạn!",
       icon: "warning",
-      confirmButtonText: "Đã hiểu",
       confirmButtonColor: "#f97316",
     });
     return;
@@ -593,444 +639,473 @@ const createReviewsTour = async () => {
 
   try {
     isSubmitting.value = true;
-    const payload = {
+    await reviewService.createReview({
       tour_id: formReview.value.tour_id,
       rating: Number(formReview.value.rating),
       joined_date: formReview.value.joined_date,
       content: formReview.value.content.trim(),
-    };
+    });
 
-    const res = await reviewService.createReview(payload);
-    if (res?.data || res?.status === 200 || res?.status === 201) {
-      await Swal.fire({
-        title: "Thành công!",
-        text: "Cảm ơn bạn đã gửi đánh giá!",
-        icon: "success",
-        confirmButtonText: "Đã hiểu",
-        confirmButtonColor: "#f97316",
-      });
-      closeReviewModal();
-    }
-  } catch (error) {
-    console.error("Lỗi gửi đánh giá:", error);
     await Swal.fire({
-      title: "Không thể gửi đánh giá",
-      text: error?.response?.data?.message || "Lỗi không thể gửi đánh giá!",
+      title: "Thành công!",
+      text: "Cảm ơn bạn đã đóng góp đánh giá trải nghiệm chuyến đi!",
+      icon: "success",
+      confirmButtonColor: "#f97316",
+    });
+
+    closeReviewModal();
+    await queryClient.invalidateQueries({ queryKey: ["myBookingData"] });
+  } catch (error) {
+    await Swal.fire({
+      title: "Lỗi gửi đánh giá",
+      text: error?.response?.data?.message || "Vui lòng thử lại sau.",
       icon: "error",
-      confirmButtonText: "Đóng",
     });
   } finally {
     isSubmitting.value = false;
   }
 };
+
+// ======================================================
+// 14. CHI TIẾT ĐƠN TOUR
+// ======================================================
+const handleViewDetail = async (booking) => {
+  if (!booking) return;
+
+  const ticketName =
+    booking?.ticket_items?.[0]?.ticket_type?.name || "Tiêu chuẩn";
+  const pickupPoint = getPickupText(booking);
+
+  await Swal.fire({
+    title: "Chi tiết đơn đặt tour",
+    width: 600,
+    background: "#0d1119",
+    color: "#fff",
+    showCloseButton: true,
+    showConfirmButton: false,
+    customClass: {
+      popup: "rounded-2xl border border-white/10",
+      title: "text-lg font-bold text-white",
+    },
+    html: `
+      <div style="text-align:left;font-size:13px;line-height:1.7;" class="space-y-3">
+        <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;">
+          <p style="color:#94a3b8;font-size:11px;">MÃ ĐƠN</p>
+          <p style="font-weight:600;color:#f97316;">#BK-${booking.id}</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;">
+          <p style="color:#94a3b8;font-size:11px;">TÊN TOUR</p>
+          <p style="font-weight:600;">${booking?.tour?.name || "Tour du lịch"}</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;">
+            <p style="color:#94a3b8;font-size:11px;">KHỞI HÀNH</p>
+            <p style="font-weight:600;">${formatDate(booking?.schedule?.departure_date)}</p>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;">
+            <p style="color:#94a3b8;font-size:11px;">GIỜ XUẤT PHÁT</p>
+            <p style="font-weight:600;">${formatTime(booking?.schedule?.departure_time)}</p>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;">
+          <p style="color:#94a3b8;font-size:11px;">ĐIỂM ĐÓN KHÁCH</p>
+          <p style="font-weight:600;">${pickupPoint}</p>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:12px;">
+          <p style="color:#94a3b8;font-size:11px;">THANH TOÁN</p>
+          <p>Tổng tiền: <strong>${formatCurrency(getTotalAmount(booking))}</strong></p>
+          <p>Đã trả: <strong style="color:#22c55e;">${formatCurrency(getPaidAmount(booking))}</strong></p>
+          <p>Còn lại: <strong style="color:#f97316;">${formatCurrency(getRemainingAmount(booking))}</strong></p>
+        </div>
+      </div>
+    `,
+  });
+};
 </script>
 
 <template>
-  <div class="relative min-h-screen text-white pt-20">
-    <!-- ================================================== -->
-    <!-- BACKGROUND GỐC -->
-    <!-- ================================================== -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+  <div class="customer-redesign relative min-h-screen pt-20 text-white">
+    <!-- BACKGROUND -->
+    <div class="customer-atmosphere pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <img
         src="/hero-bg.jpg"
-        alt="Sunset travel"
+        alt="Travel background"
         class="absolute inset-0 h-full w-full object-cover"
       />
-      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="absolute inset-0 bg-black/50"></div>
       <div
-        class="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-[#080b12]/90"
+        class="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-[#080b12]/95"
       ></div>
       <div
         class="absolute inset-x-0 bottom-0 h-[35%] bg-gradient-to-t from-[#080b12] via-[#080b12]/60 to-transparent"
       ></div>
     </div>
 
-    <!-- ================================================== -->
-    <!-- MAIN CONTENT -->
-    <!-- ================================================== -->
-    <main class="relative z-10 mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-10">
-      <!-- HEADER -->
-      <section class="mb-8">
-        <div
-          class="flex flex-col justify-between gap-5 md:flex-row md:items-end"
-        >
-          <div>
-            <div
-              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80 backdrop-blur-xl"
-            >
-              <span class="h-1.5 w-1.5 rounded-full bg-orange-300"></span>
-              My Travel
-            </div>
-            <h1
-              class="text-4xl font-bold tracking-tight text-white sm:text-5xl"
-            >
-              Chuyến đi của tôi
-            </h1>
-            <p class="mt-3 max-w-2xl text-sm leading-6 text-white/80">
-              Theo dõi lịch trình, tình trạng thanh toán và hồ sơ đặt tour.
-            </p>
-          </div>
-
-          <RouterLink
-            to="/tours"
-            class="group inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-slate-900 shadow-xl transition hover:-translate-y-0.5 hover:bg-orange-50"
-          >
-            Khám phá tour mới
-            <svg
-              class="h-4 w-4 transition group-hover:translate-x-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 12h14m-6-6l6 6-6 6"
-              />
-            </svg>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- STATS NGUYÊN MẪU MÀU SẮC -->
+    <!-- MAIN WRAPPER -->
+    <main class="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <!-- STATS SECTION -->
       <section
         class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
       >
         <div
-          class="rounded-3xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur-2xl"
+          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
         >
           <div class="flex items-center justify-between">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10"
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-lg"
+              >📋</span
             >
-              📋
-            </div>
-            <span class="text-[11px] font-medium text-white/70">Tổng đơn</span>
+            <span class="text-xs text-white/70">Tổng đơn</span>
           </div>
           <p class="mt-4 font-mono text-2xl font-bold text-white">
-            {{ String(stats.total || 0).padStart(2, "0") }}
+            {{ String(stats.total).padStart(2, "0") }}
           </p>
-          <p class="mt-0.5 text-[10px] text-white/50">Tất cả lịch sử</p>
+          <p class="mt-0.5 text-[10px] text-white/50">Tất cả chuyến đi</p>
         </div>
 
         <div
-          class="rounded-3xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur-2xl"
+          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
         >
           <div class="flex items-center justify-between">
-            <div
+            <span
               class="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/15 text-lg"
+              >🧳</span
             >
-              🧳
-            </div>
-            <span class="text-[11px] font-medium text-cyan-200/80">Sắp đi</span>
+            <span class="text-xs text-cyan-200/80">Sắp đi</span>
           </div>
           <p class="mt-4 font-mono text-2xl font-bold text-white">
-            {{ String(stats.upcoming || 0).padStart(2, "0") }}
+            {{ String(stats.upcoming).padStart(2, "0") }}
           </p>
-          <p class="mt-0.5 text-[10px] text-white/50">Đã sẵn sàng</p>
+          <p class="mt-0.5 text-[10px] text-white/50">Tour đang hoạt động</p>
         </div>
 
         <div
-          class="rounded-3xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur-2xl"
+          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
         >
           <div class="flex items-center justify-between">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-400/15 font-bold text-purple-300"
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-400/15 text-lg"
+              >✨</span
             >
-              ✓
-            </div>
-            <span class="text-[11px] font-medium text-purple-200/80"
-              >Hoàn thành</span
-            >
+            <span class="text-xs text-purple-200/80">Hoàn thành</span>
           </div>
           <p class="mt-4 font-mono text-2xl font-bold text-white">
-            {{ String(stats.completed || 0).padStart(2, "0") }}
+            {{ String(stats.completed).padStart(2, "0") }}
           </p>
-          <p class="mt-0.5 text-[10px] text-white/50">Đã trải nghiệm</p>
+          <p class="mt-0.5 text-[10px] text-white/50">Đã đi xong</p>
         </div>
 
         <div
           class="rounded-3xl border border-emerald-400/20 bg-emerald-500/[0.08] p-5 backdrop-blur-2xl"
         >
           <div class="flex items-center justify-between">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/20 font-bold text-emerald-300"
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/20 text-lg"
+              >💳</span
             >
-              ✓
-            </div>
-            <span class="text-[11px] font-medium text-emerald-200/80"
-              >Đã trả</span
-            >
+            <span class="text-xs text-emerald-200/80">Đã nộp tiền</span>
           </div>
           <p class="mt-4 font-mono text-2xl font-bold text-emerald-300">
-            {{
-              String(bookings.filter((b) => isPaymentPaid(b)).length).padStart(
-                2,
-                "0",
-              )
-            }}
+            {{ String(stats.paid).padStart(2, "0") }}
           </p>
-          <p class="mt-0.5 text-[10px] text-emerald-200/60">
-            Thanh toán thành công
-          </p>
+          <p class="mt-0.5 text-[10px] text-emerald-200/60">Có thanh toán</p>
         </div>
 
         <div
-          class="rounded-3xl border border-white/15 bg-white/[0.08] p-5 backdrop-blur-2xl"
+          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
         >
           <div class="flex items-center justify-between">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-400/15 font-bold text-red-300"
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-400/15 text-lg"
+              >📁</span
             >
-              ✕
-            </div>
-            <span class="text-[11px] font-medium text-red-200/80">Đã hủy</span>
+            <span class="text-xs text-rose-200/80">Đã hủy/đóng</span>
           </div>
           <p class="mt-4 font-mono text-2xl font-bold text-white">
-            {{ String(stats.cancelled || 0).padStart(2, "0") }}
+            {{ String(stats.cancelled).padStart(2, "0") }}
           </p>
           <p class="mt-0.5 text-[10px] text-white/50">Đơn đã đóng</p>
         </div>
       </section>
 
-      <!-- UPCOMING TRIP (HÀNH TRÌNH ƯU TIÊN) -->
-      <section v-if="upcomingTrip" class="mb-10">
-        <div class="mb-4 flex items-center justify-between">
+      <!-- BOOKINGS LIST -->
+      <section>
+        <!-- SEARCH & HEADER -->
+        <div
+          class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+        >
           <div>
-            <h2 class="text-lg font-bold text-white">Hành trình ưu tiên</h2>
-            <p class="mt-1 text-xs font-medium text-white/70">
-              Chuyến đi gần nhất của bạn
+            <h2 class="text-xl font-bold text-white">Chuyến đi của tôi</h2>
+            <p class="mt-1 text-xs text-white/60">
+              Quản lý hành trình, theo dõi tiến độ và xử lý thanh toán
             </p>
+          </div>
+
+          <div class="relative w-full lg:w-72">
+            <span
+              class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-white/50"
+              >search</span
+            >
+            <input
+              v-model="searchQuery"
+              type="search"
+              placeholder="Tìm theo mã tour, tên, địa điểm..."
+              class="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-2.5 pl-10 pr-4 text-xs text-white outline-none backdrop-blur-xl transition placeholder:text-white/40 focus:border-orange-400/50 focus:bg-white/10"
+            />
           </div>
         </div>
 
+        <!-- TABS LỌC THEO HỆ THỐNG TRẠNG THÁI MỚI -->
         <div
-          class="group relative overflow-hidden rounded-[2rem] border border-white/15 bg-white/[0.08] backdrop-blur-2xl"
+          class="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 backdrop-blur-xl"
         >
-          <div class="grid lg:grid-cols-[330px_1fr]">
-            <!-- IMAGE (CÓ ẢNH GIẢ NẾU THIẾU THUMBNAIL) -->
-            <div class="relative h-64 overflow-hidden lg:h-auto bg-white/5">
-              <img
-                :src="
-                  upcomingTrip.tour?.thumbnail
-                    ? getThumbnailUrl(upcomingTrip.tour.thumbnail)
-                    : 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
-                "
-                :alt="upcomingTrip.tour?.name || 'Tour thumbnail'"
-                class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-              />
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"
-              ></div>
-              <div
-                class="absolute left-5 top-5 rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-[10px] font-bold uppercase text-white backdrop-blur-xl"
-              >
-                {{ getBadge(upcomingTrip.status).text }}
-              </div>
-            </div>
+          <button
+            v-for="tab in [
+              ['ALL', 'Tất cả', filterCounts.ALL],
+              ['PENDING', 'Chờ duyệt', filterCounts.PENDING],
+              ['CONFIRMED', 'Đã xác nhận', filterCounts.CONFIRMED],
+              ['CHECKED_IN', 'Đã đón', filterCounts.CHECKED_IN],
+              ['IN_PROGRESS', 'Đang đi', filterCounts.IN_PROGRESS],
+              ['COMPLETED', 'Hoàn thành', filterCounts.COMPLETED],
+              ['REFUND', 'Hoàn tiền', filterCounts.REFUND],
+              ['CANCELLED', 'Đã hủy', filterCounts.CANCELLED],
+            ]"
+            :key="tab[0]"
+            type="button"
+            @click="activeTab = tab[0]"
+            :class="
+              activeTab === tab[0]
+                ? 'bg-white font-bold text-slate-900'
+                : 'text-white/70 hover:bg-white/10 hover:text-white'
+            "
+            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2 text-xs transition"
+          >
+            {{ tab[1] }} <span class="ml-1 opacity-70">({{ tab[2] }})</span>
+          </button>
+        </div>
 
-            <!-- CONTENT -->
-            <div class="p-6 sm:p-8">
-              <div class="flex flex-col justify-between gap-5 sm:flex-row">
-                <div>
-                  <div class="mb-2 flex items-center gap-2">
-                    <span
-                      class="font-mono text-xs font-semibold text-orange-200"
+        <!-- LOADING -->
+        <div v-if="isLoading" class="py-16 text-center">
+          <div
+            class="inline-block h-8 w-8 animate-spin rounded-full border-2 border-orange-400 border-t-transparent"
+          ></div>
+          <p class="mt-3 text-xs tracking-wider text-white/50">
+            Đang tải lịch sử chuyến đi...
+          </p>
+        </div>
+
+        <!-- LIST CONTAINER -->
+        <div v-else-if="filteredBookings.length" class="space-y-4">
+          <article
+            v-for="booking in filteredBookings"
+            :key="booking.id"
+            class="group overflow-hidden rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-2xl transition hover:border-white/25 hover:bg-white/[0.09]"
+          >
+            <div class="flex flex-col md:flex-row">
+              <!-- IMAGE -->
+              <div class="relative h-52 shrink-0 md:h-auto md:w-64">
+                <img
+                  :src="getThumbnailUrl(booking.tour?.thumbnail)"
+                  :alt="booking.tour?.name || 'Tour'"
+                  class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                />
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
+                ></div>
+                <div
+                  class="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/40 px-3 py-1 font-mono text-xs font-semibold text-white backdrop-blur-md"
+                >
+                  #BK-{{ booking.id }}
+                </div>
+              </div>
+
+              <!-- CONTENT -->
+              <div class="flex-1 p-5 sm:p-6">
+                <!-- TOP HEADER -->
+                <div
+                  class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"
+                >
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="font-mono text-[10px] font-semibold uppercase tracking-wider text-orange-300"
+                      >
+                        BOOKING #{{ booking.id }}
+                      </span>
+                      <span class="h-1 w-1 rounded-full bg-white/30"></span>
+                      <span
+                        class="text-[11px] font-medium"
+                        :class="getPaymentTextColor(booking)"
+                      >
+                        {{ getPaymentText(booking) }}
+                      </span>
+                    </div>
+
+                    <h3 class="mt-1.5 text-lg font-bold text-white">
+                      {{ booking.tour?.name }}
+                    </h3>
+
+                    <p
+                      class="mt-1 flex items-center gap-1 text-xs text-white/60"
                     >
-                      BOOKING #BK-{{ upcomingTrip.id }}
-                    </span>
-                    <span class="h-1 w-1 rounded-full bg-white/40"></span>
-                    <span
-                      class="text-xs font-medium"
-                      :class="getPaymentTextColor(upcomingTrip)"
-                    >
-                      {{ getPaymentText(upcomingTrip) }}
-                    </span>
+                      <span class="material-symbols-outlined text-[15px]"
+                        >location_on</span
+                      >
+                      {{ getPickupText(booking) }}
+                    </p>
                   </div>
 
-                  <h3 class="text-2xl font-bold text-white">
-                    {{ upcomingTrip.tour?.name }}
-                  </h3>
-                  <p class="mt-2 text-sm font-medium text-white/80">
-                    Nơi đón:
-                    {{
-                      upcomingTrip.departure ||
-                      "Điểm đón theo lịch trình quy định"
-                    }}
-                  </p>
+                  <!-- BADGE STATUS -->
+                  <span
+                    class="h-fit w-fit shrink-0 rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wider"
+                    :class="getBadge(booking.status).class"
+                  >
+                    {{ getBadge(booking.status).text }}
+                  </span>
                 </div>
 
+                <!-- INFO GRID -->
                 <div
-                  class="h-fit rounded-full border px-3.5 py-1.5 text-xs font-bold tracking-wide"
-                  :class="getBadge(upcomingTrip.status).class"
+                  class="mt-5 grid grid-cols-2 gap-4 border-t border-white/10 pt-4 sm:grid-cols-4"
                 >
-                  {{ getBadge(upcomingTrip.status).text }}
+                  <div>
+                    <p
+                      class="text-[10px] uppercase tracking-wider text-white/50"
+                    >
+                      Khởi hành
+                    </p>
+                    <p class="mt-1 text-xs font-semibold text-white">
+                      {{ formatDate(booking.schedule?.departure_date) }}
+                    </p>
+                    <p class="text-[10px] text-white/50">
+                      {{ formatTime(booking.schedule?.departure_time) }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      class="text-[10px] uppercase tracking-wider text-white/50"
+                    >
+                      Hành khách
+                    </p>
+                    <p class="mt-1 text-xs font-semibold text-white">
+                      {{ booking.total_people || 0 }} người
+                    </p>
+                    <p class="truncate text-[10px] text-white/50">
+                      {{ booking.booker_name || "Khách lẻ" }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      class="text-[10px] uppercase tracking-wider text-white/50"
+                    >
+                      Tổng tiền
+                    </p>
+                    <p class="mt-1 font-mono text-xs font-bold text-white">
+                      {{ formatCurrency(getTotalAmount(booking)) }}
+                    </p>
+                    <p class="text-[10px] text-emerald-400">
+                      Đã trả: {{ formatCurrency(getPaidAmount(booking)) }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p
+                      class="text-[10px] uppercase tracking-wider text-white/50"
+                    >
+                      Còn lại
+                    </p>
+                    <p
+                      class="mt-1 font-mono text-xs font-bold"
+                      :class="
+                        getRemainingAmount(booking) > 0
+                          ? 'text-orange-400'
+                          : 'text-emerald-400'
+                      "
+                    >
+                      {{ formatCurrency(getRemainingAmount(booking)) }}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <!-- INFO GRID -->
-              <div class="mt-7 grid gap-5 sm:grid-cols-3">
-                <div>
-                  <p
-                    class="text-[10px] font-semibold uppercase tracking-wider text-white/70"
-                  >
-                    Khởi hành
-                  </p>
-                  <p class="mt-2 text-sm font-semibold text-white">
-                    {{ formatDate(upcomingTrip.schedule?.departure_date) }}
-                  </p>
-                  <p class="mt-1 text-xs text-white/70">
-                    {{ formatTimeOnly(upcomingTrip.schedule?.departure_time) }}
-                  </p>
-                </div>
-
-                <div>
-                  <p
-                    class="text-[10px] font-semibold uppercase tracking-wider text-white/70"
-                  >
-                    Hành khách
-                  </p>
-                  <p class="mt-2 text-sm font-semibold text-white">
-                    {{
-                      String(upcomingTrip.total_people || 0).padStart(2, "0")
-                    }}
-                    người
-                  </p>
-                  <p class="mt-1 text-xs text-white/70">
-                    Người đặt: {{ upcomingTrip.booker_name }}
-                  </p>
-                </div>
-
-                <div>
-                  <p
-                    class="text-[10px] font-semibold uppercase tracking-wider text-white/70"
-                  >
-                    Tổng tiền
-                  </p>
-                  <p class="mt-2 font-mono text-lg font-bold text-white">
-                    {{ formatCurrency(upcomingTrip.total_amount) }}
-                  </p>
-                  <p
-                    class="mt-1 text-xs font-semibold"
-                    :class="getPaymentTextColor(upcomingTrip)"
-                  >
-                    {{ getPaymentText(upcomingTrip) }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- ACTIONS CHO UPCOMING TRIP -->
-              <div
-                class="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5"
-              >
-                <div class="flex flex-wrap items-center gap-2">
-                  <RouterLink
-                    :to="`/booking/${upcomingTrip.id}`"
-                    class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
-                  >
-                    Chi tiết đơn hàng
-                  </RouterLink>
-
+                <!-- ACTIONS ROW -->
+                <div
+                  class="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4"
+                >
+                  <!-- Xem chi tiết -->
                   <button
-                    v-if="canPay(upcomingTrip)"
                     type="button"
-                    @click="handlePayNow(upcomingTrip)"
-                    class="cursor-pointer rounded-xl bg-orange-400 px-4 py-2.5 text-xs font-bold text-slate-950 shadow-lg transition hover:bg-orange-300"
+                    @click="handleViewDetail(booking)"
+                    class="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-medium text-white transition hover:bg-white/15"
                   >
-                    Thanh toán ngay
+                    Xem chi tiết
                   </button>
 
-                  <!-- DROPDOWN HOÀN TIỀN CÓ LÝ DO -->
-                  <details
-                    v-if="canRefund(upcomingTrip)"
-                    class="relative inline-block"
+                  <!-- Thanh toán số tiền còn thiếu -->
+                  <button
+                    v-if="canPay(booking)"
+                    type="button"
+                    @click="handlePayNow(booking)"
+                    class="rounded-xl bg-orange-400 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-orange-300 active:scale-95"
                   >
+                    {{
+                      getPaidAmount(booking) > 0
+                        ? "Thanh toán phần còn lại"
+                        : "Thanh toán ngay"
+                    }}
+                  </button>
+
+                  <!-- Yêu cầu hoàn tiền (Nếu đã có tiền và đơn đang CONFIRMED) -->
+                  <details v-if="canRefund(booking)" class="relative">
                     <summary
-                      class="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-xl border border-purple-400/30 bg-purple-500/20 px-4 py-2.5 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/30 focus:outline-none select-none"
+                      class="inline-flex cursor-pointer list-none items-center gap-1 rounded-xl border border-orange-400/30 bg-orange-400/10 px-3.5 py-2 text-xs font-semibold text-orange-200 transition hover:bg-orange-400/20"
                     >
                       Yêu cầu hoàn tiền
-                      <svg
-                        class="h-3.5 w-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      <span class="material-symbols-outlined text-[16px]"
+                        >arrow_drop_down</span
                       >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
                     </summary>
 
                     <div
-                      class="absolute left-0 bottom-full mb-2 z-30 w-64 rounded-2xl border border-white/20 bg-[#0f172a] p-2 shadow-2xl backdrop-blur-xl"
+                      class="absolute bottom-full left-0 z-30 mb-2 w-64 rounded-2xl border border-white/15 bg-[#0f172a] p-2 shadow-2xl"
                     >
                       <p
-                        class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-300/80"
+                        class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-orange-300"
                       >
-                        Chọn lý do hoàn tiền:
+                        Chọn lý do hoàn tiền
                       </p>
-                      <div class="space-y-1">
+                      <div class="space-y-0.5">
                         <button
                           type="button"
                           @click="
                             handleRefundRequest(
-                              upcomingTrip,
+                              booking,
                               'Bận việc đột xuất / Trùng lịch',
                             )
                           "
-                          class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-purple-500/20 hover:text-white"
+                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-white/80 hover:bg-white/10"
                         >
-                          📅 Bận việc đột xuất / Trùng lịch
+                          📅 Bận việc đột xuất
                         </button>
                         <button
                           type="button"
                           @click="
                             handleRefundRequest(
-                              upcomingTrip,
+                              booking,
                               'Sức khỏe không đảm bảo',
                             )
                           "
-                          class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-purple-500/20 hover:text-white"
+                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-white/80 hover:bg-white/10"
                         >
-                          🏥 Sức khỏe không đảm bảo
+                          🏥 Vấn đề sức khỏe
                         </button>
                         <button
                           type="button"
                           @click="
-                            handleRefundRequest(
-                              upcomingTrip,
-                              'Thời tiết xấu / Bất khả kháng',
-                            )
+                            handleRefundRequest(booking, 'Lý do cá nhân khác')
                           "
-                          class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                        >
-                          ⛈️ Thời tiết xấu / Bất khả kháng
-                        </button>
-                        <button
-                          type="button"
-                          @click="
-                            handleRefundRequest(
-                              upcomingTrip,
-                              'Đặt nhầm thông tin tour',
-                            )
-                          "
-                          class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                        >
-                          ✏️ Đặt nhầm thông tin tour
-                        </button>
-                        <button
-                          type="button"
-                          @click="
-                            handleRefundRequest(
-                              upcomingTrip,
-                              'Lý do cá nhân khác',
-                            )
-                          "
-                          class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-purple-500/20 hover:text-white"
+                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-white/80 hover:bg-white/10"
                         >
                           💬 Lý do cá nhân khác
                         </button>
@@ -1038,644 +1113,87 @@ const createReviewsTour = async () => {
                     </div>
                   </details>
 
+                  <!-- Trạng thái chờ hoàn tiền -->
                   <span
-                    v-if="
-                      normalizeStatus(upcomingTrip.status) === 'refund_pending'
-                    "
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3.5 py-2 text-xs font-semibold text-amber-200"
+                    v-if="normalizeStatus(booking.status) === 'REFUND_PENDING'"
+                    class="inline-flex items-center gap-1 rounded-xl border border-orange-400/30 bg-orange-400/10 px-3 py-1.5 text-xs font-medium text-orange-200"
                   >
-                    ⏳ Đang chờ hoàn tiền
+                    ⏳ Chờ duyệt hoàn tiền
                   </span>
 
+                  <!-- Đã hoàn tiền -->
                   <span
-                    v-if="normalizeStatus(upcomingTrip.status) === 'refunded'"
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-2 text-xs font-semibold text-emerald-200"
+                    v-if="normalizeStatus(booking.status) === 'REFUNDED'"
+                    class="inline-flex items-center gap-1 rounded-xl border border-teal-400/30 bg-teal-400/10 px-3 py-1.5 text-xs font-medium text-teal-200"
                   >
-                    ✓ Đã hoàn tiền vào ví
+                    ✓ Đã hoàn tiền về ví
                   </span>
 
+                  <!-- Đánh giá tour đã xong -->
                   <button
-                    v-if="normalizeStatus(upcomingTrip.status) === 'completed'"
+                    v-if="normalizeStatus(booking.status) === 'COMPLETED'"
                     type="button"
-                    @click="openReviewModal(upcomingTrip)"
-                    class="cursor-pointer rounded-xl border border-orange-300/20 bg-orange-300/10 px-4 py-2.5 text-xs font-semibold text-orange-200 transition hover:bg-orange-300/20"
+                    @click="openReviewModal(booking)"
+                    class="rounded-xl border border-purple-400/30 bg-purple-400/15 px-3.5 py-2 text-xs font-semibold text-purple-200 transition hover:bg-purple-400/25"
                   >
                     Viết đánh giá
                   </button>
 
-                  <span
-                    v-if="
-                      ['ready', 'ongoing'].includes(
-                        normalizeStatus(upcomingTrip.status),
-                      )
-                    "
-                    class="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50"
-                  >
-                    🔒 Đã chốt tour (Không thể hoàn/hủy)
-                  </span>
-
+                  <!-- Đặt lại tour (cho đơn hủy / đã hoàn tiền) -->
                   <RouterLink
                     v-if="
-                      ['cancelled', 'refunded'].includes(
-                        normalizeStatus(upcomingTrip.status),
+                      ['CANCELLED', 'REFUNDED', 'NO_SHOW'].includes(
+                        normalizeStatus(booking.status),
                       )
                     "
                     to="/tours"
-                    class="rounded-xl bg-white/10 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                    class="rounded-xl border border-white/15 bg-white/5 px-3.5 py-2 text-xs font-medium text-white transition hover:bg-white/15"
                   >
-                    Đặt lại tour này
+                    Đặt lại tour
                   </RouterLink>
-                </div>
 
-                <!-- DROPDOWN HỦY CHUYẾN CÓ LÝ DO -->
-                <details
-                  v-if="canCancel(upcomingTrip)"
-                  class="relative ml-auto inline-block"
-                >
-                  <summary
-                    class="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-semibold text-white/60 transition hover:text-red-300 focus:outline-none select-none"
-                  >
-                    Hủy chuyến
-                    <svg
-                      class="h-3 w-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </summary>
-
-                  <div
-                    class="absolute right-0 bottom-full mb-2 z-30 w-60 rounded-2xl border border-white/20 bg-[#0f172a] p-2 shadow-2xl backdrop-blur-xl"
-                  >
-                    <p
-                      class="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-red-300/80"
-                    >
-                      Lý do hủy tour:
-                    </p>
-                    <div class="space-y-1">
-                      <button
-                        type="button"
-                        @click="
-                          handleCancelBooking(
-                            upcomingTrip,
-                            'Đổi ý, không muốn đi nữa',
-                          )
-                        "
-                        class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                      >
-                        ❌ Đổi ý, không muốn đi nữa
-                      </button>
-                      <button
-                        type="button"
-                        @click="
-                          handleCancelBooking(
-                            upcomingTrip,
-                            'Trùng lịch bận đột xuất',
-                          )
-                        "
-                        class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                      >
-                        📅 Trùng lịch bận đột xuất
-                      </button>
-                      <button
-                        type="button"
-                        @click="
-                          handleCancelBooking(
-                            upcomingTrip,
-                            'Muốn đổi sang tour khác',
-                          )
-                        "
-                        class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                      >
-                        🔄 Muốn đổi sang tour khác
-                      </button>
-                      <button
-                        type="button"
-                        @click="
-                          handleCancelBooking(
-                            upcomingTrip,
-                            'Đặt nhầm ngày / thông tin',
-                          )
-                        "
-                        class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                      >
-                        ✏️ Đặt nhầm ngày / thông tin
-                      </button>
-                      <button
-                        type="button"
-                        @click="handleCancelBooking(upcomingTrip, 'Lý do khác')"
-                        class="w-full rounded-xl px-2.5 py-2 text-left text-xs text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                      >
-                        💬 Lý do khác
-                      </button>
-                    </div>
-                  </div>
-                </details>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- DANH SÁCH TẤT CẢ CHUYẾN ĐI -->
-      <section>
-        <div
-          class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-        >
-          <div>
-            <h2 class="text-lg font-bold text-white">Tất cả chuyến đi</h2>
-            <p class="mt-1 text-xs font-medium text-white/70">
-              Theo dõi lịch sử đặt tour của bạn
-            </p>
-          </div>
-
-          <!-- SEARCH BAR -->
-          <div class="relative w-full lg:w-72">
-            <svg
-              class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/60"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m21 21-4.35-4.35m2.1-5.15a7.25 7.25 0 11-14.5 0 7.25 7.25 0 0114.5 0z"
-              />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="search"
-              placeholder="Tìm tour, mã đơn, điểm đón..."
-              class="w-full rounded-2xl border border-white/15 bg-white/[0.08] py-3 pl-11 pr-4 text-xs text-white outline-none backdrop-blur-xl transition placeholder:text-white/50 focus:border-white/35 focus:bg-white/15"
-            />
-          </div>
-        </div>
-
-        <!-- FILTER TABS -->
-        <div
-          class="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 backdrop-blur-xl"
-        >
-          <button
-            type="button"
-            @click="activeTab = 'all'"
-            :class="
-              activeTab === 'all'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Tất cả <span class="ml-1 opacity-70">{{ filterCounts.all }}</span>
-          </button>
-
-          <button
-            type="button"
-            @click="activeTab = 'pending'"
-            :class="
-              activeTab === 'pending'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Chờ duyệt
-            <span class="ml-1 opacity-70">{{ filterCounts.pending }}</span>
-          </button>
-
-          <button
-            type="button"
-            @click="activeTab = 'confirmed'"
-            :class="
-              activeTab === 'confirmed'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Đã xác nhận
-            <span class="ml-1 opacity-70">{{ filterCounts.confirmed }}</span>
-          </button>
-
-          <button
-            type="button"
-            @click="activeTab = 'ready'"
-            :class="
-              activeTab === 'ready'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Sắp khởi hành
-            <span class="ml-1 opacity-70">{{ filterCounts.ready }}</span>
-          </button>
-
-          <button
-            type="button"
-            @click="activeTab = 'ongoing'"
-            :class="
-              activeTab === 'ongoing'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Đang đi
-            <span class="ml-1 opacity-70">{{ filterCounts.ongoing }}</span>
-          </button>
-
-          <button
-            type="button"
-            @click="activeTab = 'completed'"
-            :class="
-              activeTab === 'completed'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Hoàn thành
-            <span class="ml-1 opacity-70">{{ filterCounts.completed }}</span>
-          </button>
-
-          <button
-            type="button"
-            @click="activeTab = 'cancelled'"
-            :class="
-              activeTab === 'cancelled'
-                ? 'bg-white text-slate-900 font-bold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            "
-            class="cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-xs transition"
-          >
-            Đã hủy
-            <span class="ml-1 opacity-70">{{ filterCounts.cancelled }}</span>
-          </button>
-        </div>
-
-        <!-- LOADING SPINNER -->
-        <div v-if="isLoading" class="py-16 text-center">
-          <div
-            class="inline-block h-8 w-8 animate-spin rounded-full border-2 border-orange-300 border-t-transparent"
-          ></div>
-          <p class="mt-3 text-xs tracking-wider text-white/50">
-            Đang tải danh sách chuyến đi...
-          </p>
-        </div>
-
-        <!-- ITEMS LIST -->
-        <div v-else-if="filteredBookings.length > 0" class="space-y-4">
-          <article
-            v-for="booking in filteredBookings"
-            :key="booking.id"
-            class="group overflow-hidden rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-2xl transition hover:border-white/25 hover:bg-white/[0.10]"
-          >
-            <div class="flex flex-col md:flex-row">
-              <!-- IMAGE (CÓ ẢNH GIẢ NẾU TOUR CHƯA CÓ ẢNH) -->
-              <div class="relative h-48 shrink-0 md:h-auto md:w-56 bg-white/5">
-                <img
-                  :src="
-                    booking.tour?.thumbnail
-                      ? getThumbnailUrl(booking.tour.thumbnail)
-                      : 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80'
-                  "
-                  :alt="booking.tour?.name || 'Tour thumbnail'"
-                  class="h-full w-full object-cover"
-                />
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
-                ></div>
-              </div>
-
-              <!-- CONTENT -->
-              <div class="flex-1 p-5 sm:p-6">
-                <div class="flex flex-col justify-between gap-3 sm:flex-row">
-                  <div>
-                    <p
-                      class="font-mono text-[10px] font-semibold uppercase tracking-wider text-white/70"
-                    >
-                      #BK-{{ booking.id }}
-                    </p>
-                    <h3 class="mt-1 text-lg font-bold text-white">
-                      {{ booking.tour?.name }}
-                    </h3>
-                    <p class="mt-1 text-xs font-medium text-white/75">
-                      Nơi đón:
-                      {{
-                        booking.departure || "Điểm đón theo lịch trình quy định"
-                      }}
-                    </p>
-                  </div>
-
-                  <span
-                    class="h-fit w-fit rounded-full border px-3 py-1.5 text-[10px] font-bold tracking-wider"
-                    :class="getBadge(booking.status).class"
-                  >
-                    {{ getBadge(booking.status).text }}
-                  </span>
-                </div>
-
-                <!-- INFO FIELDS -->
-                <div class="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <div>
-                    <p
-                      class="text-[9px] font-semibold uppercase tracking-wider text-white/60"
-                    >
-                      Ngày đi
-                    </p>
-                    <p class="mt-1 text-xs font-semibold text-white">
-                      {{ formatDate(booking.schedule?.departure_date) }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p
-                      class="text-[9px] font-semibold uppercase tracking-wider text-white/60"
-                    >
-                      Số người
-                    </p>
-                    <p class="mt-1 text-xs font-semibold text-white">
-                      {{ String(booking.total_people || 0).padStart(2, "0") }}
-                      người
-                    </p>
-                  </div>
-
-                  <div>
-                    <p
-                      class="text-[9px] font-semibold uppercase tracking-wider text-white/60"
-                    >
-                      Thanh toán
-                    </p>
-                    <p
-                      class="mt-1 text-xs font-semibold"
-                      :class="getPaymentTextColor(booking)"
-                    >
-                      {{ getPaymentText(booking) }}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p
-                      class="text-[9px] font-semibold uppercase tracking-wider text-white/60"
-                    >
-                      Tổng tiền
-                    </p>
-                    <p class="mt-1 font-mono text-sm font-bold text-white">
-                      {{ formatCurrency(booking.total_amount) }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- ACTIONS TRONG LIST -->
-                <div
-                  class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-4"
-                >
-                  <div class="flex flex-wrap items-center gap-2">
-                    <RouterLink
-                      :to="`/booking/${booking.id}`"
-                      class="rounded-xl border border-white/15 bg-white/10 px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-white/20"
-                    >
-                      Xem chi tiết
-                    </RouterLink>
-
-                    <button
-                      v-if="canPay(booking)"
-                      type="button"
-                      @click="handlePayNow(booking)"
-                      class="cursor-pointer rounded-xl bg-orange-400 px-3.5 py-2 text-[11px] font-bold text-slate-950 shadow transition hover:bg-orange-300"
-                    >
-                      Thanh toán ngay
-                    </button>
-
-                    <!-- DROPDOWN HOÀN TIỀN TRONG LIST -->
-                    <details
-                      v-if="canRefund(booking)"
-                      class="relative inline-block"
-                    >
-                      <summary
-                        class="inline-flex cursor-pointer list-none items-center gap-1 rounded-xl border border-purple-400/30 bg-purple-500/20 px-3.5 py-2 text-[11px] font-semibold text-purple-200 transition hover:bg-purple-500/30 focus:outline-none select-none"
-                      >
-                        Yêu cầu hoàn tiền
-                        <svg
-                          class="h-3 w-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </summary>
-
-                      <div
-                        class="absolute left-0 bottom-full mb-2 z-30 w-60 rounded-2xl border border-white/20 bg-[#0f172a] p-2 shadow-2xl backdrop-blur-xl"
-                      >
-                        <p
-                          class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-purple-300/80"
-                        >
-                          Lý do hoàn tiền:
-                        </p>
-                        <div class="space-y-0.5">
-                          <button
-                            type="button"
-                            @click="
-                              handleRefundRequest(
-                                booking,
-                                'Bận việc đột xuất / Trùng lịch',
-                              )
-                            "
-                            class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                          >
-                            📅 Bận việc đột xuất / Trùng lịch
-                          </button>
-                          <button
-                            type="button"
-                            @click="
-                              handleRefundRequest(
-                                booking,
-                                'Sức khỏe không đảm bảo',
-                              )
-                            "
-                            class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                          >
-                            🏥 Sức khỏe không đảm bảo
-                          </button>
-                          <button
-                            type="button"
-                            @click="
-                              handleRefundRequest(
-                                booking,
-                                'Thời tiết xấu / Bất khả kháng',
-                              )
-                            "
-                            class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                          >
-                            ⛈️ Thời tiết xấu / Bất khả kháng
-                          </button>
-                          <button
-                            type="button"
-                            @click="
-                              handleRefundRequest(
-                                booking,
-                                'Đặt nhầm thông tin tour',
-                              )
-                            "
-                            class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                          >
-                            ✏️ Đặt nhầm thông tin tour
-                          </button>
-                          <button
-                            type="button"
-                            @click="handleRefundRequest(booking, 'Lý do khác')"
-                            class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-purple-500/20 hover:text-white"
-                          >
-                            💬 Lý do khác
-                          </button>
-                        </div>
-                      </div>
-                    </details>
-
-                    <span
-                      v-if="
-                        normalizeStatus(booking.status) === 'refund_pending'
-                      "
-                      class="inline-flex items-center gap-1 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-[11px] font-semibold text-amber-200"
-                    >
-                      ⏳ Chờ hoàn tiền
-                    </span>
-
-                    <span
-                      v-if="normalizeStatus(booking.status) === 'refunded'"
-                      class="inline-flex items-center gap-1 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-200"
-                    >
-                      ✓ Đã hoàn tiền
-                    </span>
-
-                    <button
-                      v-if="normalizeStatus(booking.status) === 'completed'"
-                      type="button"
-                      @click="openReviewModal(booking)"
-                      class="cursor-pointer rounded-xl border border-orange-300/20 bg-orange-300/10 px-3.5 py-2 text-[11px] font-semibold text-orange-200 transition hover:bg-orange-300/20"
-                    >
-                      Viết đánh giá
-                    </button>
-
-                    <RouterLink
-                      v-if="
-                        ['cancelled', 'refunded'].includes(
-                          normalizeStatus(booking.status),
-                        )
-                      "
-                      to="/tours"
-                      class="rounded-xl bg-white/10 px-3.5 py-2 text-[11px] font-semibold text-white transition hover:bg-white/20"
-                    >
-                      Đặt lại tour
-                    </RouterLink>
-
-                    <span
-                      v-if="
-                        ['ready', 'ongoing'].includes(
-                          normalizeStatus(booking.status),
-                        )
-                      "
-                      class="inline-flex items-center px-2 text-[10px] italic text-white/40"
-                    >
-                      🔒 Không thể hủy / đổi
-                    </span>
-                  </div>
-
-                  <!-- DROPDOWN HỦY BOOKING TRONG LIST -->
-                  <details
-                    v-if="canCancel(booking)"
-                    class="relative ml-auto inline-block"
-                  >
+                  <!-- Hủy booking (Chỉ khi chưa thanh toán) -->
+                  <details v-if="canCancel(booking)" class="relative ml-auto">
                     <summary
-                      class="inline-flex cursor-pointer list-none items-center gap-1 text-[11px] font-semibold text-white/60 transition hover:text-red-300 focus:outline-none select-none"
+                      class="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-white/50 transition hover:text-rose-400"
                     >
                       Hủy booking
-                      <svg
-                        class="h-3 w-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      <span class="material-symbols-outlined text-[16px]"
+                        >arrow_drop_down</span
                       >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
                     </summary>
 
                     <div
-                      class="absolute right-0 bottom-full mb-2 z-30 w-56 rounded-2xl border border-white/20 bg-[#0f172a] p-2 shadow-2xl backdrop-blur-xl"
+                      class="absolute bottom-full right-0 z-30 mb-2 w-56 rounded-2xl border border-white/15 bg-[#0f172a] p-2 shadow-2xl"
                     >
                       <p
-                        class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-red-300/80"
+                        class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-300"
                       >
-                        Lý do hủy:
+                        Lý do hủy đơn
                       </p>
                       <div class="space-y-0.5">
                         <button
                           type="button"
                           @click="
-                            handleCancelBooking(
-                              booking,
-                              'Không còn nhu cầu đi nữa',
-                            )
+                            handleCancelBooking(booking, 'Không còn nhu cầu đi')
                           "
-                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
+                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-white/80 hover:bg-white/10"
                         >
-                          ❌ Không còn nhu cầu đi nữa
+                          ❌ Không còn nhu cầu
                         </button>
                         <button
                           type="button"
                           @click="
-                            handleCancelBooking(
-                              booking,
-                              'Trùng lịch bận đột xuất',
-                            )
+                            handleCancelBooking(booking, 'Trùng lịch đột xuất')
                           "
-                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
+                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-white/80 hover:bg-white/10"
                         >
-                          📅 Trùng lịch bận đột xuất
-                        </button>
-                        <button
-                          type="button"
-                          @click="
-                            handleCancelBooking(booking, 'Muốn đổi tour khác')
-                          "
-                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                        >
-                          🔄 Muốn đổi tour khác
-                        </button>
-                        <button
-                          type="button"
-                          @click="
-                            handleCancelBooking(booking, 'Đặt nhầm thông tin')
-                          "
-                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
-                        >
-                          ✏️ Đặt nhầm thông tin
+                          📅 Trùng lịch bận
                         </button>
                         <button
                           type="button"
                           @click="handleCancelBooking(booking, 'Lý do khác')"
-                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-[11px] text-white/80 transition hover:bg-red-500/20 hover:text-red-200"
+                          class="w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-white/80 hover:bg-white/10"
                         >
                           💬 Lý do khác
                         </button>
@@ -1693,34 +1211,24 @@ const createReviewsTour = async () => {
           v-else
           class="rounded-3xl border border-dashed border-white/15 bg-white/[0.04] p-12 text-center backdrop-blur-xl"
         >
-          <div
-            class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-2xl"
-          >
-            ✈️
-          </div>
-          <h3 class="mt-4 text-base font-bold text-white">
+          <span class="text-3xl">✈️</span>
+          <h3 class="mt-3 text-base font-bold text-white">
             Không có chuyến đi nào
           </h3>
-          <p
-            class="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-white/60"
-          >
-            Không tìm thấy đơn đặt tour nào trong mục này.
+          <p class="mt-1 text-xs text-white/60">
+            Không tìm thấy đơn tour nào ở bộ lọc hiện tại.
           </p>
-          <div class="mt-6">
-            <RouterLink
-              to="/tours"
-              class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold text-slate-900 shadow-lg transition hover:bg-orange-100"
-            >
-              Đặt tour ngay
-            </RouterLink>
-          </div>
+          <RouterLink
+            to="/tours"
+            class="mt-5 inline-flex items-center gap-2 rounded-xl bg-orange-400 px-5 py-2.5 text-xs font-bold text-slate-950 transition hover:bg-orange-300"
+          >
+            Khám phá tour ngay
+          </RouterLink>
         </div>
       </section>
     </main>
 
-    <!-- ================================================== -->
     <!-- REVIEW MODAL -->
-    <!-- ================================================== -->
     <div
       v-if="activeReviewBooking"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
@@ -1731,21 +1239,21 @@ const createReviewsTour = async () => {
       ></div>
 
       <div
-        class="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl border border-white/20 bg-[#0f172a] p-6 text-white shadow-2xl backdrop-blur-2xl"
+        class="relative z-10 w-full max-w-md rounded-3xl border border-white/20 bg-[#0f172a] p-6 text-white shadow-2xl"
       >
         <div
           class="flex items-center justify-between border-b border-white/10 pb-4"
         >
           <div>
             <h3 class="text-base font-bold text-white">Đánh giá chuyến đi</h3>
-            <p class="mt-0.5 max-w-[240px] truncate text-xs text-orange-200/80">
+            <p class="mt-0.5 truncate text-xs text-orange-300">
               {{ activeReviewBooking.tour?.name }}
             </p>
           </div>
           <button
             type="button"
             @click="closeReviewModal"
-            class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white"
+            class="text-white/60 hover:text-white"
           >
             ✕
           </button>
@@ -1753,37 +1261,37 @@ const createReviewsTour = async () => {
 
         <form @submit.prevent class="mt-4 space-y-4">
           <div>
-            <label class="mb-2 block text-xs font-semibold text-white/80">
-              Chất lượng trải nghiệm
-            </label>
+            <label class="mb-2 block text-xs font-semibold text-white/80"
+              >Số sao đánh giá</label
+            >
             <div class="flex items-center gap-1.5">
               <button
                 v-for="star in 5"
                 :key="star"
                 type="button"
                 @click="formReview.rating = star"
-                class="cursor-pointer select-none text-3xl transition hover:scale-110"
+                class="text-2xl transition hover:scale-110"
                 :class="
                   star <= formReview.rating ? 'text-amber-400' : 'text-white/20'
                 "
               >
                 ★
               </button>
-              <span class="ml-2 text-xs font-bold text-amber-300">
-                {{ formReview.rating }} / 5 sao
-              </span>
+              <span class="ml-2 text-xs font-bold text-amber-300"
+                >{{ formReview.rating }} / 5 sao</span
+              >
             </div>
           </div>
 
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-white/80">
-              Nhận xét của bạn
-            </label>
+            <label class="mb-1.5 block text-xs font-semibold text-white/80"
+              >Nhận xét của bạn</label
+            >
             <textarea
               v-model="formReview.content"
               rows="4"
-              placeholder="Chia sẻ cảm nhận về hướng dẫn viên, lịch trình, dịch vụ..."
-              class="w-full resize-none rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white outline-none transition placeholder:text-white/40 focus:border-orange-300 focus:bg-white/10"
+              placeholder="Chia sẻ cảm nhận về hướng dẫn viên, lịch trình và dịch vụ..."
+              class="w-full resize-none rounded-xl border border-white/15 bg-white/5 p-3 text-xs text-white outline-none focus:border-orange-400 focus:bg-white/10"
             ></textarea>
           </div>
 
@@ -1793,7 +1301,7 @@ const createReviewsTour = async () => {
             <button
               type="button"
               @click="closeReviewModal"
-              class="cursor-pointer rounded-xl border border-white/15 px-4 py-2 text-xs font-semibold text-white/70 transition hover:bg-white/10"
+              class="rounded-xl border border-white/15 px-4 py-2 text-xs font-semibold text-white/70 hover:bg-white/10"
             >
               Hủy
             </button>
@@ -1801,7 +1309,7 @@ const createReviewsTour = async () => {
               type="button"
               :disabled="isSubmitting"
               @click="createReviewsTour"
-              class="inline-flex min-w-[110px] cursor-pointer items-center justify-center rounded-xl bg-orange-400 px-5 py-2 text-xs font-bold text-slate-950 shadow-lg transition hover:bg-orange-300 disabled:cursor-not-allowed disabled:opacity-50"
+              class="rounded-xl bg-orange-400 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-orange-300 disabled:opacity-50"
             >
               {{ isSubmitting ? "Đang gửi..." : "Gửi đánh giá" }}
             </button>
@@ -1811,3 +1319,62 @@ const createReviewsTour = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

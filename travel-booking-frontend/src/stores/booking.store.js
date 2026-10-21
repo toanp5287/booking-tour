@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import bookingService from "../services/booking.service.js";
+import authService from "../services/auth.service";
 
 export const useBookingStore = defineStore("booking", () => {
   const defaultBookingData = {
@@ -40,9 +40,9 @@ export const useBookingStore = defineStore("booking", () => {
     savedBooking
       ? JSON.parse(savedBooking)
       : {
-          ...defaultBookingData,
-          booking_details: [],
-        },
+        ...defaultBookingData,
+        booking_details: [],
+      },
   );
 
   const setBooking = (data) => {
@@ -59,7 +59,6 @@ export const useBookingStore = defineStore("booking", () => {
 
     localStorage.setItem("bookingData", JSON.stringify(bookingData.value));
   };
-
   const setPayment = (data) => {
     bookingData.value = {
       ...bookingData.value,
@@ -68,6 +67,7 @@ export const useBookingStore = defineStore("booking", () => {
 
     localStorage.setItem("bookingData", JSON.stringify(bookingData.value));
   };
+  console.log("TRƯỚC CLEAR:", localStorage.getItem("bookingData"));
 
   const clearBooking = () => {
     bookingData.value = {
@@ -78,6 +78,8 @@ export const useBookingStore = defineStore("booking", () => {
     localStorage.removeItem("bookingData");
   };
 
+  console.log("SAU CLEAR:", localStorage.getItem("bookingData"));
+  console.log("BOOKING STORE:", bookingStore.bookingData);
   return {
     bookingData,
 

@@ -11,6 +11,7 @@ export const useBookingStore = defineStore("booking", () => {
   const defaultBookingData = {
     // Tour
     tour_id: null,
+
     schedule_id: null,
     people: 1,
 
@@ -39,6 +40,7 @@ export const useBookingStore = defineStore("booking", () => {
     // Phương thức thanh toán
     paymentMethod: "vnpay",
     payment_method: "vnpay",
+
   };
 
   /*
@@ -52,9 +54,9 @@ export const useBookingStore = defineStore("booking", () => {
     savedBooking
       ? JSON.parse(savedBooking)
       : {
-          ...defaultBookingData,
-          booking_details: [],
-        },
+        ...defaultBookingData,
+        booking_details: [],
+      },
   );
 
   /*
@@ -154,38 +156,46 @@ export const thanhToan = async (dataBooking) => {
      * ========================================================
      * 1. XÁC ĐỊNH PHƯƠNG THỨC THANH TOÁN
      * ========================================================
+     *
+     * Hiện tại hệ thống sử dụng VNPAY.
      */
-
-    const rawMethod = String(
-      dataBooking.payment_method || dataBooking.paymentMethod || "cod",
+    const paymentMethod = String(
+      dataBooking.payment_method || dataBooking.paymentMethod || "vnpay",
     )
       .toLowerCase()
       .trim();
-
-    /*
-     * Code cũ của mày có "later".
-     *
-     * Nếu dữ liệu cũ trong localStorage vẫn còn "later"
-     * thì chuyển thành "cod".
-     */
-    const paymentMethod = rawMethod === "later" ? "cod" : rawMethod;
-
-    /*
-     * ========================================================
-     * 2. KIỂM TRA PHƯƠNG THỨC
-     * ========================================================
-     */
-
-    if (paymentMethod !== "cod" && paymentMethod !== "vnpay") {
+    console.log(paymentMethod)
+    if (paymentMethod !== "vnpay") {
       return {
         success: false,
-        message: "Phương thức thanh toán không hợp lệ",
+        message: "Hiện tại chỉ hỗ trợ thanh toán qua VNPAY",
       };
     }
 
     /*
      * ========================================================
-     * 3. CHUẨN HÓA DỮ LIỆU CHUNG
+     * 2. XÁC ĐỊNH LOẠI THANH TOÁN
+     * ========================================================
+     *
+     * deposit = cọc 30%
+     * full    = thanh toán 100%
+     */
+    const paymentType = String(
+      dataBooking.payment_type || dataBooking.paymentType || "full",
+    )
+      .toLowerCase()
+      .trim();
+
+    if (paymentType !== "deposit" && paymentType !== "full") {
+      return {
+        success: false,
+        message: "Loại thanh toán không hợp lệ",
+      };
+    }
+
+    /*
+     * ========================================================
+     * 3. CHUẨN HÓA DỮ LIỆU BOOKING
      * ========================================================
      */
 
@@ -194,8 +204,34 @@ export const thanhToan = async (dataBooking) => {
     const scheduleId = Number(dataBooking.schedule_id);
 
     const totalPeople = Number(
-      dataBooking.total_people || dataBooking.people || 1,
+      dataBooking.total_people || dataBooking.people || 0,
     );
+
+    const selectedTourType = String(
+      dataBooking.selected_tour_type || "SIC",
+    ).toUpperCase();
+
+    /*
+     * ========================================================
+     * 4. DANH SÁCH LOẠI VÉ
+     * ========================================================
+     *
+     * Backend sẽ dùng ticket_items để:
+     *
+     * - tìm ticket_types
+     * - tính giá
+     * - tính tổng số người
+     * - kiểm tra số lượng vé
+     */
+    const ticketItems = Array.isArray(dataBooking.ticket_items)
+      ? dataBooking.ticket_items
+      : [];
+
+    /*
+     * ========================================================
+     * 5. THÔNG TIN THÀNH VIÊN
+     * ========================================================
+     */
 
     const details = Array.isArray(dataBooking.booking_details)
       ? dataBooking.booking_details
@@ -204,8 +240,11 @@ export const thanhToan = async (dataBooking) => {
         : [];
 
     /*
-     * Kiểm tra cơ bản
+     * ========================================================
+     * 6. VALIDATE DỮ LIỆU
+     * ========================================================
      */
+
     if (!tourId) {
       return {
         success: false,
@@ -227,178 +266,194 @@ export const thanhToan = async (dataBooking) => {
       };
     }
 
+    if (!ticketItems.length) {
+      return {
+        success: false,
+        message: "Chưa có thông tin loại vé",
+      };
+    }
+
+    /*
+     * Kiểm tra từng loại vé
+     */
+    const invalidTicket = ticketItems.some((item) => {
+      const ticketTypeId = Number(
+        item.ticket_type_id ?? item.ticketTypeId ?? item.id,
+      );
+
+      const quantity = Number(item.quantity ?? item.qty ?? 0);
+
+      return !ticketTypeId || !quantity || quantity <= 0;
+    });
+
+    if (invalidTicket) {
+      return {
+        success: false,
+        message: "Thông tin loại vé không hợp lệ",
+      };
+    }
+
     /*
      * ========================================================
-     * 4. COD
+     * 7. TẠO PAYLOAD GỬI BACKEND
      * ========================================================
-     *
-     * COD được tạo booking ngay.
+     */
+
+    const payload = {
+      tour_id: tourId,
+
+      schedule_id: scheduleId,
+
+      selected_tour_type: selectedTourType,
+
+      total_people: totalPeople,
+
+      adult_count: Number(dataBooking.adult_count || 0),
+
+      child_count: Number(dataBooking.child_count || 0),
+
+      infant_count: Number(dataBooking.infant_count || 0),
+
+      /*
+       * Quan trọng:
+       * Gửi danh sách vé để backend tự tính tiền.
+       */
+      ticket_items: ticketItems,
+
+      /*
+       * Thông tin người đặt
+       */
+      booker_name: dataBooking.booker_name?.trim() || "",
+
+      booker_phone: dataBooking.booker_phone?.trim() || "",
+
+      booker_email: dataBooking.booker_email?.trim() || "",
+
+      booker_identity_number:
+        dataBooking.booker_identity_number?.trim() || null,
+
+      /*
+       * Thông tin chuyến đi
+       */
+      departure: dataBooking.departure?.trim() || null,
+
+      pickup_point_id: dataBooking.pickup_point_id || null,
+
+      pickup_note: dataBooking.pickup_note?.trim() || null,
+
+      special_request: dataBooking.special_request?.trim() || null,
+
+      /*
+       * Thành viên.
+       *
+       * Tour đoàn/gia đình có thể để [].
+       * Vé lẻ sẽ gửi danh sách thành viên.
+       */
+      details,
+
+      /*
+       * Thanh toán
+       */
+      payment_method: "vnpay",
+
+      payment_type: paymentType,
+    };
+
+    /*
+     * ========================================================
+     * 8. GỌI API TẠO PAYMENT HOLD
+     * ========================================================
      *
      * Backend sẽ:
      *
-     * booking
-     * booking_details
-     * payment pending
-     * trừ available_slots
+     * 1. Kiểm tra tour
+     * 2. Kiểm tra schedule
+     * 3. Kiểm tra ticket_types
+     * 4. Tính tổng tiền
+     * 5. Tính số tiền cọc/full
+     * 6. Giữ slot
+     * 7. Tạo payment_hold
+     * 8. Tạo URL VNPAY
      */
 
-    if (paymentMethod === "cod") {
-      const booking = await bookingService.createBooking({
-        tour_id: tourId,
+    console.log("PAYMENT HOLD PAYLOAD:", payload);
 
-        schedule_id: scheduleId,
+    const hold = await bookingService.createPaymentHold(payload);
 
-        total_people: totalPeople,
+    /*
+     * ========================================================
+     * 9. KIỂM TRA RESPONSE
+     * ========================================================
+     */
 
-        booker_name: dataBooking.booker_name,
-
-        booker_phone: dataBooking.booker_phone,
-
-        booker_email: dataBooking.booker_email,
-
-        booker_identity_number: dataBooking.booker_identity_number || null,
-
-        departure: dataBooking.departure || null,
-
-        special_request: dataBooking.special_request || null,
-
-        details: details,
-
-        payment_method: "cod",
-      });
-
-      /*
-       * Kiểm tra response
-       */
-      if (!booking?.data?.success) {
-        return {
-          success: false,
-
-          message: booking?.data?.message || "Không thể tạo booking",
-        };
-      }
-
-      /*
-       * Lấy dữ liệu backend trả về
-       */
-      const resData = booking.data.data;
-
-      /*
-       * Trả kết quả cho component cha
-       */
+    if (!hold?.data?.success) {
       return {
-        success: true,
-
-        message: booking.data.message || "Đặt tour thành công",
-
-        data: resData,
-
-        payment_url: null,
-
-        booking_id: resData?.id || resData?.booking_id || null,
-
-        payment_id: resData?.payment_id || null,
-
-        payment_code: resData?.payment_code || null,
+        success: false,
+        message:
+          hold?.data?.message || "Không thể tạo yêu cầu thanh toán",
       };
     }
 
     /*
      * ========================================================
-     * 5. VNPAY
+     * 10. LẤY DỮ LIỆU BACKEND
      * ========================================================
-     *
-     * TUYỆT ĐỐI KHÔNG gọi createBooking().
-     *
-     * Chỉ tạo payment_hold.
-     *
-     * Backend:
-     *
-     * payment_holds
-     * available_slots - people
-     *
-     * Sau đó tạo URL VNPAY.
      */
 
-    if (paymentMethod === "vnpay") {
-      const hold = await bookingService.createPaymentHold({
-        tour_id: tourId,
+    const resData = hold.data.data;
 
-        schedule_id: scheduleId,
+    /*
+     * ========================================================
+     * 11. KIỂM TRA URL VNPAY
+     * ========================================================
+     */
 
-        total_people: totalPeople,
-
-        booker_name: dataBooking.booker_name,
-
-        booker_phone: dataBooking.booker_phone,
-
-        booker_email: dataBooking.booker_email,
-
-        booker_identity_number: dataBooking.booker_identity_number || null,
-
-        departure: dataBooking.departure || null,
-
-        special_request: dataBooking.special_request || null,
-
-        details: details,
-
-        payment_method: "vnpay",
-      });
-
-      /*
-       * Kiểm tra response
-       */
-      if (!hold?.data?.success) {
-        return {
-          success: false,
-
-          message: hold?.data?.message || "Không thể tạo thanh toán",
-        };
-      }
-
-      /*
-       * Dữ liệu backend trả về
-       */
-      const resData = hold.data.data;
-
-      /*
-       * Kiểm tra URL VNPAY
-       */
-      if (!resData?.payment_url) {
-        return {
-          success: false,
-
-          message: "Không nhận được đường dẫn thanh toán VNPAY",
-        };
-      }
-
-      /*
-       * Trả kết quả
-       */
+    if (!resData?.payment_url) {
       return {
-        success: true,
-
-        message: hold.data.message || "Đã giữ chỗ, vui lòng thanh toán VNPAY",
-
-        data: resData,
-
-        payment_url: resData.payment_url,
-
-        hold_id: resData.hold_id || null,
-
-        expires_at: resData.expires_at || null,
-
-        payment_code: resData.payment_code || null,
+        success: false,
+        message: "Không nhận được đường dẫn thanh toán VNPAY",
       };
     }
 
     /*
-     * Trường hợp không xác định
+     * ========================================================
+     * 12. TRẢ KẾT QUẢ CHO COMPONENT
+     * ========================================================
      */
+
     return {
-      success: false,
+      success: true,
 
-      message: "Phương thức thanh toán không hợp lệ",
+      message:
+        hold.data.message ||
+        (paymentType === "deposit"
+          ? "Đã tạo yêu cầu cọc 30%, vui lòng thanh toán VNPAY"
+          : "Đã tạo yêu cầu thanh toán 100%, vui lòng thanh toán VNPAY"),
+
+      data: resData,
+
+      payment_url: resData.payment_url,
+
+      hold_id: resData.hold_id || resData.id || null,
+
+      expires_at: resData.expires_at || resData.hold_expires_at || null,
+
+      payment_code: resData.payment_code || null,
+
+      /*
+       * Thông tin tiền backend tính
+       */
+      original_amount: resData.original_amount ?? null,
+
+      discount_amount: resData.discount_amount ?? null,
+
+      total_amount: resData.total_amount ?? null,
+
+      payment_amount: resData.payment_amount ?? null,
+
+      remaining_amount: resData.remaining_amount ?? null,
+
+      payment_type: paymentType,
     };
   } catch (error) {
     /*
@@ -409,11 +464,17 @@ export const thanhToan = async (dataBooking) => {
 
     console.error("THANH TOAN ERROR:", error);
 
+    console.error(
+      "THANH TOAN RESPONSE:",
+      error?.response?.data,
+    );
+
     return {
       success: false,
 
       message:
         error?.response?.data?.message ||
+        error?.response?.data?.error ||
         error?.message ||
         "Có lỗi xảy ra khi thanh toán",
     };

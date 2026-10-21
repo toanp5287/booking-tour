@@ -8,7 +8,7 @@ const props = defineProps({
 </script>
 <template>
   <section
-    class="overflow-hidden rounded-[2rem] border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
+    class="light-surface overflow-hidden rounded-[2rem] border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
   >
     <div class="p-6 sm:p-7">
       <div class="mb-6 flex items-center gap-3">
@@ -71,3 +71,28 @@ const props = defineProps({
     </div>
   </section>
 </template>
+
+<style scoped>
+.light-surface {
+  border-color: #e2e8f0 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.light-surface :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.light-surface :deep([class*="bg-black/"]),
+.light-surface :deep([class*="bg-white/"]) {
+  background-color: #f8fafc !important;
+}
+
+.light-surface :deep(.text-white) {
+  color: #1e293b !important;
+}
+
+.light-surface :deep([class*="text-white/"]) {
+  color: #64748b !important;
+}
+</style>

@@ -1,450 +1,553 @@
-<script setup lang="ts">
+<script setup>
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useQuery } from "@tanstack/vue-query";
+import Swal from "sweetalert2";
 
 import BookingForm from "../../../components/booking/BookingForm.vue";
 import BookingPaymentRice from "../../../components/booking/BookingPaymentRice.vue";
 import BookTour from "../../../components/booking/BookTour.vue";
 
 import { useBookingStore, thanhToan } from "../../../stores/booking.js";
-
 import tourService from "../../../services/tour.service.js";
 
-import { computed, ref, watch } from "vue";
-
-import { useRoute, useRouter } from "vue-router";
-
-import Swal from "sweetalert2";
-
-/*
- * =========================================================
- * ROUTER
- * =========================================================
- */
-
 const route = useRoute();
-
 const router = useRouter();
-
-/*
- * =========================================================
- * BOOKING STORE
- * =========================================================
- */
-
 const databooking = useBookingStore();
 
-/*
- * =========================================================
- * PHƯƠNG THỨC THANH TOÁN
- * =========================================================
- *
- * Chỉ sử dụng:
- *
- * "vnpay"
- * "cod"
- *
- * Không sử dụng "later" nữa.
- */
+const isSubmitting = ref(false);
 
-const paymentMethod = ref(
-  databooking.bookingData.payment_method ||
-    databooking.bookingData.paymentMethod ||
-    "vnpay",
+/*
+|--------------------------------------------------------------------------
+| BOOKING DATA
+|--------------------------------------------------------------------------
+*/
+
+const tourId = computed(
+  () => databooking.bookingData.tour_id || route.params.id,
 );
 
-/*
- * =========================================================
- * ĐỒNG BỘ PAYMENT METHOD VÀO PINIA
- * =========================================================
- */
+const schedule = computed(() => databooking.bookingData.schedule_id);
 
-watch(
-  paymentMethod,
-  (value) => {
-    databooking.setBooking({
-      payment_method: value,
-      paymentMethod: value,
-    });
-  },
-  {
-    immediate: true,
-  },
-);
+const voucherCode = computed(() => databooking.bookingData.voucher_code || "");
 
 /*
- * =========================================================
- * TOUR ID
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| XÁC ĐỊNH LOẠI TOUR
+|--------------------------------------------------------------------------
+*/
 
-const tourId = computed(() => {
-  return databooking.bookingData.tour_id;
+const isGroupOrFamily = computed(() => {
+  const data = databooking.bookingData;
+
+  const type = String(data.selected_tour_type || "")
+    .toUpperCase()
+    .trim();
+
+  return ["GROUP", "FAMILY", "PRIVATE"].includes(type);
 });
 
 /*
- * =========================================================
- * SCHEDULE ID
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| PHÂN LOẠI HÀNH KHÁCH
+|--------------------------------------------------------------------------
+|
+| Ưu tiên:
+| 1. adult_count + child_count + infant_count
+| 2. total_people
+| 3. people
+|
+*/
 
-const schedule = computed(() => {
-  return databooking.bookingData.schedule_id;
+const passengerSummary = computed(() => {
+  const data = databooking.bookingData;
+
+  let adults = Number(data.adult_count) || 0;
+
+  let children = Number(data.child_count) || 0;
+
+  let infants = Number(data.infant_count) || 0;
+
+  const storedTotal = Number(data.total_people) || 0;
+
+  const peopleFallback = Number(data.people) || 0;
+
+  let totalPeople = storedTotal > 0 ? storedTotal : peopleFallback;
+
+  const breakdownTotal = adults + children + infants;
+
+  /*
+   * Nếu frontend chưa gửi phân loại
+   * nhưng có total_people
+   * => mặc định toàn bộ là người lớn.
+   */
+  if (breakdownTotal === 0 && totalPeople > 0) {
+    adults = totalPeople;
+  }
+
+  /*
+   * Nếu không có total_people
+   * => tính từ breakdown.
+   */
+  if (totalPeople <= 0) {
+    totalPeople = adults + children + infants;
+  }
+
+  /*
+   * Nếu breakdown có dữ liệu
+   * thì tổng người phải lấy theo breakdown.
+   */
+  const finalBreakdown = adults + children + infants;
+
+  if (finalBreakdown > 0 && finalBreakdown !== totalPeople) {
+    /*
+     * Trường hợp total_people cũ bị sai,
+     * ưu tiên breakdown thực tế.
+     */
+    totalPeople = finalBreakdown;
+  }
+
+  return {
+    adult_count: adults,
+    child_count: children,
+    infant_count: infants,
+    total_people: totalPeople,
+  };
 });
 
 /*
- * =========================================================
- * SỐ NGƯỜI
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| TỔNG SỐ NGƯỜI
+|--------------------------------------------------------------------------
+*/
 
 const people = computed(() => {
-  return (
-    databooking.bookingData.total_people || databooking.bookingData.people || 1
-  );
+  return passengerSummary.value.total_people || 1;
 });
 
 /*
- * =========================================================
- * VOUCHER
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| PHƯƠNG THỨC THANH TOÁN
+|--------------------------------------------------------------------------
+*/
 
-const voucherCode = computed(() => {
-  return databooking.bookingData.voucher_code || "";
+const paymentType = computed({
+  get() {
+    const raw = String(
+      databooking.bookingData.payment_type ||
+        databooking.bookingData.paymentType ||
+        "full",
+    ).toLowerCase();
+
+    return raw === "deposit" ? "deposit" : "full";
+  },
+
+  set(value) {
+    databooking.setBooking({
+      payment_type: value,
+      paymentType: value,
+
+      payment_method: "vnpay",
+      paymentMethod: "vnpay",
+    });
+  },
 });
 
 /*
- * =========================================================
- * LẤY CHI TIẾT TOUR
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| LẤY CHI TIẾT TOUR
+|--------------------------------------------------------------------------
+*/
 
 const { data: tourDetailData } = useQuery({
   queryKey: ["tourDetail", tourId],
 
   queryFn: async () => {
-    const result = await tourService.getOne(tourId.value);
+    const res = await tourService.getOne(tourId.value);
 
-    return result.data.data;
+    return res.data?.data || res.data;
   },
 
-  enabled: computed(() => !!tourId.value),
+  enabled: computed(() => Boolean(tourId.value)),
 
   staleTime: 5 * 60 * 1000,
 });
 
 /*
- * =========================================================
- * HANDLE THANH TOÁN
- * =========================================================
- */
+|--------------------------------------------------------------------------
+| TÍNH TỔNG TIỀN
+|--------------------------------------------------------------------------
+*/
+
+const currentTotalAmount = computed(() => {
+  /*
+   * 1. Ưu tiên total_amount từ store
+   */
+  const storeTotal = Number(databooking.bookingData.total_amount);
+
+  if (Number.isFinite(storeTotal) && storeTotal > 0) {
+    return storeTotal;
+  }
+
+  /*
+   * 2. Tính theo ticket_items
+   */
+  const ticketItems = databooking.bookingData.ticket_items;
+
+  if (Array.isArray(ticketItems) && ticketItems.length > 0) {
+    const ticketTotal = ticketItems.reduce((sum, item) => {
+      const price = Number(item.unit_price) || 0;
+
+      const quantity = Number(item.quantity) || 1;
+
+      return sum + price * quantity;
+    }, 0);
+
+    if (ticketTotal > 0) {
+      return ticketTotal;
+    }
+  }
+
+  /*
+   * 3. Fallback giá tour
+   */
+  const tourPrice = Number(tourDetailData.value?.price) || 0;
+
+  const count = Number(people.value) || 1;
+
+  return tourPrice * count;
+});
+
+/*
+|--------------------------------------------------------------------------
+| CỌC 30%
+|--------------------------------------------------------------------------
+*/
+
+const depositAmount = computed(() => {
+  return Math.round(currentTotalAmount.value * 0.3);
+});
+
+/*
+|--------------------------------------------------------------------------
+| CÒN LẠI 70%
+|--------------------------------------------------------------------------
+*/
+
+const remainingAmount = computed(() => {
+  return Math.max(currentTotalAmount.value - depositAmount.value, 0);
+});
+
+/*
+|--------------------------------------------------------------------------
+| FORMAT TIỀN
+|--------------------------------------------------------------------------
+*/
+
+const formatMoney = (value) => {
+  return new Intl.NumberFormat("vi-VN").format(Number(value) || 0);
+};
+
+/*
+|--------------------------------------------------------------------------
+| THANH TOÁN
+|--------------------------------------------------------------------------
+*/
 
 const handleThanhToan = async () => {
-  try {
-    const rawData = databooking.bookingData;
+  if (isSubmitting.value) {
+    return;
+  }
 
-    /*
-     * ===================================================
-     * 2. LẤY TOUR ID
-     * ===================================================
-     *
-     * Ưu tiên:
-     *
-     * bookingData.tour_id
-     * ↓
-     * tourId
-     * ↓
-     * route.params.id
-     */
+  const rawData = databooking.bookingData;
 
-    const rawTourId = rawData.tour_id || tourId.value || route.params.id;
+  const rawTourId = rawData.tour_id || tourId.value;
 
-    /*
-     * ===================================================
-     * 3. LẤY SCHEDULE ID
-     * ===================================================
-     */
+  const rawScheduleId = rawData.schedule_id || schedule.value;
 
-    const rawScheduleId = rawData.schedule_id || schedule.value;
+  const passenger = passengerSummary.value;
 
-    /*
-     * ===================================================
-     * 4. SỐ NGƯỜI
-     * ===================================================
-     */
+  const countPeople = passenger.total_people;
 
-    const countPeople = Number(rawData.people || rawData.total_people || 1);
+  const paymentTypeValue = paymentType.value;
 
-    /*
-     * ===================================================
-     * 5. PHƯƠNG THỨC THANH TOÁN
-     * ===================================================
-     */
+  const finalAmount = Number(currentTotalAmount.value) || 0;
 
-    let method = String(
-      paymentMethod.value || rawData.payment_method || "vnpay",
-    )
-      .toLowerCase()
-      .trim();
+  /*
+   * KIỂM TRA GIÁ
+   */
+  if (finalAmount <= 0) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Chưa có giá tour",
+      text: "Không thể tính tổng tiền thanh toán. Vui lòng kiểm tra lại gói vé.",
+    });
 
-    /*
-     * Hỗ trợ dữ liệu cũ trong localStorage
-     *
-     * later -> cod
-     */
+    return;
+  }
 
-    if (method === "later") {
-      method = "cod";
-    }
+  /*
+   * KIỂM TRA TOUR / SCHEDULE
+   */
+  if (!rawTourId || !rawScheduleId) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Thiếu thông tin",
+      text: "Vui lòng chọn tour và lịch khởi hành.",
+    });
 
-    /*
-     * ===================================================
-     * 6. KIỂM TRA PHƯƠNG THỨC
-     * ===================================================
-     */
+    return;
+  }
 
-    if (method !== "cod" && method !== "vnpay") {
-      await Swal.fire({
-        icon: "error",
+  /*
+   * KIỂM TRA SỐ NGƯỜI
+   */
+  if (countPeople <= 0) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Chưa có số người",
+      text: "Vui lòng kiểm tra lại số lượng hành khách.",
+    });
 
-        title: "Phương thức không hợp lệ",
+    return;
+  }
 
-        text: "Vui lòng chọn phương thức thanh toán.",
-      });
+  /*
+   * KIỂM TRA BOOKER
+   */
+  if (!rawData.booker_name || !rawData.booker_phone) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Thiếu thông tin liên hệ",
+      text: "Vui lòng nhập họ tên và số điện thoại người đại diện.",
+    });
 
-      return;
-    }
+    return;
+  }
 
-    /*
-     * ===================================================
-     * 7. TẠO DANH SÁCH NGƯỜI ĐI
-     * ===================================================
-     */
+  /*
+   * ========================================================
+   * DETAILS
+   * ========================================================
+   *
+   * GROUP / FAMILY / PRIVATE:
+   * Không bắt buộc khai từng người.
+   *
+   * VÉ LẺ:
+   * Gửi danh sách khách nếu có.
+   */
 
-    let detailsList = Array.isArray(rawData.booking_details)
-      ? [...rawData.booking_details]
-      : [];
+  let detailsList = [];
 
-    /*
-     * Nếu số người nhiều hơn số detail
-     * thì tự bổ sung.
-     */
-
-    while (detailsList.length < countPeople) {
-      const idx = detailsList.length + 1;
-
-      detailsList.push({
-        full_name:
-          idx === 1
-            ? rawData.booker_name
-            : `${rawData.booker_name} (Khách ${idx})`,
+  if (isGroupOrFamily.value) {
+    detailsList = [
+      {
+        full_name: rawData.booker_name,
 
         phone: rawData.booker_phone || null,
 
         email: rawData.booker_email || null,
+
+        is_leader: true,
+
+        passenger_type: "adult",
+      },
+    ];
+  } else {
+    detailsList = Array.isArray(rawData.booking_details)
+      ? [...rawData.booking_details]
+      : [];
+
+    /*
+     * Nếu có số người nhưng chưa đủ details
+     * thì bổ sung khách mặc định.
+     */
+    while (detailsList.length < countPeople) {
+      const index = detailsList.length + 1;
+
+      detailsList.push({
+        full_name:
+          index === 1
+            ? rawData.booker_name
+            : `${rawData.booker_name} (Khách ${index})`,
+
+        phone: rawData.booker_phone || null,
+
+        email: rawData.booker_email || null,
+
+        passenger_type:
+          index <= passenger.adult_count
+            ? "adult"
+            : index <= passenger.adult_count + passenger.child_count
+              ? "child"
+              : "infant",
       });
     }
+  }
+
+  /*
+   * ========================================================
+   * PAYLOAD
+   * ========================================================
+   */
+
+  const payload = {
+    /*
+     * TOUR
+     */
+    tour_id: Number(rawTourId),
+
+    schedule_id: Number(rawScheduleId),
 
     /*
-     * ===================================================
-     * 8. PAYLOAD GỬI THANH TOÁN
-     * ===================================================
+     * TỔNG NGƯỜI
      */
+    total_people: passenger.total_people,
 
-    const payload = {
-      tour_id: Number(rawTourId),
-
-      schedule_id: Number(rawScheduleId),
-
-      total_people: countPeople,
-
-      booker_name: rawData.booker_name,
-
-      booker_phone: rawData.booker_phone,
-
-      booker_email: rawData.booker_email,
-
-      booker_identity_number: rawData.booker_identity_number || null,
-
-      departure: rawData.departure || null,
-
-      special_request: rawData.special_request || null,
-
-      payment_method: method,
-
-      details: detailsList,
-    };
     /*
-     * ===================================================
-     * 9. GỌI THANH TOÁN
-     * ===================================================
+     * PHÂN LOẠI VÉ / NGƯỜI
      */
+    adult_count: passenger.adult_count,
+
+    child_count: passenger.child_count,
+
+    infant_count: passenger.infant_count,
+
+    /*
+     * BOOKER
+     */
+    booker_name: rawData.booker_name,
+
+    booker_phone: rawData.booker_phone,
+
+    booker_email: rawData.booker_email || null,
+
+    booker_identity_number: rawData.booker_identity_number || null,
+
+    /*
+     * KHÁC
+     */
+    departure: rawData.departure || null,
+
+    special_request: rawData.special_request || null,
+
+    /*
+     * THANH TOÁN
+     */
+    payment_method: "vnpay",
+
+    payment_type: paymentTypeValue,
+
+    /*
+     * LOẠI TOUR
+     */
+    selected_tour_type:
+      rawData.selected_tour_type ||
+      (isGroupOrFamily.value ? "GROUP" : "INDIVIDUAL"),
+
+    /*
+     * VÉ
+     */
+    ticket_items: Array.isArray(rawData.ticket_items)
+      ? rawData.ticket_items
+      : [],
+
+    /*
+     * TIỀN
+     */
+    total_amount: Number(currentTotalAmount.value) || 0,
+
+    deposit_amount: Number(depositAmount.value) || 0,
+
+    remaining_amount: Number(remainingAmount.value) || 0,
+
+    /*
+     * VOUCHER
+     */
+    voucher_code: rawData.voucher_code || null,
+
+    /*
+     * DETAILS
+     */
+    details: detailsList,
+  };
+
+  /*
+   * DEBUG
+   */
+  console.log("===== PAYMENT PAYLOAD =====");
+
+  console.log(JSON.stringify(payload, null, 2));
+
+  try {
+    isSubmitting.value = true;
 
     const result = await thanhToan(payload);
 
     /*
-     * ===================================================
-     * 10. THANH TOÁN THẤT BẠI
-     * ===================================================
+     * API ERROR
      */
-
     if (!result?.success) {
       await Swal.fire({
         icon: "error",
-
         title: "Thanh toán thất bại",
-
-        text: result?.message || "Không thể thực hiện thanh toán",
+        text: result?.message || "Không thể thực hiện thanh toán.",
       });
 
       return;
     }
 
     /*
-     * ===================================================
-     * 11. VNPAY
-     * ===================================================
-     *
-     * Lúc này:
-     *
-     * Backend đã:
-     *
-     * payment_holds
-     * available_slots - people
-     *
-     * Nhưng CHƯA có:
-     *
-     * bookings
-     * payments
+     * LẤY LINK VNPAY
      */
+    const paymentUrl = result.payment_url || result.data?.payment_url;
 
-    if (method === "vnpay") {
-      const paymentUrl = result.payment_url;
-
-      /*
-       * Kiểm tra URL
-       */
-
-      if (!paymentUrl) {
-        await Swal.fire({
-          icon: "error",
-
-          title: "Lỗi",
-
-          text: "Không nhận được đường dẫn thanh toán VNPAY",
-        });
-
-        return;
-      }
-
-      /*
-       * =================================================
-       * LƯU PAYMENT HOLD
-       * =================================================
-       *
-       * KHÔNG clear booking.
-       *
-       * Vì user đang chuyển sang VNPAY.
-       */
-
-      databooking.setPayment({
-        hold_id: result.hold_id || result.data?.hold_id || null,
-
-        hold_expires_at: result.expires_at || result.data?.expires_at || null,
-
-        payment_code: result.data?.payment_code || null,
-      });
-
-      /*
-       * DEBUG
-       */
-
-      console.log("VNPAY HOLD:", {
-        hold_id: result.hold_id || result.data?.hold_id,
-
-        payment_code: result.data?.payment_code,
-
-        expires_at: result.expires_at || result.data?.expires_at,
-      });
-
-      /*
-       * =================================================
-       * CHUYỂN SANG VNPAY
-       * =================================================
-       */
-
-      window.location.href = paymentUrl;
-
-      return;
-    }
-
-    /*
-     * ===================================================
-     * 12. COD
-     * ===================================================
-     *
-     * Backend đã:
-     *
-     * bookings
-     * booking_details
-     * payments
-     * available_slots - people
-     */
-
-    if (method === "cod") {
+    if (!paymentUrl) {
       await Swal.fire({
-        icon: "success",
-
-        title: "Đặt tour thành công",
-
-        text: "Bạn có thể thanh toán sau.",
-
-        confirmButtonText: "OK",
+        icon: "error",
+        title: "Lỗi",
+        text: "Không lấy được link thanh toán VNPAY.",
       });
 
-      /*
-       * COD thành công
-       * => Xóa booking tạm trong Pinia/localStorage
-       */
-
-      databooking.clearBooking();
-
-      /*
-       * Về trang chủ
-       */
-
-      router.push("/");
+      return;
     }
+
+    /*
+     * LƯU PAYMENT HOLD
+     */
+    databooking.setPayment({
+      hold_id: result.hold_id || result.data?.hold_id || null,
+
+      hold_expires_at: result.expires_at || result.data?.expires_at || null,
+
+      payment_code: result.payment_code || result.data?.payment_code || null,
+    });
+
+    /*
+     * CHUYỂN VNPAY
+     */
+    window.location.href = paymentUrl;
   } catch (error) {
     console.error("HANDLE THANH TOAN ERROR:", error);
 
-    /*
-     * ===================================================
-     * ERROR BACKEND
-     * ===================================================
-     */
-
     await Swal.fire({
       icon: "error",
-
       title: "Có lỗi xảy ra",
-
       text:
         error?.response?.data?.message ||
         error?.message ||
-        "Không thể thực hiện thanh toán",
+        "Không thể thực hiện thanh toán.",
     });
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>
 
 <template>
-  <div class="relative min-h-screen pt-20 text-white">
-    <!-- ================================================= -->
+  <div class="customer-redesign relative min-h-screen pt-20 text-white">
     <!-- BACKGROUND -->
-    <!-- ================================================= -->
-
-    <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div class="customer-atmosphere pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <img
         src="/hero-bg.jpg"
         alt="Sunset travel"
@@ -462,16 +565,9 @@ const handleThanhToan = async () => {
       ></div>
     </div>
 
-    <!-- ================================================= -->
-    <!-- MAIN -->
-    <!-- ================================================= -->
-
     <main class="relative z-10 text-white">
       <div class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
-        <!-- ================================================= -->
         <!-- BREADCRUMB -->
-        <!-- ================================================= -->
-
         <div
           class="mb-7 flex items-center gap-2 text-xs font-medium text-white/70"
         >
@@ -479,28 +575,25 @@ const handleThanhToan = async () => {
             Trang chủ
           </router-link>
 
-          <span class="text-white/40"> / </span>
+          <span class="text-white/40">/</span>
 
           <router-link to="/tours" class="transition hover:text-white">
             Tour
           </router-link>
 
-          <span class="text-white/40"> / </span>
+          <span class="text-white/40">/</span>
 
           <span class="font-semibold text-white"> Đặt tour </span>
         </div>
 
-        <!-- ================================================= -->
-        <!-- HEADING -->
-        <!-- ================================================= -->
-
+        <!-- HEADER -->
         <div class="mb-9">
           <div
             class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/80 backdrop-blur-xl"
           >
             <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
 
-            Booking
+            {{ isGroupOrFamily ? "Tour Đoàn / Gia Đình" : "Khách Lẻ" }}
           </div>
 
           <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -508,145 +601,197 @@ const handleThanhToan = async () => {
           </h1>
 
           <p class="mt-2 max-w-2xl text-sm leading-6 text-white/80">
-            Điền thông tin chuyến đi của bạn để giữ chỗ và bắt đầu hành trình
-            cùng TravelGo.
+            Điền thông tin chuyến đi của bạn để giữ chỗ và bắt đầu hành trình.
           </p>
         </div>
 
-        <!-- ================================================= -->
-        <!-- CONTENT GRID -->
-        <!-- ================================================= -->
-
+        <!-- CONTENT -->
         <div class="grid gap-7 lg:grid-cols-[1fr_390px]">
-          <!-- ================================================= -->
-          <!-- LEFT -->
-          <!-- ================================================= -->
-
+          <!-- ==================== CỘT TRÁI ==================== -->
           <div class="space-y-6">
-            <!-- TOUR -->
-
+            <!-- THÔNG TIN TOUR -->
             <BookTour v-if="tourDetailData" :tourData="tourDetailData" />
 
-            <!-- FORM -->
+            <!-- FORM KHÁCH HÀNG -->
+            <BookingForm :isGroupOrFamily="isGroupOrFamily" />
 
-            <BookingForm />
-
-            <!-- ================================================= -->
-            <!-- PAYMENT METHOD -->
-            <!-- ================================================= -->
-
+            <!-- ==================== THANH TOÁN ==================== -->
             <section
               class="rounded-[2rem] border border-white/15 bg-white/[0.08] p-6 backdrop-blur-2xl sm:p-7"
             >
+              <!-- TITLE -->
               <div class="mb-6">
                 <h2 class="text-lg font-semibold text-white">
                   Phương thức thanh toán
                 </h2>
 
                 <p class="mt-1 text-xs font-medium text-white/70">
-                  Chọn cách thanh toán cho đơn đặt tour của bạn.
+                  Chọn hình thức thanh toán cho đơn đặt tour của bạn.
                 </p>
               </div>
 
               <div class="space-y-4">
                 <!-- ================================================= -->
-                <!-- VNPAY -->
+                <!-- THANH TOÁN FULL 100% -->
                 <!-- ================================================= -->
-
                 <label
-                  class="relative flex cursor-pointer items-center gap-4 rounded-2xl border p-4 transition-all duration-200"
+                  class="relative flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all duration-200"
                   :class="
-                    paymentMethod === 'vnpay'
+                    paymentType === 'full'
                       ? 'border-white/70 bg-white/[0.20] shadow-[0_0_0_2px_rgba(255,255,255,0.08)]'
                       : 'border-white/15 bg-black/15 hover:border-white/30 hover:bg-white/[0.10]'
                   "
                 >
+                  <!-- RADIO -->
                   <input
-                    v-model="paymentMethod"
+                    v-model="paymentType"
                     type="radio"
-                    value="vnpay"
-                    class="h-5 w-5 shrink-0 accent-white"
+                    value="full"
+                    class="mt-1 h-5 w-5 shrink-0 accent-white"
                   />
 
+                  <!-- ICON -->
                   <div
                     class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-xs font-black text-red-600 shadow-sm"
                   >
                     VNPAY
                   </div>
 
+                  <!-- CONTENT -->
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
                       <p class="text-sm font-semibold text-white">
-                        Thanh toán ngay qua VNPAY
+                        Thanh toán toàn bộ qua VNPAY (100%)
                       </p>
 
                       <span
-                        v-if="paymentMethod === 'vnpay'"
-                        class="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-black"
+                        v-if="paymentType === 'full'"
+                        class="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-bold text-black"
                       >
                         ĐANG CHỌN
                       </span>
                     </div>
 
-                    <p class="mt-1 text-xs font-medium text-white/70">
-                      Thanh toán trực tuyến qua mã QR, App Ngân hàng hoặc thẻ
-                      ATM/Visa
+                    <p class="mt-1 text-xs font-medium leading-5 text-white/70">
+                      Thanh toán toàn bộ giá trị đơn hàng qua VNPAY. Hỗ trợ mã
+                      QR, App Ngân hàng hoặc thẻ ATM/Visa/Mastercard.
                     </p>
+
+                    <!-- FULL AMOUNT -->
+                    <div
+                      v-if="paymentType === 'full' && currentTotalAmount > 0"
+                      class="mt-3 rounded-xl border border-white/10 bg-black/35 p-3"
+                    >
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="text-xs text-white/70">
+                          Số tiền thanh toán:
+                        </span>
+
+                        <span class="font-mono text-sm font-bold text-white">
+                          {{ formatMoney(currentTotalAmount) }} VNĐ
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </label>
 
                 <!-- ================================================= -->
-                <!-- COD -->
+                <!-- ĐẶT CỌC 30% -->
                 <!-- ================================================= -->
-
                 <label
-                  class="relative flex cursor-pointer items-center gap-4 rounded-2xl border p-4 transition-all duration-200"
+                  class="relative flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all duration-200"
                   :class="
-                    paymentMethod === 'cod'
-                      ? 'border-white/70 bg-white/[0.20] shadow-[0_0_0_2px_rgba(255,255,255,0.08)]'
+                    paymentType === 'deposit'
+                      ? 'border-amber-400/80 bg-amber-500/[0.15] shadow-[0_0_0_2px_rgba(251,191,36,0.15)]'
                       : 'border-white/15 bg-black/15 hover:border-white/30 hover:bg-white/[0.10]'
                   "
                 >
+                  <!-- RADIO -->
                   <input
-                    v-model="paymentMethod"
+                    v-model="paymentType"
                     type="radio"
-                    value="cod"
-                    class="h-5 w-5 shrink-0 accent-white"
+                    value="deposit"
+                    class="mt-1 h-5 w-5 shrink-0 accent-amber-400"
                   />
 
+                  <!-- ICON -->
                   <div
-                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-lg"
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-amber-400/20 text-lg text-amber-300"
                   >
-                    💵
+                    🛡️
                   </div>
 
+                  <!-- CONTENT -->
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
                       <p class="text-sm font-semibold text-white">
-                        Thanh toán sau (COD)
+                        Đặt cọc giữ chỗ (30%)
                       </p>
 
                       <span
-                        v-if="paymentMethod === 'cod'"
-                        class="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-black"
+                        v-if="paymentType === 'deposit'"
+                        class="rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-slate-950"
                       >
                         ĐANG CHỌN
                       </span>
                     </div>
 
-                    <p class="mt-1 text-xs font-medium text-white/70">
-                      Đặt tour trước và thanh toán sau theo chính sách của tour
+                    <p class="mt-1 text-xs font-medium leading-5 text-white/70">
+                      Chỉ thanh toán trước 30% để xác nhận giữ chỗ. 70% còn lại
+                      sẽ thanh toán trước ngày khởi hành.
                     </p>
+
+                    <!-- DEPOSIT DETAIL -->
+                    <div
+                      v-if="paymentType === 'deposit' && currentTotalAmount > 0"
+                      class="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/35 p-3"
+                    >
+                      <!-- 30% -->
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="text-xs text-white/80">
+                          Tiền cọc cần thanh toán (30%):
+                        </span>
+
+                        <span
+                          class="font-mono text-sm font-bold text-amber-300"
+                        >
+                          {{ formatMoney(depositAmount) }} VNĐ
+                        </span>
+                      </div>
+
+                      <!-- 70% -->
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="text-[11px] text-white/50">
+                          Số tiền còn lại (70%):
+                        </span>
+
+                        <span class="font-mono text-xs text-white/60">
+                          {{ formatMoney(remainingAmount) }} VNĐ
+                        </span>
+                      </div>
+
+                      <!-- TOTAL -->
+                      <div class="border-t border-white/10 pt-2">
+                        <div class="flex items-center justify-between gap-3">
+                          <span class="text-[11px] text-white/50">
+                            Tổng giá trị tour:
+                          </span>
+
+                          <span
+                            class="font-mono text-xs font-semibold text-white/80"
+                          >
+                            {{ formatMoney(currentTotalAmount) }} VNĐ
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </label>
               </div>
             </section>
           </div>
 
-          <!-- ================================================= -->
-          <!-- RIGHT -->
-          <!-- ================================================= -->
-
+          <!-- ==================== CỘT PHẢI ==================== -->
           <BookingPaymentRice
             v-if="tourDetailData"
             :tourData="tourDetailData"
@@ -655,9 +800,69 @@ const handleThanhToan = async () => {
             :voucherCode="voucherCode"
             :handleThanhToan="handleThanhToan"
             :databooking="databooking.bookingData"
+            :isSubmitting="isSubmitting"
           />
         </div>
       </div>
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

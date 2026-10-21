@@ -1,7 +1,7 @@
 <template>
-  <div class="relative min-h-screen text-white pt-20 pb-16">
+  <div class="customer-redesign relative min-h-screen text-white pt-20 pb-16">
     <!-- KHUNG NỀN CỐ ĐỊNH CHUẨN Z-0 -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="customer-atmosphere fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Sunset travel"
@@ -291,3 +291,62 @@
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

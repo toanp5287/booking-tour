@@ -29,12 +29,12 @@ const prev = () => {
 </script>
 
 <template>
-  <section>
+  <section class="featured-destinations">
     <!-- SECTION HEADING -->
     <div
       class="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end"
     >
-      <div>
+      <div class="featured-heading">
         <p
           class="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/35"
         >
@@ -52,7 +52,7 @@ const prev = () => {
 
       <RouterLink
         to="/tours"
-        class="text-sm font-medium text-white/55 transition hover:text-white"
+        class="featured-link text-sm font-medium text-white/55 transition hover:text-white"
       >
         Xem tour →
       </RouterLink>
@@ -66,7 +66,7 @@ const prev = () => {
         type="button"
         @click="prev"
         :disabled="!canPrev"
-        class="absolute left-[-18px] top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xl text-white shadow-lg backdrop-blur-md transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-30"
+        class="carousel-control absolute left-[-18px] top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xl text-white shadow-lg backdrop-blur-md transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-30"
       >
         ←
       </button>
@@ -86,7 +86,7 @@ const prev = () => {
             v-for="value in props.destinationData"
             :key="value.id"
             :to="`/destinations/${value.id}`"
-            class="group relative min-h-[430px] min-w-[calc(25%-15px)] flex-[0_0_calc(25%-15px)] overflow-hidden rounded-[26px] border border-white/10"
+            class="destination-card group relative min-h-[430px] min-w-[calc(25%-15px)] flex-[0_0_calc(25%-15px)] overflow-hidden rounded-[26px] border border-white/10"
           >
             <!-- IMAGE -->
             <img
@@ -101,7 +101,7 @@ const prev = () => {
 
             <!-- OVERLAY -->
             <div
-              class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"
+              class="destination-image-overlay absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent"
             ></div>
 
             <!-- PROVINCE -->
@@ -173,10 +173,59 @@ const prev = () => {
         type="button"
         @click="next"
         :disabled="!canNext"
-        class="absolute right-[-18px] top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xl text-white shadow-lg backdrop-blur-md transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-30"
+        class="carousel-control absolute right-[-18px] top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/70 text-xl text-white shadow-lg backdrop-blur-md transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-30"
       >
         →
       </button>
     </div>
   </section>
 </template>
+
+<style scoped>
+.featured-heading :deep([class*="text-white"]) {
+  color: #475569 !important;
+}
+
+.featured-heading :deep([class*="text-white/35"]),
+.featured-heading :deep([class*="text-white/40"]) {
+  color: #64748b !important;
+}
+
+.featured-heading :deep([class*="text-orange-"]),
+.featured-heading :deep([class*="text-amber-"]) {
+  color: #2563eb !important;
+}
+
+.featured-link {
+  color: #475569 !important;
+}
+
+.featured-link:hover {
+  color: #2563eb !important;
+}
+
+.carousel-control {
+  border-color: #e2e8f0 !important;
+  background-color: #fff !important;
+  color: #334155 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.carousel-control:hover {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.destination-card {
+  min-height: clamp(320px, 38vw, 430px) !important;
+}
+
+.destination-image-overlay {
+  background-image: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.78),
+    rgba(15, 23, 42, 0.18) 55%,
+    transparent
+  ) !important;
+}
+</style>

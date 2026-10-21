@@ -30,10 +30,10 @@ const handleFilterChange = (filters: FilterPayload) => {
 
 <template>
   <div
-    class="relative min-h-screen bg-[#090b10] font-sans text-slate-100 antialiased selection:bg-amber-300/20 selection:text-amber-200"
+    class="customer-redesign relative min-h-screen bg-[#090b10] font-sans text-slate-100 antialiased selection:bg-blue-200/50 selection:text-blue-900"
   >
     <!-- BACKGROUND ATMOSPHERE (LÌ & ÊM MẮT) -->
-    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="customer-atmosphere fixed inset-0 z-0 pointer-events-none overflow-hidden">
       <img
         src="/hero-bg.jpg"
         alt="Travel horizon"
@@ -43,7 +43,7 @@ const handleFilterChange = (filters: FilterPayload) => {
         class="absolute inset-0 bg-gradient-to-b from-[#090b10]/80 via-[#090b10]/95 to-[#090b10]"
       ></div>
       <div
-        class="absolute left-1/2 top-12 h-64 w-[600px] -translate-x-1/2 rounded-full bg-amber-400/5 blur-[120px]"
+        class="absolute left-1/2 top-12 h-64 w-[600px] -translate-x-1/2 rounded-full bg-blue-400/10 blur-[120px]"
       ></div>
     </div>
 
@@ -54,9 +54,9 @@ const handleFilterChange = (filters: FilterPayload) => {
           <div class="max-w-2xl">
             <!-- Badge -->
             <div
-              class="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-white/[0.03] px-3.5 py-1 text-xs font-medium text-amber-200/90 backdrop-blur-md"
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-medium text-blue-700"
             >
-              <span class="h-1.5 w-1.5 rounded-full bg-amber-300"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-blue-600"></span>
               <span>Khám phá kỳ nghỉ trong mơ</span>
             </div>
 
@@ -65,7 +65,7 @@ const handleFilterChange = (filters: FilterPayload) => {
             >
               Hành trình trải nghiệm
               <span
-                class="bg-gradient-to-r from-amber-200 via-amber-100 to-white/70 bg-clip-text text-transparent"
+                class="bg-gradient-to-r from-travel-blue via-travel-blue to-travel-teal bg-clip-text text-transparent"
               >
                 đích thực
               </span>
@@ -80,11 +80,11 @@ const handleFilterChange = (filters: FilterPayload) => {
           <!-- COMPACT MODERN SEARCH BAR -->
           <div class="mt-8 w-full max-w-3xl">
             <div
-              class="flex items-center rounded-2xl border border-white/[0.08] bg-[#0f131c] p-2 shadow-xl transition focus-within:border-amber-300/40 focus-within:shadow-[0_0_25px_rgba(251,191,36,0.08)]"
+              class="flex items-center rounded-2xl border border-white/[0.08] bg-[#0f131c] p-2 shadow-sm transition focus-within:border-travel-info/60 focus-within:shadow-md"
             >
               <!-- Search Icon -->
               <div
-                class="flex h-10 w-11 shrink-0 items-center justify-center text-amber-200/70"
+                class="flex h-10 w-11 shrink-0 items-center justify-center text-travel-blue"
               >
                 <svg
                   class="h-5 w-5"
@@ -136,7 +136,7 @@ const handleFilterChange = (filters: FilterPayload) => {
               <!-- Action button -->
               <button
                 type="button"
-                class="flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-amber-300 px-5 text-xs font-bold text-slate-950 transition hover:bg-amber-400 active:scale-95"
+                class="tour-search-action flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-travel-blue px-5 text-xs font-bold text-white transition hover:bg-[#101F38] active:scale-95"
               >
                 <span>Tìm kiếm</span>
               </button>
@@ -175,7 +175,7 @@ const handleFilterChange = (filters: FilterPayload) => {
                 <span class="text-xs text-slate-400">Sắp xếp:</span>
                 <select
                   v-model="sortBy"
-                  class="cursor-pointer rounded-xl border border-white/10 bg-[#0f131c] px-3 py-1.5 text-xs font-medium text-slate-200 outline-none transition focus:border-amber-300/40"
+                  class="cursor-pointer rounded-xl border border-white/10 bg-[#0f131c] px-3 py-1.5 text-xs font-medium text-slate-200 outline-none transition focus:border-blue-400/60"
                 >
                   <option value="popular">Phổ biến nhất</option>
                   <option value="price_asc">Giá: Thấp đến Cao</option>
@@ -202,7 +202,7 @@ const handleFilterChange = (filters: FilterPayload) => {
         >
           <div class="max-w-xl">
             <span
-              class="inline-flex items-center gap-1.5 rounded-md bg-amber-400/10 px-2 py-0.5 text-[11px] font-semibold text-amber-200"
+              class="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700"
             >
               ✦ TravelGo Assistant
             </span>
@@ -217,7 +217,7 @@ const handleFilterChange = (filters: FilterPayload) => {
 
           <RouterLink
             to="/aiTripPlanner"
-            class="inline-flex shrink-0 items-center gap-2 rounded-xl border border-amber-200/30 bg-amber-300/10 px-5 py-2.5 text-xs font-bold text-amber-200 transition hover:bg-amber-300 hover:text-slate-950 active:scale-95"
+            class="inline-flex shrink-0 items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-5 py-2.5 text-xs font-bold text-blue-700 transition hover:bg-blue-600 hover:text-white active:scale-95"
           >
             <span>Tạo lộ trình AI</span>
             <span>→</span>
@@ -227,3 +227,66 @@ const handleFilterChange = (filters: FilterPayload) => {
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign button[class*="bg-blue-"] {
+  color: #fff;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

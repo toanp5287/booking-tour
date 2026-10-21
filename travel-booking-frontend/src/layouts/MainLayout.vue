@@ -8,9 +8,7 @@ const route = useRoute();
 </script>
 
 <template>
-  <div
-    class="min-h-screen bg-[#080b12] text-white flex flex-col justify-between"
-  >
+  <div class="customer-layout flex min-h-screen flex-col justify-between">
     <AppHeader />
 
     <!-- Nội dung các trang -->

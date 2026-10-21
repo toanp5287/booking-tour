@@ -14,14 +14,14 @@ const {
 } = useQuery({
   queryKey: ["tours"],
   queryFn: async () => {
-    const response = await tourService.getAll();
-    return response.data.data || [];
+    const response = await tourService.getTourPulic();
+    return response.data.tours || [];
   },
+  staleTime: 5 * 60 * 1000,
 });
 
 const search = ref("");
 const searchResultsSection = ref(null);
-
 
 const toursList = computed(() => {
   return Array.isArray(dataTour.value) ? dataTour.value : [];
@@ -39,7 +39,6 @@ const filteredTours = computed(() => {
     return name || slug || description || country;
   });
 });
-
 
 watch(search, (newVal) => {
   if (newVal.trim().length >= 2) {
@@ -59,12 +58,14 @@ const clearSearch = () => {
 
 <template>
   <div
-    class="min-h-screen bg-[#07090d] font-sans text-slate-100 antialiased selection:bg-orange-400/20 selection:text-orange-200"
+    class="customer-redesign min-h-screen bg-[#07090d] font-sans text-slate-100 antialiased selection:bg-orange-400/20 selection:text-orange-200"
   >
     <!-- =========================================================
          HERO SECTION
     ========================================================== -->
-    <section class="relative min-h-[92vh] overflow-hidden lg:min-h-screen">
+    <section
+      class="customer-hero relative min-h-[92vh] overflow-hidden lg:min-h-screen"
+    >
       <!-- HERO IMAGE -->
       <img
         src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2400&q=95"
@@ -73,17 +74,17 @@ const clearSearch = () => {
       />
 
       <!-- CINEMATIC OVERLAYS -->
-      <div class="absolute inset-0 bg-[#07090d]/40"></div>
+      <div class="home-hero-base absolute inset-0 bg-slate-950/20"></div>
       <div
-        class="absolute inset-0 bg-gradient-to-r from-[#07090d]/95 via-[#07090d]/55 to-transparent"
+        class="home-hero-side absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/35 to-transparent"
       ></div>
       <div
-        class="absolute inset-0 bg-gradient-to-t from-[#07090d] via-transparent to-[#07090d]/30"
+        class="home-hero-bottom absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-slate-950/15"
       ></div>
 
       <!-- SUNSET GLOW ORBS -->
       <div
-        class="pointer-events-none absolute left-[8%] top-[25%] h-[460px] w-[460px] rounded-full bg-gradient-to-tr from-orange-500/20 to-amber-300/10 blur-[140px]"
+        class="pointer-events-none absolute left-[8%] top-[25%] h-[460px] w-[460px] rounded-full bg-gradient-to-tr from-blue-500/20 to-cyan-300/10 blur-[140px]"
       ></div>
       <div
         class="pointer-events-none absolute right-[10%] top-[40%] h-[380px] w-[380px] rounded-full bg-rose-500/10 blur-[130px]"
@@ -116,7 +117,7 @@ const clearSearch = () => {
             Đi xa hơn.
             <br />
             <span
-              class="bg-gradient-to-r from-white via-white/85 to-orange-200/60 bg-clip-text text-transparent"
+              class="bg-gradient-to-r from-white via-white/85 to-blue-200/75 bg-clip-text text-transparent"
             >
               Sống trọn vẹn hơn.
             </span>
@@ -132,7 +133,7 @@ const clearSearch = () => {
           <!-- SEARCH BAR COMPONENT -->
           <div class="mt-10 w-full max-w-2xl">
             <div
-              class="relative flex items-center rounded-2xl border border-white/10 bg-[#0d1118]/85 p-2 shadow-2xl backdrop-blur-2xl transition-all duration-300 hover:border-white/20 focus-within:border-orange-300/50 focus-within:bg-[#111720]/95 focus-within:shadow-[0_0_35px_rgba(255,184,107,0.18)]"
+              class="relative flex items-center rounded-2xl border border-white/10 bg-[#0d1118]/85 p-2 shadow-2xl backdrop-blur-2xl transition-all duration-300 hover:border-white/20 focus-within:border-blue-300/60 focus-within:bg-[#111720]/95 focus-within:shadow-[0_0_35px_rgba(37,99,235,0.22)]"
             >
               <!-- ICON -->
               <div
@@ -187,7 +188,7 @@ const clearSearch = () => {
 
               <button
                 type="button"
-                class="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-orange-300 to-orange-400 px-6 text-xs font-bold text-slate-950 shadow-lg shadow-orange-400/20 transition hover:brightness-110 active:scale-95"
+                class="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-orange-400 px-6 text-xs font-bold text-slate-950 shadow-sm transition hover:bg-orange-500 active:scale-95"
               >
                 <span>Tìm tour</span>
                 <svg
@@ -272,20 +273,24 @@ const clearSearch = () => {
     ========================================================== -->
     <section
       ref="searchResultsSection"
-      class="relative bg-[#07090d] py-24 scroll-mt-6"
+      class="relative overflow-hidden bg-[#07090d] py-24 scroll-mt-6"
     >
       <div class="mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
         <!-- HEADER -->
         <div
-          class="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end"
+          class="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
         >
           <div>
             <div
               class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-orange-300/70"
             >
               <span class="h-1.5 w-1.5 rounded-full bg-orange-300"></span>
-              {{ search.trim() ? "Tìm kiếm" : "Featured Tours" }}
+
+              <span>
+                {{ search.trim() ? "Tìm kiếm" : "Featured Tours" }}
+              </span>
             </div>
+
             <h2
               class="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl"
             >
@@ -295,15 +300,17 @@ const clearSearch = () => {
                   : "Những hành trình nổi bật nhất"
               }}
             </h2>
+
             <p class="mt-2 text-sm text-slate-400">
               {{
                 search.trim()
                   ? `Tìm thấy ${filteredTours.length} hành trình phù hợp với tiêu chí của bạn.`
-                  : "Các tour được yêu thích và đánh giá cao nhất bởi cộng đồng du khách TravelGo."
+                  : "Khám phá những hành trình đang có sẵn trên TravelGo."
               }}
             </p>
           </div>
 
+          <!-- ACTIONS -->
           <div class="flex items-center gap-3">
             <button
               v-if="search.trim()"
@@ -313,19 +320,23 @@ const clearSearch = () => {
             >
               ✕ Bỏ lọc
             </button>
+
             <RouterLink
               to="/tours"
               class="group inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-300/30 hover:bg-orange-300/10 hover:text-orange-200"
             >
               <span>Xem tất cả tour</span>
-              <span class="transition-transform group-hover:translate-x-0.5"
-                >→</span
+
+              <span
+                class="transition-transform duration-200 group-hover:translate-x-1"
               >
+                →
+              </span>
             </RouterLink>
           </div>
         </div>
 
-        <!-- LOADING SKELETON -->
+        <!-- LOADING -->
         <div
           v-if="isLoading"
           class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
@@ -333,138 +344,176 @@ const clearSearch = () => {
           <div
             v-for="n in 4"
             :key="n"
-            class="animate-pulse rounded-3xl border border-white/5 bg-[#0d1118] p-4"
+            class="animate-pulse overflow-hidden rounded-3xl border border-white/5 bg-[#0d1118]"
           >
-            <div class="h-64 rounded-2xl bg-white/5"></div>
-            <div class="mt-4 h-4 w-3/4 rounded bg-white/5"></div>
-            <div class="mt-2 h-3 w-1/2 rounded bg-white/5"></div>
-            <div class="mt-6 flex justify-between">
-              <div class="h-5 w-20 rounded bg-white/5"></div>
-              <div class="h-8 w-8 rounded-xl bg-white/5"></div>
+            <div class="h-64 bg-white/5"></div>
+
+            <div class="space-y-3 p-5">
+              <div class="h-4 w-3/4 rounded bg-white/5"></div>
+              <div class="h-3 w-1/2 rounded bg-white/5"></div>
+
+              <div class="mt-5 flex items-center justify-between">
+                <div class="h-5 w-28 rounded bg-white/5"></div>
+                <div class="h-10 w-10 rounded-xl bg-white/5"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- ERROR STATE -->
+        <!-- ERROR -->
         <div
           v-else-if="isError"
           class="rounded-3xl border border-rose-500/20 bg-rose-500/5 p-12 text-center"
         >
-          <p class="text-sm font-semibold text-rose-300">
+          <div
+            class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-2xl"
+          >
+            ⚠
+          </div>
+
+          <p class="mt-4 text-sm font-semibold text-rose-300">
             Không thể tải dữ liệu tour
           </p>
+
           <p class="mt-1 text-xs text-slate-400">
             Vui lòng kiểm tra lại kết nối hoặc thử lại sau.
           </p>
+
           <button
             type="button"
             @click="refetch"
-            class="mt-4 rounded-xl bg-rose-500/20 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/30"
+            class="mt-5 rounded-xl bg-rose-500/20 px-5 py-2.5 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/30"
           >
             Tải lại dữ liệu
           </button>
         </div>
 
-        <!-- MAIN DATA DISPLAY -->
-        <div v-else class="relative w-full">
+        <!-- DATA -->
+        <div v-else>
           <!-- =========================================================
-               TRƯỜNG HỢP 1: ĐANG TÌM KIẾM (HIỆN DẠNG GRID TĨNH)
-          ========================================================== -->
+           SEARCH RESULT
+      ========================================================== -->
           <div v-if="search.trim()">
-            <!-- KHÔNG TÌM THẤY KẾT QUẢ -->
+            <!-- KHÔNG CÓ KẾT QUẢ -->
             <div
               v-if="filteredTours.length === 0"
-              class="flex flex-col items-center justify-center rounded-3xl border border-white/[0.08] bg-[#0d1118]/80 py-16 text-center backdrop-blur-xl"
+              class="flex flex-col items-center justify-center rounded-3xl border border-white/[0.08] bg-[#0d1118]/80 px-6 py-20 text-center backdrop-blur-xl"
             >
               <div
-                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-2xl text-orange-300"
+                class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 text-2xl"
               >
                 🔍
               </div>
-              <h3 class="mt-4 text-lg font-bold text-white">
+
+              <h3 class="mt-5 text-lg font-bold text-white">
                 Không tìm thấy tour phù hợp
               </h3>
-              <p class="mt-1 max-w-sm text-xs text-slate-400">
-                Không có tour nào khớp với từ khóa "{{ search.trim() }}". Hãy
-                thử tìm theo địa danh khác như Đà Lạt, Sa Pa, Hạ Long...
+
+              <p class="mt-2 max-w-md text-xs leading-6 text-slate-400">
+                Không có tour nào khớp với từ khóa
+                <span class="font-semibold text-slate-300">
+                  "{{ search.trim() }}" </span
+                >. Hãy thử tìm với từ khóa khác.
               </p>
+
               <button
                 type="button"
                 @click="clearSearch"
-                class="mt-6 rounded-xl border border-orange-300/30 bg-orange-300/10 px-5 py-2 text-xs font-semibold text-orange-200 transition hover:bg-orange-300 hover:text-slate-950"
+                class="mt-6 rounded-xl border border-orange-300/30 bg-orange-300/10 px-5 py-2.5 text-xs font-semibold text-orange-200 transition hover:bg-orange-300 hover:text-slate-950"
               >
-                Xem tất cả tour gợi ý
+                Xem tất cả tour
               </button>
             </div>
 
-            <!-- CÓ KẾT QUẢ: GRID 4 CỘT -->
+            <!-- GRID KẾT QUẢ -->
             <div
               v-else
               class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
               <article
-                v-for="value in filteredTours"
-                :key="`search-${value.id}`"
+                v-for="tour in filteredTours"
+                :key="`search-${tour.id}`"
                 class="group overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1118] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-300/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
               >
                 <!-- IMAGE -->
                 <div class="relative h-64 overflow-hidden">
                   <img
                     :src="
-                      value.thumbnail || value.image
-                        ? `http://localhost:8080/${(value.thumbnail || value.image).replaceAll('\\', '/')}`
-                        : 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
+                      tour.thumbnail ||
+                      'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
                     "
-                    :alt="value.name"
+                    :alt="tour.name"
                     class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                   />
+
                   <div
                     class="absolute inset-0 bg-gradient-to-t from-[#0d1118] via-[#0d1118]/20 to-transparent"
                   ></div>
 
-                  <!-- RATING BADGE -->
+                  <!-- TOUR TYPE -->
                   <div
-                    class="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md"
+                    class="absolute left-4 top-4 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-200 backdrop-blur-md"
                   >
-                    <span class="text-amber-300">★</span>
-                    <span>{{ value.rating || "4.9" }}</span>
+                    {{ tour.tour_type }}
                   </div>
 
-                  <!-- LOCATION & TITLE OVERLAY -->
+                  <!-- TITLE -->
                   <div class="absolute bottom-4 left-5 right-5">
-                    <span
-                      class="text-[11px] font-semibold uppercase tracking-wider text-orange-200/80"
+                    <p
+                      v-if="tour.category?.name"
+                      class="mb-1 text-[10px] font-semibold uppercase tracking-wider text-orange-200/80"
                     >
-                      {{ value.country || "Việt Nam" }}
-                    </span>
+                      {{ tour.category.name }}
+                    </p>
+
                     <h3
-                      class="mt-1 line-clamp-1 text-lg font-bold text-white transition group-hover:text-orange-200"
+                      class="line-clamp-2 text-lg font-bold leading-tight text-white transition group-hover:text-orange-200"
                     >
-                      {{ value.name }}
+                      {{ tour.name }}
                     </h3>
                   </div>
                 </div>
 
-                <!-- INFO FOOTER -->
+                <!-- INFO -->
                 <div class="p-5">
-                  <div class="flex items-center justify-between gap-4">
-                    <div>
-                      <p class="text-xs text-slate-400">
-                        {{
-                          value.duration_days
-                            ? `${value.duration_days} ngày ${value.duration_nights || 0} đêm`
-                            : value.duration || "3 ngày 2 đêm"
-                        }}
-                      </p>
+                  <!-- DURATION -->
+                  <div class="flex items-center gap-2 text-xs text-slate-400">
+                    <span>◷</span>
+
+                    <span>
+                      {{ tour.duration_days }} ngày
+                      {{ tour.duration_nights }} đêm
+                    </span>
+                  </div>
+
+                  <!-- TRANSPORTATION -->
+                  <p
+                    v-if="tour.transportation"
+                    class="mt-2 line-clamp-1 text-xs text-slate-500"
+                  >
+                    🚐 {{ tour.transportation }}
+                  </p>
+
+                  <!-- BOTTOM -->
+                  <div class="mt-5 flex items-end justify-between gap-4">
+                    <div class="min-w-0">
                       <p
-                        class="mt-0.5 font-mono text-lg font-bold text-orange-300"
+                        class="text-[10px] uppercase tracking-wider text-slate-500"
                       >
-                        {{ Number(value.price || 0).toLocaleString("vi-VN") }}₫
+                        Giá từ
+                      </p>
+
+                      <p
+                        class="mt-1 truncate font-mono text-lg font-bold text-orange-300"
+                      >
+                        {{
+                          Number(tour.base_price || 0).toLocaleString("vi-VN")
+                        }}₫
                       </p>
                     </div>
 
                     <RouterLink
-                      :to="`/tours/${value.id}`"
+                      :to="`/tours/${tour.id}`"
                       class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:border-orange-300 hover:bg-orange-300 hover:text-slate-950"
                     >
                       →
@@ -476,75 +525,100 @@ const clearSearch = () => {
           </div>
 
           <!-- =========================================================
-               TRƯỜNG HỢP 2: CHƯA TÌM KIẾM -> CAROUSEL VÔ TẬN
-          ========================================================== -->
-          <div v-else class="relative w-full overflow-hidden">
+           FEATURED TOURS - CAROUSEL
+      ========================================================== -->
+          <div
+            v-else-if="toursList.length"
+            class="relative w-full overflow-hidden"
+          >
             <div
               class="flex w-max animate-[tour-slide_40s_linear_infinite] hover:[animation-play-state:paused]"
             >
               <!-- GROUP 1 -->
               <div class="flex shrink-0 gap-6 pr-6">
                 <article
-                  v-for="value in toursList"
-                  :key="`tour-1-${value.id}`"
+                  v-for="tour in toursList"
+                  :key="`tour-1-${tour.id}`"
                   class="group w-[340px] shrink-0 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1118] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-300/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] sm:w-[370px]"
                 >
+                  <!-- IMAGE -->
                   <div class="relative h-72 overflow-hidden">
                     <img
                       :src="
-                        value.thumbnail || value.image
-                          ? `http://localhost:8080/${(value.thumbnail || value.image).replaceAll('\\', '/')}`
-                          : 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
+                        tour.thumbnail ||
+                        'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
                       "
-                      :alt="value.name"
+                      :alt="tour.name"
                       class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     />
+
                     <div
                       class="absolute inset-0 bg-gradient-to-t from-[#0d1118] via-[#0d1118]/20 to-transparent"
                     ></div>
 
+                    <!-- TOUR TYPE -->
                     <div
-                      class="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md"
+                      class="absolute left-4 top-4 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-200 backdrop-blur-md"
                     >
-                      <span class="text-amber-300">★</span>
-                      <span>{{ value.rating || "4.9" }}</span>
+                      {{ tour.tour_type }}
                     </div>
 
+                    <!-- TITLE -->
                     <div class="absolute bottom-4 left-5 right-5">
-                      <span
-                        class="text-[11px] font-semibold uppercase tracking-wider text-orange-200/80"
+                      <p
+                        v-if="tour.category?.name"
+                        class="mb-1 text-[10px] font-semibold uppercase tracking-wider text-orange-200/80"
                       >
-                        {{ value.country || "Việt Nam" }}
-                      </span>
+                        {{ tour.category.name }}
+                      </p>
+
                       <h3
-                        class="mt-1 line-clamp-1 text-xl font-bold text-white transition group-hover:text-orange-200"
+                        class="line-clamp-2 text-xl font-bold leading-tight text-white transition group-hover:text-orange-200"
                       >
-                        {{ value.name }}
+                        {{ tour.name }}
                       </h3>
                     </div>
                   </div>
 
+                  <!-- INFO -->
                   <div class="p-5">
-                    <div class="flex items-center justify-between gap-4">
-                      <div>
-                        <p class="text-xs text-slate-400">
-                          {{
-                            value.duration_days
-                              ? `${value.duration_days} ngày ${value.duration_nights || 0} đêm`
-                              : value.duration || "3 ngày 2 đêm"
-                          }}
-                        </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                      <span>◷</span>
+
+                      <span>
+                        {{ tour.duration_days }} ngày
+                        {{ tour.duration_nights }} đêm
+                      </span>
+                    </div>
+
+                    <p
+                      v-if="tour.transportation"
+                      class="mt-2 line-clamp-1 text-xs text-slate-500"
+                    >
+                      🚐 {{ tour.transportation }}
+                    </p>
+
+                    <div class="mt-5 flex items-end justify-between gap-4">
+                      <div class="min-w-0">
                         <p
-                          class="mt-0.5 font-mono text-lg font-bold text-orange-300"
+                          class="text-[10px] uppercase tracking-wider text-slate-500"
+                        >
+                          Giá từ
+                        </p>
+
+                        <p
+                          class="mt-1 truncate font-mono text-lg font-bold text-orange-300"
                         >
                           {{
-                            Number(value.price || 0).toLocaleString("vi-VN")
+                            Number(tour.base_price || 0).toLocaleString(
+                              "vi-VN",
+                            )
                           }}₫
                         </p>
                       </div>
 
                       <RouterLink
-                        :to="`/tours/${value.id}`"
+                        :to="`/tours/${tour.id}`"
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:border-orange-300 hover:bg-orange-300 hover:text-slate-950"
                       >
                         →
@@ -554,69 +628,91 @@ const clearSearch = () => {
                 </article>
               </div>
 
-              <!-- GROUP 2 (LOOP DUPLICATE) -->
+              <!-- GROUP 2 -->
               <div class="flex shrink-0 gap-6 pr-6" aria-hidden="true">
                 <article
-                  v-for="value in toursList"
-                  :key="`tour-2-${value.id}`"
+                  v-for="tour in toursList"
+                  :key="`tour-2-${tour.id}`"
                   class="group w-[340px] shrink-0 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1118] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-300/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] sm:w-[370px]"
                 >
+                  <!-- IMAGE -->
                   <div class="relative h-72 overflow-hidden">
                     <img
                       :src="
-                        value.thumbnail || value.image
-                          ? `http://localhost:8080/${(value.thumbnail || value.image).replaceAll('\\', '/')}`
-                          : 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
+                        tour.thumbnail ||
+                        'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
                       "
-                      :alt="value.name"
+                      :alt="tour.name"
                       class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                     />
+
                     <div
                       class="absolute inset-0 bg-gradient-to-t from-[#0d1118] via-[#0d1118]/20 to-transparent"
                     ></div>
 
+                    <!-- TOUR TYPE -->
                     <div
-                      class="absolute left-4 top-4 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md"
+                      class="absolute left-4 top-4 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-orange-200 backdrop-blur-md"
                     >
-                      <span class="text-amber-300">★</span>
-                      <span>{{ value.rating || "4.9" }}</span>
+                      {{ tour.tour_type }}
                     </div>
 
+                    <!-- TITLE -->
                     <div class="absolute bottom-4 left-5 right-5">
-                      <span
-                        class="text-[11px] font-semibold uppercase tracking-wider text-orange-200/80"
+                      <p
+                        v-if="tour.category?.name"
+                        class="mb-1 text-[10px] font-semibold uppercase tracking-wider text-orange-200/80"
                       >
-                        {{ value.country || "Việt Nam" }}
-                      </span>
+                        {{ tour.category.name }}
+                      </p>
+
                       <h3
-                        class="mt-1 line-clamp-1 text-xl font-bold text-white transition group-hover:text-orange-200"
+                        class="line-clamp-2 text-xl font-bold leading-tight text-white transition group-hover:text-orange-200"
                       >
-                        {{ value.name }}
+                        {{ tour.name }}
                       </h3>
                     </div>
                   </div>
 
+                  <!-- INFO -->
                   <div class="p-5">
-                    <div class="flex items-center justify-between gap-4">
-                      <div>
-                        <p class="text-xs text-slate-400">
-                          {{
-                            value.duration_days
-                              ? `${value.duration_days} ngày ${value.duration_nights || 0} đêm`
-                              : value.duration || "3 ngày 2 đêm"
-                          }}
-                        </p>
+                    <div class="flex items-center gap-2 text-xs text-slate-400">
+                      <span>◷</span>
+
+                      <span>
+                        {{ tour.duration_days }} ngày
+                        {{ tour.duration_nights }} đêm
+                      </span>
+                    </div>
+
+                    <p
+                      v-if="tour.transportation"
+                      class="mt-2 line-clamp-1 text-xs text-slate-500"
+                    >
+                      🚐 {{ tour.transportation }}
+                    </p>
+
+                    <div class="mt-5 flex items-end justify-between gap-4">
+                      <div class="min-w-0">
                         <p
-                          class="mt-0.5 font-mono text-lg font-bold text-orange-300"
+                          class="text-[10px] uppercase tracking-wider text-slate-500"
+                        >
+                          Giá từ
+                        </p>
+
+                        <p
+                          class="mt-1 truncate font-mono text-lg font-bold text-orange-300"
                         >
                           {{
-                            Number(value.price || 0).toLocaleString("vi-VN")
+                            Number(tour.base_price || 0).toLocaleString(
+                              "vi-VN",
+                            )
                           }}₫
                         </p>
                       </div>
 
                       <RouterLink
-                        :to="`/tours/${value.id}`"
+                        :to="`/tours/${tour.id}`"
                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white transition hover:border-orange-300 hover:bg-orange-300 hover:text-slate-950"
                       >
                         →
@@ -627,13 +723,29 @@ const clearSearch = () => {
               </div>
             </div>
 
-            <!-- SIDE GRADIENT VIGNETTES -->
+            <!-- LEFT FADE -->
             <div
-              class="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#07090d] to-transparent"
+              class="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-white to-transparent"
             ></div>
+
+            <!-- RIGHT FADE -->
             <div
-              class="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#07090d] to-transparent"
+              class="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-white to-transparent"
             ></div>
+          </div>
+
+          <!-- NO TOUR -->
+          <div
+            v-else
+            class="rounded-3xl border border-white/[0.08] bg-[#0d1118] py-16 text-center"
+          >
+            <div class="text-3xl">🌍</div>
+
+            <h3 class="mt-4 text-lg font-bold text-white">Chưa có tour nào</h3>
+
+            <p class="mt-2 text-sm text-slate-400">
+              Hiện tại chưa có hành trình nào được cập nhật.
+            </p>
           </div>
         </div>
       </div>
@@ -672,7 +784,7 @@ const clearSearch = () => {
               class="h-full w-full object-cover transition duration-700 group-hover:scale-110"
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-[#07090d]/90 via-[#07090d]/30 to-transparent"
+              class="home-destination-overlay absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent"
             ></div>
             <div class="absolute bottom-6 left-6 right-6">
               <span
@@ -699,7 +811,7 @@ const clearSearch = () => {
               class="h-full w-full object-cover transition duration-700 group-hover:scale-110"
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-[#07090d]/90 via-[#07090d]/30 to-transparent"
+              class="home-destination-overlay absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent"
             ></div>
             <div class="absolute bottom-6 left-6 right-6">
               <span
@@ -726,7 +838,7 @@ const clearSearch = () => {
               class="h-full w-full object-cover transition duration-700 group-hover:scale-110"
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-[#07090d]/90 via-[#07090d]/30 to-transparent"
+              class="home-destination-overlay absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent"
             ></div>
             <div class="absolute bottom-6 left-6 right-6">
               <span
@@ -753,7 +865,7 @@ const clearSearch = () => {
               class="h-full w-full object-cover transition duration-700 group-hover:scale-110"
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-[#07090d]/90 via-[#07090d]/30 to-transparent"
+              class="home-destination-overlay absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent"
             ></div>
             <div class="absolute bottom-6 left-6 right-6">
               <span
@@ -890,9 +1002,9 @@ const clearSearch = () => {
         alt="Mountain sunset travel"
         class="absolute inset-0 h-full w-full object-cover"
       />
-      <div class="absolute inset-0 bg-[#07090d]/75"></div>
+      <div class="home-promo-base absolute inset-0 bg-slate-950/40"></div>
       <div
-        class="absolute inset-0 bg-gradient-to-r from-[#07090d] via-[#07090d]/60 to-transparent"
+        class="home-promo-side absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/35 to-transparent"
       ></div>
 
       <div class="relative mx-auto max-w-[1440px] px-6 sm:px-8 lg:px-12">
@@ -992,4 +1104,165 @@ const clearSearch = () => {
 .animate-\[tour-slide_40s_linear_infinite\] {
   animation: tour-slide 40s linear infinite;
 }
+
+.customer-redesign {
+  background-color: var(--travel-canvas);
+  color: var(--travel-ink);
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign
+  :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign
+  [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign
+  [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  background-color: var(--travel-surface);
+  border-color: var(--travel-border);
+  backdrop-filter: none;
+  box-shadow: var(--shadow-card);
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: var(--travel-border);
+  background-color: var(--travel-surface);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: var(--travel-ink);
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: var(--travel-border);
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: var(--travel-ink);
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: var(--travel-border);
+  background-color: var(--travel-surface);
+  color: var(--travel-ink);
+}
+
+.customer-redesign .customer-hero,
+.customer-redesign .customer-hero [class*="text-white"] {
+  color: #ffffff;
+}
+
+.customer-redesign .customer-hero [class*="text-slate-"] {
+  color: #f1f5f9;
+}
+
+.customer-redesign .customer-hero input {
+  border-color: transparent;
+  background-color: transparent;
+  color: #ffffff;
+}
+
+.customer-redesign .customer-hero input::placeholder {
+  color: #cbd5e1;
+}
+
+.customer-redesign .customer-hero
+  [class*="bg-[#0d1118]"][class*="text-orange-200"] {
+  border-color: rgba(255, 255, 255, 0.22);
+  background-color: rgba(23, 43, 77, 0.84);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.14);
+  backdrop-filter: none;
+}
+
+.customer-redesign .customer-hero label {
+  color: #fed7aa;
+}
+
+.customer-redesign [class*="text-slate-400"] {
+  color: var(--travel-muted);
+}
+
+.customer-redesign .customer-hero [class*="text-slate-"] {
+  color: #f1f5f9;
+}
+
+.customer-redesign .customer-hero [class*="text-white/40"] {
+  color: #e2e8f0;
+}
+
+.customer-redesign .customer-hero button[class*="bg-white/"] {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  backdrop-filter: none;
+}
+
+.customer-redesign .customer-hero button[class*="bg-white/"]:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.customer-redesign a:hover {
+  color: var(--travel-primary);
+}
+
+.customer-redesign .home-hero-base {
+  background-color: rgba(15, 23, 42, 0.2);
+}
+
+.customer-redesign .home-hero-side {
+  background-image: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0.78),
+    rgba(15, 23, 42, 0.34) 48%,
+    transparent
+  );
+}
+
+.customer-redesign .home-hero-bottom {
+  background-image: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.58),
+    transparent 55%,
+    rgba(15, 23, 42, 0.14)
+  );
+}
+
+.customer-redesign .home-destination-overlay {
+  background-image: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.76),
+    rgba(15, 23, 42, 0.2) 55%,
+    transparent
+  );
+}
+
+.customer-redesign .home-promo-base {
+  background-color: rgba(15, 23, 42, 0.42);
+}
+
+.customer-redesign .home-promo-side {
+  background-image: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0.8),
+    rgba(15, 23, 42, 0.38) 55%,
+    transparent
+  );
+}
+
 </style>

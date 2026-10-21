@@ -13,7 +13,7 @@ import {
   createPaymentHold,
   vnpayReturn,
   myBooking,
-  refund_pending,
+  refund_pending, thanhToanHet
 } from "./bookings.controller.js";
 
 const router = express.Router();
@@ -40,5 +40,10 @@ router.get("/", verifyToken, authorize("booking:view"), getBookingAdmin);
 router.patch("/:id/duyet", verifyToken, duyetDon);
 
 router.patch("/:id/refund_pending", verifyToken, refund_pending);
+router.post(
+  "/:id/pay-full",
+  verifyToken,
+  thanhToanHet
+);
 // router.patch("/:id/hoanTien", verifyToken, hoanTien);
 export default router;

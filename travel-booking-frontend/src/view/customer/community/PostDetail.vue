@@ -4,9 +4,9 @@ import CommentItem from "../../../components/community/CommentItem.vue";
 
 <template>
   <!-- 1. Bỏ bg-[#070b12] để không bị đè mất nền ảnh -->
-  <div class="relative min-h-screen text-white">
+  <div class="customer-redesign relative min-h-screen text-white">
     <!-- 2. Khung nền chuẩn: z-0, pointer-events-none, dùng ảnh nội bộ /hero-bg.jpg -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="customer-atmosphere fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Travel sunset"
@@ -23,7 +23,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
 
       <!-- Sunset glow -->
       <div
-        class="absolute left-1/2 top-0 h-[550px] w-[800px] -translate-x-1/2 rounded-full bg-orange-400/15 blur-[150px]"
+        class="absolute left-1/2 top-0 h-[550px] w-[800px] -translate-x-1/2 rounded-full bg-blue-400/10 blur-[150px]"
       ></div>
     </div>
 
@@ -58,7 +58,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
               <div class="flex items-center gap-3">
                 <RouterLink
                   to="/profile"
-                  class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold text-slate-950 shadow-lg"
+                  class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 font-bold text-white shadow-lg"
                 >
                   A
                 </RouterLink>
@@ -67,7 +67,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
                   <div class="flex items-center gap-2">
                     <RouterLink
                       to="/profile"
-                      class="text-sm font-bold text-white hover:text-orange-200 transition"
+                      class="text-sm font-bold text-white hover:text-blue-200 transition"
                     >
                       Anh Minh
                     </RouterLink>
@@ -104,7 +104,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
               <div class="mt-4 flex flex-wrap gap-2">
                 <RouterLink
                   to="/destinations"
-                  class="rounded-full border border-orange-300/30 bg-orange-400/15 px-3 py-1.5 text-xs font-semibold text-orange-200 transition hover:bg-orange-400/25"
+                  class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
                 >
                   #HaGiang
                 </RouterLink>
@@ -173,7 +173,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
               >
                 <div class="flex items-center gap-4 p-4">
                   <div
-                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-400/20 text-xl"
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-700"
                   >
                     📍
                   </div>
@@ -228,7 +228,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
                   <div class="flex-1">
                     <div class="flex items-start justify-between gap-3">
                       <div>
-                        <p class="text-xs font-bold text-orange-300">
+                        <p class="text-xs font-bold text-blue-600">
                           TravelGo Tour
                         </p>
                         <h3 class="mt-1 font-bold text-white">
@@ -250,7 +250,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
                       <span class="text-sm font-bold text-white">
                         2.890.000đ
                       </span>
-                      <span class="text-xs font-semibold text-orange-200">
+                      <span class="text-xs font-semibold text-blue-700">
                         Xem tour →
                       </span>
                     </div>
@@ -296,7 +296,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
           >
             <div class="flex gap-3">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold text-slate-950"
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 font-bold text-white"
               >
                 V
               </div>
@@ -342,7 +342,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
           >
             <div class="flex items-center gap-3">
               <div
-                class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-lg font-bold text-slate-950"
+                class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 text-lg font-bold text-white"
               >
                 A
               </div>
@@ -464,7 +464,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
 
                 <div class="flex-1">
                   <p
-                    class="line-clamp-2 text-sm font-semibold leading-5 text-white group-hover:text-orange-200 transition"
+                    class="line-clamp-2 text-sm font-semibold leading-5 text-white group-hover:text-blue-200 transition"
                   >
                     Những cung đường đẹp nhất Hà Giang
                   </p>
@@ -484,7 +484,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
 
                 <div class="flex-1">
                   <p
-                    class="line-clamp-2 text-sm font-semibold leading-5 text-white group-hover:text-orange-200 transition"
+                    class="line-clamp-2 text-sm font-semibold leading-5 text-white group-hover:text-blue-200 transition"
                   >
                     5 địa điểm nhất định phải ghé ở miền Bắc
                   </p>
@@ -504,7 +504,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
 
                 <div class="flex-1">
                   <p
-                    class="line-clamp-2 text-sm font-semibold leading-5 text-white group-hover:text-orange-200 transition"
+                    class="line-clamp-2 text-sm font-semibold leading-5 text-white group-hover:text-blue-200 transition"
                   >
                     Kinh nghiệm đi Sapa tự túc
                   </p>
@@ -519,7 +519,7 @@ import CommentItem from "../../../components/community/CommentItem.vue";
 
           <!-- COMMUNITY -->
           <div
-            class="rounded-[24px] border border-orange-300/20 bg-gradient-to-br from-orange-400/15 via-white/[0.06] to-transparent p-5 backdrop-blur-2xl"
+            class="rounded-[24px] border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-transparent p-5"
           >
             <div class="text-2xl">🌅</div>
 
@@ -542,3 +542,62 @@ import CommentItem from "../../../components/community/CommentItem.vue";
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

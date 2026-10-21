@@ -53,7 +53,7 @@ const joinYear = computed(() => {
   ====================================================== -->
   <div
     v-if="isLoading"
-    class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#070b12]"
+    class="customer-redesign fixed inset-0 z-[9999] flex items-center justify-center bg-[#070b12]"
   >
     <div class="flex flex-col items-center">
       <!-- Spinner -->
@@ -101,7 +101,7 @@ const joinYear = computed(() => {
   ====================================================== -->
   <div
     v-else-if="isError || !userData"
-    class="flex min-h-screen items-center justify-center bg-[#070b12] px-5 text-white pt-20"
+    class="customer-redesign flex min-h-screen items-center justify-center bg-[#070b12] px-5 text-white pt-20"
   >
     <div
       class="w-full max-w-md rounded-[28px] border border-white/10 bg-white/[0.06] p-8 text-center backdrop-blur-2xl"
@@ -130,9 +130,9 @@ const joinYear = computed(() => {
   <!-- =====================================================
        PROFILE
   ====================================================== -->
-  <div v-else class="relative min-h-screen pt-6 text-white">
+  <div v-else class="customer-redesign relative min-h-screen pt-6 text-white">
     <!-- BACKGROUND -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="customer-atmosphere fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Travel sunset"
@@ -156,7 +156,7 @@ const joinYear = computed(() => {
            PROFILE COVER
       ====================================================== -->
       <section
-        class="relative overflow-hidden rounded-[32px] border border-white/15 bg-white/[0.08] shadow-2xl backdrop-blur-2xl"
+        class="customer-hero relative overflow-hidden rounded-[32px] border border-white/15 bg-white/[0.08] shadow-2xl backdrop-blur-2xl"
       >
         <!-- COVER -->
         <div class="relative h-[260px] sm:h-[320px]">
@@ -912,3 +912,67 @@ const joinYear = computed(() => {
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign .customer-hero,
+.customer-redesign .customer-hero [class*="text-white"] {
+  color: #fff;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <section class="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10">
+  <section class="destination-information mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10">
     <div class="grid gap-14 lg:grid-cols-[1.2fr_.8fr]">
       <!-- CONTENT -->
 
@@ -59,7 +59,7 @@
         class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#172131] to-[#0c1119] p-7"
       >
         <div
-          class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-orange-300/10 blur-3xl"
+          class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-blue-300/10 blur-3xl"
         ></div>
 
         <div class="relative">
@@ -103,3 +103,31 @@
     </div>
   </section>
 </template>
+
+<style scoped>
+.destination-information {
+  color: #1e293b;
+}
+
+.destination-information :deep([class*="text-white"]) {
+  color: #475569 !important;
+}
+
+.destination-information :deep([class*="text-white/35"]),
+.destination-information :deep([class*="text-white/30"]) {
+  color: #64748b !important;
+}
+
+.destination-information :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.destination-information :deep([class*="bg-white/"]) {
+  background-color: #f8fafc !important;
+}
+
+.destination-information :deep([class*="from-[#172131"]) {
+  background-image: none !important;
+  background-color: #fff !important;
+}
+</style>

@@ -31,6 +31,9 @@ const bookingService = {
   refund_pending(idBooking) {
     return api.patch(`/booking/${idBooking}/refund_pending`);
   },
+  payFull(idBooking) {
+    return api.post(`/booking/${idBooking}/pay-full`)
+  }
 };
 
 export default bookingService;

@@ -455,13 +455,13 @@ onBeforeUnmount(() => {
     <!-- DARK CINEMATIC OVERLAY -->
 
     <div
-      class="pointer-events-none absolute inset-0 z-[400] bg-gradient-to-b from-[#05080d]/70 via-transparent to-[#05080d]/90"
+      class="map-shade pointer-events-none absolute inset-0 z-[400] bg-gradient-to-b from-[#05080d]/70 via-transparent to-[#05080d]/90"
     ></div>
 
     <!-- TOP LEFT -->
 
     <div
-      class="absolute left-5 top-5 z-[500] flex items-center gap-3 rounded-[20px] border border-white/[0.09] bg-[#080d14]/75 px-3 py-3 shadow-[0_20px_60px_rgba(0,0,0,.4)] backdrop-blur-2xl sm:left-6 sm:top-6"
+      class="map-label absolute left-5 top-5 z-[500] flex items-center gap-3 rounded-[20px] border border-white/[0.09] bg-[#080d14]/75 px-3 py-3 shadow-[0_20px_60px_rgba(0,0,0,.4)] backdrop-blur-2xl sm:left-6 sm:top-6"
     >
       <div
         class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/[0.09] bg-white/[0.055]"
@@ -510,7 +510,7 @@ onBeforeUnmount(() => {
     <!-- TOP RIGHT STATUS -->
 
     <div
-      class="absolute right-5 top-5 z-[500] hidden items-center gap-2 rounded-full border border-white/[0.08] bg-[#080d14]/70 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45 backdrop-blur-2xl sm:flex sm:right-6 sm:top-6"
+      class="map-status absolute right-5 top-5 z-[500] hidden items-center gap-2 rounded-full border border-white/[0.08] bg-[#080d14]/70 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45 backdrop-blur-2xl sm:flex sm:right-6 sm:top-6"
     >
       <span
         class="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,.8)]"
@@ -530,12 +530,12 @@ onBeforeUnmount(() => {
     <!-- BOTTOM INFORMATION -->
 
     <div
-      class="absolute bottom-5 left-5 right-5 z-[500] flex flex-col gap-3 sm:bottom-6 sm:left-6 sm:right-6 sm:flex-row sm:items-end sm:justify-between"
+      class="map-bottom absolute bottom-5 left-5 right-5 z-[500] flex flex-col gap-3 sm:bottom-6 sm:left-6 sm:right-6 sm:flex-row sm:items-end sm:justify-between"
     >
       <!-- COORDINATES -->
 
       <div
-        class="w-fit rounded-[20px] border border-white/[0.08] bg-[#080d14]/75 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,.4)] backdrop-blur-2xl"
+        class="map-coordinates w-fit rounded-[20px] border border-white/[0.08] bg-[#080d14]/75 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,.4)] backdrop-blur-2xl"
       >
         <p
           class="text-[8px] font-bold uppercase tracking-[0.22em] text-white/30"
@@ -566,7 +566,7 @@ onBeforeUnmount(() => {
         :href="`https://www.google.com/maps?q=${latitude},${longitude}`"
         target="_blank"
         rel="noopener noreferrer"
-        class="group/google flex items-center justify-between gap-4 rounded-[20px] border border-white/[0.09] bg-[#080d14]/80 px-4 py-3 text-xs font-semibold text-white no-underline shadow-[0_20px_60px_rgba(0,0,0,.45)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-white/15 hover:bg-[#0c121b]/90"
+        class="map-navigation group/google flex items-center justify-between gap-4 rounded-[20px] border border-white/[0.09] bg-[#080d14]/80 px-4 py-3 text-xs font-semibold text-white no-underline shadow-[0_20px_60px_rgba(0,0,0,.45)] backdrop-blur-2xl transition duration-300 hover:-translate-y-1 hover:border-white/15 hover:bg-[#0c121b]/90"
       >
         <div>
           <p
@@ -614,11 +614,11 @@ onBeforeUnmount(() => {
 ========================================= */
 
 .travelgo-map .leaflet-tile {
-  filter: brightness(0.52) contrast(1.12) saturate(0.62);
+  filter: brightness(0.92) contrast(1.02) saturate(0.88);
 }
 
 .travelgo-map .leaflet-container {
-  background: #070b11;
+  background: #f1f5f9;
   font-family: inherit;
 }
 
@@ -867,13 +867,111 @@ onBeforeUnmount(() => {
   color: rgba(255, 255, 255, 0.45) !important;
 }
 
+.travelgo-map {
+  height: clamp(360px, 52vw, 560px) !important;
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12) !important;
+}
+
+.travelgo-map .map-shade {
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 23, 42, 0.12),
+    transparent 38%,
+    rgba(15, 23, 42, 0.18)
+  ) !important;
+}
+
+.travelgo-map .map-label,
+.travelgo-map .map-status,
+.travelgo-map .map-coordinates,
+.travelgo-map .map-navigation {
+  border-color: #e2e8f0 !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #334155 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+  backdrop-filter: blur(12px);
+}
+
+.travelgo-map .map-label :is(p, h3),
+.travelgo-map .map-status,
+.travelgo-map .map-coordinates :is(p, span),
+.travelgo-map .map-navigation :is(p, span) {
+  color: #334155 !important;
+}
+
+.travelgo-map .map-navigation:hover {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.travelgo-map .map-label svg {
+  stroke: #2563eb;
+}
+
+.travelgo-map .map-label > div > div > div {
+  background: #dbeafe;
+}
+
+.travelgo-popup .leaflet-popup-content-wrapper {
+  border-color: #e2e8f0 !important;
+  background: #fff !important;
+  color: #1e293b !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.18) !important;
+}
+
+.travelgo-popup .leaflet-popup-tip {
+  background: #fff !important;
+}
+
+.travelgo-popup-inner [class*="border-white/"] {
+  border-color: #e2e8f0 !important;
+}
+
+.travelgo-popup-inner [class*="bg-white/"] {
+  background-color: #f8fafc !important;
+}
+
+.travelgo-popup-inner [class*="text-white"] {
+  color: #334155 !important;
+}
+
+.travelgo-popup-inner a {
+  color: #1e293b !important;
+  text-decoration: none;
+}
+
+.travelgo-map .leaflet-control-zoom a,
+.travelgo-location {
+  border-color: #e2e8f0 !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #334155 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12) !important;
+}
+
+.travelgo-map .leaflet-control-zoom a:hover,
+.travelgo-location:hover {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.travelgo-map .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #64748b !important;
+}
+
+.travelgo-map .leaflet-control-attribution a {
+  color: #475569 !important;
+}
+
 /* =========================================
    MOBILE
 ========================================= */
 
 @media (max-width: 640px) {
   .travelgo-map {
-    height: 500px;
+    height: clamp(360px, 105vw, 480px) !important;
     border-radius: 26px;
   }
 

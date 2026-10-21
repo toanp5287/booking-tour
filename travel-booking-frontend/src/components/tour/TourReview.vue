@@ -61,7 +61,7 @@ const formatDate = (isoStr) => {
 
 <template>
   <section
-    class="rounded-[26px] border border-white/10 bg-black/25 p-6 backdrop-blur-xl sm:p-8"
+    class="light-surface rounded-[26px] border border-white/10 bg-black/25 p-6 backdrop-blur-xl sm:p-8"
   >
     <div class="flex items-end justify-between">
       <div>
@@ -138,7 +138,7 @@ const formatDate = (isoStr) => {
       v-if="reviewTour.length > 3"
       type="button"
       @click="isExpanded = !isExpanded"
-      class="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-300 transition hover:text-orange-200 cursor-pointer"
+      class="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 transition hover:text-blue-700 cursor-pointer"
     >
       <span>
         {{
@@ -150,3 +150,28 @@ const formatDate = (isoStr) => {
     </button>
   </section>
 </template>
+
+<style scoped>
+.light-surface {
+  border-color: #e2e8f0 !important;
+  background: #fff !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.light-surface :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.light-surface :deep([class*="bg-black/"]),
+.light-surface :deep([class*="bg-white/"]) {
+  background-color: #f8fafc !important;
+}
+
+.light-surface :deep(.text-white) {
+  color: #1e293b !important;
+}
+
+.light-surface :deep([class*="text-white/"]) {
+  color: #64748b !important;
+}
+</style>

@@ -42,9 +42,9 @@ const communiti = computed(() => {
 
 <template>
   <!-- 1. Bỏ hoàn toàn class bg-[#070b12] -->
-  <div class="relative min-h-screen text-white">
+  <div class="customer-redesign relative min-h-screen text-white">
     <!-- 2. Đổi -z-30 thành z-0 pointer-events-none, dùng ảnh cục bộ /hero-bg.jpg -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="customer-atmosphere fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Travel sunset"
@@ -61,7 +61,7 @@ const communiti = computed(() => {
 
       <!-- Sunset glow -->
       <div
-        class="absolute left-1/2 top-0 h-[520px] w-[850px] -translate-x-1/2 rounded-full bg-orange-400/15 blur-[150px]"
+        class="absolute left-1/2 top-0 h-[520px] w-[850px] -translate-x-1/2 rounded-full bg-blue-400/10 blur-[150px]"
       ></div>
     </div>
 
@@ -72,7 +72,7 @@ const communiti = computed(() => {
       ====================================================== -->
 
       <section
-        class="relative mb-8 overflow-hidden rounded-[30px] border border-white/15 shadow-2xl"
+        class="customer-hero relative mb-8 overflow-hidden rounded-[30px] border border-white/15 shadow-2xl"
       >
         <!-- Hero image -->
 
@@ -97,7 +97,7 @@ const communiti = computed(() => {
             class="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90 backdrop-blur-xl"
           >
             <span
-              class="h-2 w-2 rounded-full bg-orange-300 shadow-[0_0_12px_rgba(251,146,60,0.8)]"
+              class="h-2 w-2 rounded-full bg-blue-600"
             ></span>
 
             TravelGo Community
@@ -241,7 +241,7 @@ const communiti = computed(() => {
           >
             <div class="flex items-center gap-3">
               <div
-                class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-lg font-bold text-slate-950 shadow-lg"
+                class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 text-lg font-bold text-white shadow-lg"
               >
                 V
               </div>
@@ -297,7 +297,7 @@ const communiti = computed(() => {
               <h3 class="font-bold text-white">🔥 Chủ đề nổi bật</h3>
 
               <span
-                class="text-[10px] font-semibold text-orange-300 uppercase tracking-wider"
+                class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider"
               >
                 TRENDING
               </span>
@@ -358,7 +358,7 @@ const communiti = computed(() => {
               <!-- Member 1 -->
               <div class="flex items-center gap-3">
                 <div
-                  class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 text-sm font-bold text-slate-950"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 text-sm font-bold text-white"
                 >
                   M
                 </div>
@@ -486,7 +486,7 @@ const communiti = computed(() => {
           <!-- COMMUNITY RULE -->
 
           <div
-            class="rounded-[24px] border border-orange-300/20 bg-gradient-to-br from-orange-400/15 via-white/[0.06] to-transparent p-5 backdrop-blur-2xl"
+            class="rounded-[24px] border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-transparent p-5"
           >
             <div class="text-2xl">🌅</div>
 
@@ -499,7 +499,7 @@ const communiti = computed(() => {
 
             <a
               href="#"
-              class="mt-4 inline-block text-xs font-semibold text-orange-200 transition hover:text-white"
+              class="mt-4 inline-block text-xs font-semibold text-blue-700 transition hover:text-blue-800"
             >
               Quy tắc cộng đồng →
             </a>
@@ -509,3 +509,67 @@ const communiti = computed(() => {
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign .customer-hero,
+.customer-redesign .customer-hero [class*="text-white"] {
+  color: #fff;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

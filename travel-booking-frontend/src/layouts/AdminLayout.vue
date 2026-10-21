@@ -4,14 +4,11 @@ import AdminHeader from "../components/admin/AdminHeader.vue";
 import AdminSidebar from "../components/admin/AdminSidebar.vue";
 </script>
 
-<
 <template>
   <!-- h-screen để khoá khung hình bằng đúng màn hình trình duyệt -->
-  <div
-    class="flex h-screen overflow-hidden bg-[#070a10] text-white antialiased"
-  >
+  <div class="admin-layout flex h-screen overflow-hidden antialiased">
     <!-- Sidebar cố định bên trái -->
-    <aside class="w-64 shrink-0 border-r border-slate-800/80 bg-[#0b0f19]">
+    <aside class="hidden w-[265px] shrink-0 border-r lg:block">
       <AdminSidebar />
     </aside>
 
@@ -19,7 +16,7 @@ import AdminSidebar from "../components/admin/AdminSidebar.vue";
     <div class="flex flex-1 flex-col overflow-hidden">
       <!-- Header cố định trên cùng -->
       <header
-        class="shrink-0 border-b border-slate-800/80 bg-[#070a10]/80 backdrop-blur-md"
+        class="admin-header-frame shrink-0 border-b"
       >
         <AdminHeader />
       </header>
@@ -36,7 +33,7 @@ import AdminSidebar from "../components/admin/AdminSidebar.vue";
 
           <!-- Footer ở đáy trang -->
           <footer
-            class="mt-8 pt-4 border-t border-slate-800/60 text-slate-400 text-sm"
+            class="mt-8 border-t border-slate-200 pt-4 text-sm text-slate-500"
           >
             <AdminFooter />
           </footer>

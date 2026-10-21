@@ -1,33 +1,34 @@
 <script setup>
-import { ref, computed } from "vue";
-import { RouterLink } from "vue-router";
+import { ref, computed, watch } from "vue";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import bookingService from "../../../services/booking.service";
 
 const queryClient = useQueryClient();
 
-// =========================================
-// 1. GET BOOKINGS
-// =========================================
-
-const { data: dataBooking, isLoading } = useQuery({
+// =====================================================
+// 1. QUERY BOOKINGS
+// =====================================================
+const {
+  data: dataBooking,
+  isLoading,
+  isError,
+  error,
+} = useQuery({
   queryKey: ["bookings"],
   queryFn: async () => {
-    const res = await bookingService.getAll();
-    return res.data?.data || [];
+    const response = await bookingService.getAll();
+    return response?.data?.data || [];
   },
   staleTime: 1000 * 60 * 3,
 });
 
-// =========================================
-// 2. FILTER
-// =========================================
-
+// =====================================================
+// 2. FILTER & PAGINATION
+// =====================================================
 const searchQuery = ref("");
 const statusFilter = ref("");
 const paymentFilter = ref("");
 const currentPage = ref(1);
-
 const itemsPerPage = 8;
 
 const resetFilter = () => {
@@ -37,10 +38,13 @@ const resetFilter = () => {
   currentPage.value = 1;
 };
 
-// =========================================
-// 3. NOTIFICATION
-// =========================================
+watch([searchQuery, statusFilter, paymentFilter], () => {
+  currentPage.value = 1;
+});
 
+// =====================================================
+// 3. TOAST NOTIFICATION
+// =====================================================
 const notification = ref({
   show: false,
   type: "",
@@ -50,38 +54,28 @@ const notification = ref({
 let notificationTimer = null;
 
 const showNotification = (type, message) => {
-  notification.value = {
-    show: true,
-    type,
-    message,
-  };
-
+  notification.value = { show: true, type, message };
   clearTimeout(notificationTimer);
-
   notificationTimer = setTimeout(() => {
     notification.value.show = false;
   }, 2500);
 };
 
-// =========================================
-// 4. FORMAT
-// =========================================
-
-const formatCurrency = (val) => {
-  if (!val && val !== 0) return "0 ₫";
-
-  return new Intl.NumberFormat("vi-VN", {
+// =====================================================
+// 4. FORMATTERS
+// =====================================================
+const formatCurrency = (value) =>
+  new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(Number(val));
-};
+  }).format(Number(value || 0));
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return "--/--/----";
+const formatDate = (value) => {
+  if (!value) return "--/--/----";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--/--/----";
 
-  const d = new Date(dateStr);
-
-  return d.toLocaleDateString("vi-VN", {
+  return date.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -90,196 +84,387 @@ const formatDate = (dateStr) => {
   });
 };
 
-// =========================================
-// 5. PHIÊN DỊCH TRẠNG THÁI BOOKING
-// =========================================
-
+// =====================================================
+// 5. STATUS MAPPING & BADGES
+// =====================================================
 const STATUS_MAP = {
-  pending: {
+  PENDING: {
     name: "Chờ duyệt",
-    class: "bg-amber-500/10 text-amber-300",
+    badgeClass: "bg-amber-500/10 text-amber-300 border-amber-500/20",
   },
-
-  confirmed: {
+  CONFIRMED: {
     name: "Đã xác nhận",
-    class: "bg-sky-500/10 text-sky-300",
+    badgeClass: "bg-sky-500/10 text-sky-300 border-sky-500/20",
   },
-
-  paid: {
-    name: "Đã thanh toán",
-    class: "bg-emerald-500/10 text-emerald-300",
+  CHECKED_IN: {
+    name: "Đã đón khách",
+    badgeClass: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
   },
-
-  ready: {
-    name: "Sẵn sàng khởi hành",
-    class: "bg-indigo-500/10 text-indigo-300",
+  IN_PROGRESS: {
+    name: "Tour đang chạy",
+    badgeClass: "bg-blue-500/10 text-blue-300 border-blue-500/20",
   },
-
-  ongoing: {
-    name: "Đang diễn ra",
-    class: "bg-purple-500/10 text-purple-300",
+  COMPLETED: {
+    name: "Đã hoàn thành",
+    badgeClass: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
   },
-
-  completed: {
-    name: "Hoàn thành",
-    class: "bg-teal-500/10 text-teal-300",
-  },
-
-  cancelled: {
+  CANCELLED: {
     name: "Đã hủy",
-    class: "bg-rose-500/10 text-rose-300",
+    badgeClass: "bg-rose-500/10 text-rose-300 border-rose-500/20",
   },
-
-  refund_pending: {
-    name: "Đang chờ hoàn tiền",
-    class: "bg-orange-500/10 text-orange-300",
+  NO_SHOW: {
+    name: "Khách không đến",
+    badgeClass: "bg-zinc-500/10 text-zinc-300 border-zinc-500/20",
   },
-
-  refunded: {
+  REFUND_PENDING: {
+    name: "Chờ hoàn tiền",
+    badgeClass: "bg-orange-500/10 text-orange-300 border-orange-500/20",
+  },
+  REFUNDED: {
     name: "Đã hoàn tiền",
-    class: "bg-green-500/10 text-green-300",
+    badgeClass: "bg-teal-500/10 text-teal-300 border-teal-500/20",
+  },
+  READY: {
+    name: "Đã xác nhận",
+    badgeClass: "bg-sky-500/10 text-sky-300 border-sky-500/20",
+  },
+  ONGOING: {
+    name: "Tour đang chạy",
+    badgeClass: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+  },
+  PAID: {
+    name: "Đã xác nhận",
+    badgeClass: "bg-sky-500/10 text-sky-300 border-sky-500/20",
+  },
+  CANCELED: {
+    name: "Đã hủy",
+    badgeClass: "bg-rose-500/10 text-rose-300 border-rose-500/20",
+  },
+  CANCEL: {
+    name: "Đã hủy",
+    badgeClass: "bg-rose-500/10 text-rose-300 border-rose-500/20",
+  },
+  COMPLETE: {
+    name: "Đã hoàn thành",
+    badgeClass: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+  },
+  FINISHED: {
+    name: "Đã hoàn thành",
+    badgeClass: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+  },
+  NOT_ATTENDED: {
+    name: "Khách không đến",
+    badgeClass: "bg-zinc-500/10 text-zinc-300 border-zinc-500/20",
   },
 };
 
-const getStatusName = (status) => {
-  return STATUS_MAP[status]?.name || status;
-};
-
-const getStatusClass = (status) => {
-  return STATUS_MAP[status]?.class || "bg-slate-500/10 text-slate-400";
-};
-
-// =========================================
-// 6. FLOW TRẠNG THÁI
-// =========================================
-
-const STATUS_FLOW = [
-  "pending",
-  "confirmed",
-  "paid",
-  "ready",
-  "ongoing",
-  "completed",
+const BOOKING_STATUSES = [
+  "PENDING",
+  "CONFIRMED",
+  "CHECKED_IN",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+  "NO_SHOW",
+  "REFUND_PENDING",
+  "REFUNDED",
 ];
 
-const isBookingPaid = (booking) => {
+const normalizeStatus = (status) =>
+  String(status ?? "")
+    .trim()
+    .toUpperCase();
+
+const getStatusName = (status) => {
+  const s = normalizeStatus(status);
   return (
-    booking?.status === "paid" ||
-    booking?.payments?.some((payment) => payment?.status === "paid")
+    STATUS_MAP[s]?.name || (s ? `Chưa xác định (${s})` : "Chưa xác định")
   );
 };
 
-const getStatusDuyet = (booking) => {
-  if (!booking) {
-    return [];
+const getStatusClass = (status) =>
+  STATUS_MAP[normalizeStatus(status)]?.badgeClass ||
+  "bg-slate-500/10 text-slate-400 border-white/10";
+
+// =====================================================
+// 6. FINANCIAL HELPERS
+// =====================================================
+const getTotalAmount = (booking) => Number(booking?.total_amount || 0);
+
+const getPaidAmount = (booking) => {
+  if (!booking) return 0;
+  if (booking.paid_amount !== undefined && booking.paid_amount !== null) {
+    return Number(booking.paid_amount || 0);
   }
-
-  const currentStatus = booking.status;
-
-  if (currentStatus === "pending") {
-    return ["confirmed"];
-  }
-
-  if (currentStatus === "confirmed") {
-    if (!isBookingPaid(booking)) {
-      return [];
-    }
-
-    return ["paid"];
-  }
-
-  if (currentStatus === "paid") {
-    if (!isBookingPaid(booking)) {
-      return [];
-    }
-
-    return ["ready"];
-  }
-
-  if (currentStatus === "ready") {
-    return ["ongoing"];
-  }
-
-  if (currentStatus === "ongoing") {
-    return ["completed"];
-  }
-
-  return [];
+  return (booking.payments || [])
+    .filter((p) => normalizeStatus(p?.status) === "PAID")
+    .reduce((sum, p) => sum + Number(p?.amount || 0), 0);
 };
 
-// Chỉ cho phép hủy khi booking chưa bắt đầu chuyến đi
-const canCancel = (status) => {
-  return ["pending", "confirmed", "paid"].includes(status);
+const getRemainingAmount = (booking) => {
+  if (
+    booking?.remaining_amount !== undefined &&
+    booking?.remaining_amount !== null
+  ) {
+    return Number(booking.remaining_amount || 0);
+  }
+  return Math.max(getTotalAmount(booking) - getPaidAmount(booking), 0);
 };
 
-// =========================================
-// 7. DUYỆT / CẬP NHẬT TRẠNG THÁI
-// =========================================
+const isBookingFullyPaid = (booking) => {
+  const total = getTotalAmount(booking);
+  return total > 0 && getPaidAmount(booking) >= total;
+};
 
-const duyetDon = async (id, status) => {
+const isBookingPartiallyPaid = (booking) => {
+  const total = getTotalAmount(booking);
+  const paid = getPaidAmount(booking);
+  return total > 0 && paid > 0 && paid < total;
+};
+
+// =====================================================
+// 7. PAYMENT UI BADGES
+// =====================================================
+const getRefundPaymentState = (booking) => {
+  const statuses = (booking?.payments || []).map((p) =>
+    normalizeStatus(p?.status),
+  );
+  if (statuses.includes("REFUND_PENDING")) return "REFUND_PENDING";
+  if (statuses.includes("REFUNDED")) return "REFUNDED";
+  return null;
+};
+
+const getPaymentText = (booking) => {
+  if (!booking) return "Chưa thanh toán";
+  const st = normalizeStatus(booking.payment_status);
+
+  const refundState = getRefundPaymentState(booking) || st;
+  if (refundState === "REFUNDED") return "Đã hoàn tiền";
+  if (refundState === "REFUND_PENDING") return "Chờ hoàn tiền";
+
+  if (
+    booking.payment_type === "full" ||
+    st === "PAID" ||
+    isBookingFullyPaid(booking)
+  ) {
+    return "Đã thanh toán 100%";
+  }
+  if (
+    booking.payment_type === "deposit" ||
+    st === "PARTIAL" ||
+    isBookingPartiallyPaid(booking)
+  ) {
+    return "Đã cọc";
+  }
+  if (
+    (booking.payments || []).some(
+      (p) => normalizeStatus(p?.status) === "PENDING",
+    )
+  ) {
+    return "Chờ xử lý";
+  }
+  return "Chưa thanh toán";
+};
+
+const getPaymentClass = (booking) => {
+  const st = normalizeStatus(booking?.payment_status);
+  const refundState = getRefundPaymentState(booking) || st;
+  if (refundState === "REFUNDED")
+    return "bg-teal-500/10 text-teal-400 border-teal-500/20";
+  if (refundState === "REFUND_PENDING")
+    return "bg-orange-500/10 text-orange-400 border-orange-500/20";
+  if (isBookingFullyPaid(booking))
+    return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+  if (isBookingPartiallyPaid(booking))
+    return "bg-sky-500/10 text-sky-400 border-sky-500/20";
+  return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+};
+
+const getPaymentDotClass = (booking) => {
+  const st = normalizeStatus(booking?.payment_status);
+  const refundState = getRefundPaymentState(booking) || st;
+  if (refundState === "REFUNDED") return "bg-teal-400";
+  if (refundState === "REFUND_PENDING") return "bg-orange-400";
+  if (isBookingFullyPaid(booking)) return "bg-emerald-400";
+  if (isBookingPartiallyPaid(booking)) return "bg-sky-400";
+  return "bg-rose-400";
+};
+
+const getPaymentMethodText = (booking) => {
+  const payments = booking?.payments || [];
+  if (!payments.length) return "Chưa giao dịch";
+  const latest = [...payments].sort(
+    (a, b) =>
+      new Date(b?.created_at || 0).getTime() -
+      new Date(a?.created_at || 0).getTime(),
+  )[0];
+  const m = String(latest?.payment_method || "")
+    .trim()
+    .toUpperCase();
+  return m === "VNPAY"
+    ? "VNPAY"
+    : m === "COD"
+      ? "Tiền mặt (COD)"
+      : latest?.payment_method || "Online";
+};
+
+// =====================================================
+// 8. STATE MACHINE - HÀNH ĐỘNG HỢP LỆ (TỐI ĐA 1-2 NÚT)
+// =====================================================
+const getAvailableActions = (booking) => {
+  if (!booking) return [];
+  const status = normalizeStatus(booking.status);
+  const hasPaid = getPaidAmount(booking) > 0;
+  const actions = [];
+
+  switch (status) {
+    // 1. PENDING -> CONFIRMED (chỉ khi đã thanh toán) hoặc CANCELLED
+    case "PENDING":
+      if (hasPaid) {
+        actions.push({
+          status: "CONFIRMED",
+          label: "Duyệt đơn",
+          icon: "check_circle",
+          variant: "primary", // Cam
+        });
+      }
+      actions.push({
+        status: "CANCELLED",
+        label: "Hủy đơn",
+        icon: "cancel",
+        variant: "danger", // Đỏ
+      });
+      break;
+
+    // 2. CONFIRMED (hoặc READY/PAID) -> CHECKED_IN, NO_SHOW hoặc CANCELLED
+    case "CONFIRMED":
+    case "READY":
+    case "PAID":
+      actions.push({
+        status: "CHECKED_IN",
+        label: "Đã đón khách",
+        icon: "how_to_reg",
+        variant: "primary",
+      });
+      actions.push({
+        status: "NO_SHOW",
+        label: "Vắng mặt",
+        icon: "person_off",
+        variant: "secondary", // Xám
+      });
+      actions.push({
+        status: "CANCELLED",
+        label: "Hủy đơn",
+        icon: "cancel",
+        variant: "danger",
+      });
+      break;
+
+    // 3. CHECKED_IN -> IN_PROGRESS hoặc NO_SHOW (Khớp backend)
+    case "CHECKED_IN":
+      actions.push({
+        status: "IN_PROGRESS",
+        label: "Bắt đầu tour",
+        icon: "play_circle",
+        variant: "primary",
+      });
+      actions.push({
+        status: "NO_SHOW",
+        label: "Báo vắng mặt",
+        icon: "person_off",
+        variant: "secondary",
+      });
+      break;
+
+    // 4. IN_PROGRESS (hoặc ONGOING) -> COMPLETED
+    case "IN_PROGRESS":
+    case "ONGOING":
+      actions.push({
+        status: "COMPLETED",
+        label: "Hoàn thành tour",
+        icon: "task_alt",
+        variant: "success", // Xanh lá
+      });
+      break;
+
+    // 5. CANCELLED -> REFUND_PENDING (Backend yêu cầu hasPaid mới cho qua)
+    case "CANCELLED":
+      if (hasPaid) {
+        actions.push({
+          status: "REFUND_PENDING",
+          label: "Xử lý hoàn tiền",
+          icon: "currency_exchange",
+          variant: "warning", // Vàng cam
+        });
+      }
+      break;
+
+    // 6. REFUND_PENDING -> REFUNDED
+    case "REFUND_PENDING":
+      actions.push({
+        status: "REFUNDED",
+        label: "Xác nhận đã hoàn tiền",
+        icon: "verified",
+        variant: "success",
+      });
+      break;
+
+    // Các trạng thái kết thúc (COMPLETED, NO_SHOW, REFUNDED): Không hiện nút
+    default:
+      break;
+  }
+
+  return actions;
+};
+
+// =====================================================
+// 9. CẬP NHẬT TRẠNG THÁI
+// =====================================================
+const duyetDon = async (id, targetStatus) => {
+  const norm = normalizeStatus(targetStatus);
+  if (!BOOKING_STATUSES.includes(norm)) {
+    showNotification("error", "Trạng thái không hợp lệ");
+    return;
+  }
+  console.log(norm);
   try {
-    const result = await bookingService.duyetDon(id, {
-      status,
-    });
-
-    if (result?.data?.success === false) {
-      showNotification("error", result?.data?.message || "Duyệt đơn thất bại");
-
+    const res = await bookingService.duyetDon(id, { status: norm });
+    if (!res?.data?.success) {
+      showNotification("error", res?.data?.message || "Cập nhật đơn thất bại");
       return;
     }
 
-    showNotification(
-      "success",
-      `Đã chuyển đơn sang "${getStatusName(status)}"`,
-    );
-
-    await queryClient.invalidateQueries({
-      queryKey: ["bookings"],
-    });
-    queryClient.invalidateQueries({ queryKey: ["bookings"] });
-  } catch (error) {
-    console.error("DUYET DON ERROR:", error);
-
+    showNotification("success", `Đã chuyển sang "${getStatusName(norm)}"`);
+    await queryClient.invalidateQueries({ queryKey: ["bookings"] });
+  } catch (err) {
     showNotification(
       "error",
-      error?.response?.data?.message || "Duyệt đơn thất bại",
+      err?.response?.data?.message || "Lỗi cập nhật trạng thái",
     );
   }
 };
 
-// =========================================
-// 8. KPI
-// =========================================
-
+// =====================================================
+// 10. KPI COMPUTED
+// =====================================================
 const kpiStats = computed(() => {
   const list = dataBooking.value || [];
-
   const totalBookings = list.length;
-
   const totalPeople = list.reduce(
-    (acc, b) => acc + (Number(b.total_people) || 0),
+    (sum, b) => sum + Number(b?.total_people || 0),
     0,
   );
-
-  const pendingCount = list.filter((b) => b.status === "pending").length;
-
-  const paidCount = list.filter((b) => {
-    const latestPayment = b.payments?.[0];
-
-    return b.status === "paid" || latestPayment?.status === "paid";
-  }).length;
-
-  const paidPercentage = totalBookings
-    ? Math.round((paidCount / totalBookings) * 100)
-    : 0;
-
-  const totalRevenue = list
-    .filter((b) => {
-      const latestPayment = b.payments?.[0];
-
-      return b.status === "paid" || latestPayment?.status === "paid";
-    })
-    .reduce((acc, b) => acc + (Number(b.total_amount) || 0), 0);
+  const pendingCount = list.filter(
+    (b) => normalizeStatus(b?.status) === "PENDING",
+  ).length;
+  const paidCount = list.filter((b) => isBookingFullyPaid(b)).length;
+  const paidPercentage =
+    totalBookings > 0 ? Math.round((paidCount / totalBookings) * 100) : 0;
+  const totalRevenue = list.reduce((sum, b) => sum + getPaidAmount(b), 0);
+  const totalRemaining = list.reduce(
+    (sum, b) => sum + getRemainingAmount(b),
+    0,
+  );
 
   return {
     totalBookings,
@@ -288,55 +473,48 @@ const kpiStats = computed(() => {
     paidCount,
     paidPercentage,
     totalRevenue,
+    totalRemaining,
   };
 });
 
-// =========================================
-// 9. FILTER BOOKING
-// =========================================
-
+// =====================================================
+// 11. FILTER & SLICE DATA
+// =====================================================
 const filteredBookings = computed(() => {
-  let list = dataBooking.value || [];
+  let list = [...(dataBooking.value || [])];
+  const q = searchQuery.value.trim().toLowerCase();
 
-  // SEARCH
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase().trim();
-
-    list = list.filter((item) => {
-      const idMatch = String(item.id).toLowerCase().includes(q);
-
-      const nameMatch = (item.booker_name || "").toLowerCase().includes(q);
-
-      const phoneMatch = (item.booker_phone || "").toLowerCase().includes(q);
-
-      const emailMatch = (item.booker_email || "").toLowerCase().includes(q);
-
-      return idMatch || nameMatch || phoneMatch || emailMatch;
+  if (q) {
+    list = list.filter((b) => {
+      const id = String(b?.id || "").toLowerCase();
+      const name = String(b?.booker_name || "").toLowerCase();
+      const phone = String(b?.booker_phone || "").toLowerCase();
+      const email = String(b?.booker_email || "").toLowerCase();
+      return (
+        id.includes(q) ||
+        name.includes(q) ||
+        phone.includes(q) ||
+        email.includes(q)
+      );
     });
   }
 
-  // BOOKING STATUS
   if (statusFilter.value) {
-    list = list.filter((item) => item.status === statusFilter.value);
+    list = list.filter(
+      (b) => normalizeStatus(b?.status) === normalizeStatus(statusFilter.value),
+    );
   }
 
-  // PAYMENT STATUS
   if (paymentFilter.value) {
-    list = list.filter((item) => {
-      const pStatus = item.payments?.[0]?.status || "unpaid";
-
-      if (paymentFilter.value === "paid") {
-        return item.status === "paid" || pStatus === "paid";
-      }
-
+    list = list.filter((b) => {
+      if (paymentFilter.value === "paid") return isBookingFullyPaid(b);
+      if (paymentFilter.value === "partial") return isBookingPartiallyPaid(b);
       if (paymentFilter.value === "pending") {
-        return pStatus === "pending";
+        return (b?.payments || []).some(
+          (p) => normalizeStatus(p?.status) === "PENDING",
+        );
       }
-
-      if (paymentFilter.value === "unpaid") {
-        return !item.payments?.length || pStatus === "unpaid";
-      }
-
+      if (paymentFilter.value === "unpaid") return getPaidAmount(b) <= 0;
       return true;
     });
   }
@@ -344,17 +522,12 @@ const filteredBookings = computed(() => {
   return list;
 });
 
-// =========================================
-// 10. PAGINATION
-// =========================================
-
-const totalPages = computed(
-  () => Math.ceil(filteredBookings.value.length / itemsPerPage) || 1,
+const totalPages = computed(() =>
+  Math.max(Math.ceil(filteredBookings.value.length / itemsPerPage), 1),
 );
 
 const paginatedBookings = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
-
   return filteredBookings.value.slice(start, start + itemsPerPage);
 });
 
@@ -366,644 +539,697 @@ const changePage = (page) => {
 </script>
 
 <template>
-  <div
-    class="min-h-screen bg-[#0b0f17] font-sans text-slate-200 antialiased selection:bg-amber-500/20 selection:text-amber-200"
-  >
-    <!-- =========================================
-          TOAST NOTIFICATION
-      ========================================== -->
-
-    <Transition name="toast">
-      <div
-        v-if="notification.show"
-        class="fixed right-6 top-6 z-[9999] flex w-[340px] items-center gap-3 rounded-xl border p-4 shadow-2xl backdrop-blur-xl transition-all"
-        :class="
-          notification.type === 'success'
-            ? 'border-emerald-500/30 bg-[#0e171f]/95 text-emerald-300'
-            : 'border-rose-500/30 bg-[#191016]/95 text-rose-300'
-        "
-      >
-        <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold"
-          :class="
-            notification.type === 'success'
-              ? 'bg-emerald-500/15'
-              : 'bg-rose-500/15'
-          "
-        >
-          {{ notification.type === "success" ? "✓" : "!" }}
-        </div>
-
-        <div class="min-w-0 flex-1">
-          <p class="text-xs font-semibold leading-none">
-            {{
-              notification.type === "success"
-                ? "Thao tác thành công"
-                : "Có lỗi xảy ra"
-            }}
-          </p>
-
-          <p class="mt-1 text-xs text-slate-400 line-clamp-2">
-            {{ notification.message }}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          @click="notification.show = false"
-          class="text-slate-400 transition hover:text-white"
-        >
-          ✕
-        </button>
-      </div>
-    </Transition>
-
-    <!-- =========================================
-          LAYOUT CONTAINER
-      ========================================== -->
-
-    <div
-      class="mx-auto flex min-h-screen w-full max-w-[1560px] flex-col px-4 sm:px-8"
-    >
+  <div class="admin-page min-h-screen bg-[#080b11] p-4 text-white sm:p-6 lg:p-8">
+    <div class="mx-auto max-w-[1800px] space-y-6">
       <!-- HEADER -->
-
       <header
-        class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/[0.06] bg-[#0b0f17]/90 backdrop-blur-md"
+        class="flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-[#0d1119] p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between"
       >
-        <div>
+        <div class="min-w-0">
           <div
-            class="flex items-center gap-2 text-xs font-medium text-amber-400"
+            class="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-orange-400"
           >
-            <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>
-
-            Travel Management Console
+            <span class="h-1.5 w-1.5 rounded-full bg-orange-400"></span>
+            Quản trị hệ thống
           </div>
-
-          <h1
-            class="mt-0.5 text-xl font-bold tracking-tight text-white sm:text-2xl"
-          >
-            Danh sách đơn đặt tour
+          <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Quản lý đơn đặt tour
           </h1>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+            Theo dõi đơn đặt, tiến trình đón khách, vận hành tour và dòng tiền
+            hoàn hủy.
+          </p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div
-            class="hidden items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-2 text-xs text-slate-400 sm:inline-flex"
+        <RouterLink
+          to="/admin"
+          class="inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-orange-300 active:scale-95"
+        >
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          Trang quản trị
+          <span class="material-symbols-outlined text-[17px]"
+            >arrow_outward</span
           >
-            <span>Tổng dữ liệu:</span>
-
-            <span class="font-mono font-semibold text-white">
-              {{ dataBooking?.length || 0 }}
-            </span>
-          </div>
-
-          <RouterLink
-            to="/admin/booking/create"
-            class="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-semibold text-slate-950 shadow-md shadow-amber-500/10 transition hover:bg-amber-400 active:scale-95"
-          >
-            <span class="text-base font-bold leading-none">+</span>
-            <span>Tạo đơn tại quầy</span>
-          </RouterLink>
-        </div>
+        </RouterLink>
       </header>
 
-      <!-- MAIN CONTENT -->
-
-      <main class="space-y-6 py-8">
-        <!-- KPI -->
-
-        <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <!-- Total -->
-
-          <div
-            class="group rounded-2xl border border-white/[0.06] bg-[#121721] p-5 transition hover:border-white/[0.12]"
-          >
-            <div
-              class="flex items-center justify-between text-xs text-slate-400"
-            >
-              <span>Tổng lượt đặt</span>
-
-              <span
-                class="rounded-md bg-white/[0.05] px-2 py-0.5 font-mono text-slate-300"
-              >
-                {{ kpiStats.totalBookings }} đơn
-              </span>
-            </div>
-
-            <div class="mt-3 flex items-baseline gap-2">
-              <span class="font-mono text-2xl font-bold text-white">
-                {{ kpiStats.totalPeople }}
-              </span>
-
-              <span class="text-xs text-slate-400"> hành khách </span>
-            </div>
-          </div>
-
-          <!-- Pending -->
-
-          <div
-            class="rounded-2xl border border-white/[0.06] bg-[#121721] p-5 transition hover:border-white/[0.12]"
-          >
-            <div
-              class="flex items-center justify-between text-xs text-slate-400"
-            >
-              <span>Đơn chờ duyệt</span>
-
-              <span
-                class="rounded-md bg-amber-400/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300"
-              >
-                Cần xử lý
-              </span>
-            </div>
-
-            <div class="mt-3 flex items-baseline gap-2">
-              <span class="font-mono text-2xl font-bold text-amber-400">
-                {{ kpiStats.pendingCount }}
-              </span>
-
-              <span class="text-xs text-slate-400"> đang đợi </span>
-            </div>
-          </div>
-
-          <!-- Paid Ratio -->
-
-          <div
-            class="rounded-2xl border border-white/[0.06] bg-[#121721] p-5 transition hover:border-white/[0.12]"
-          >
-            <div
-              class="flex items-center justify-between text-xs text-slate-400"
-            >
-              <span>Đã thanh toán</span>
-
-              <span
-                class="rounded-md bg-emerald-400/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-300"
-              >
-                {{ kpiStats.paidPercentage }}%
-              </span>
-            </div>
-
-            <div class="mt-3 flex items-baseline gap-2">
-              <span class="font-mono text-2xl font-bold text-emerald-400">
-                {{ kpiStats.paidCount }}
-              </span>
-
-              <span class="text-xs text-slate-400"> đã đối soát </span>
-            </div>
-          </div>
-
-          <!-- Revenue -->
-
-          <div
-            class="rounded-2xl border border-white/[0.06] bg-[#121721] p-5 transition hover:border-white/[0.12]"
-          >
-            <div
-              class="flex items-center justify-between text-xs text-slate-400"
-            >
-              <span>Doanh thu thực tế</span>
-
-              <span class="text-[11px] text-emerald-400">
-                Ghi nhận tức thì
-              </span>
-            </div>
-
-            <div class="mt-3">
-              <span
-                class="font-mono text-2xl font-bold tracking-tight text-white"
-              >
-                {{ formatCurrency(kpiStats.totalRevenue) }}
-              </span>
-            </div>
-          </div>
-        </section>
-
-        <!-- SEARCH & FILTER -->
-
-        <section
-          class="rounded-2xl border border-white/[0.06] bg-[#121721] p-4"
+      <!-- TOAST NOTIFICATION -->
+      <Transition name="toast">
+        <div
+          v-if="notification.show"
+          class="fixed right-4 top-4 z-50 flex max-w-[calc(100vw-2rem)] items-start gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-xl sm:right-6 sm:top-6"
+          :class="
+            notification.type === 'success'
+              ? 'border-emerald-500/30 bg-[#0c211a]/95 text-emerald-300'
+              : 'border-rose-500/30 bg-[#250f16]/95 text-rose-300'
+          "
+          role="status"
         >
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12">
-            <!-- Search -->
+          <span class="material-symbols-outlined shrink-0 text-[21px]">
+            {{ notification.type === "success" ? "check_circle" : "error" }}
+          </span>
+          <span class="break-words text-sm font-medium">{{
+            notification.message
+          }}</span>
+        </div>
+      </Transition>
 
-            <div class="lg:col-span-6">
-              <div class="relative">
-                <span
-                  class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400"
+      <!-- KPI METRICS -->
+      <section>
+        <div class="mb-4">
+          <h2 class="font-semibold text-white">Tổng quan đơn đặt</h2>
+          <p class="mt-1 text-xs text-slate-500">
+            Thống kê vận hành và doanh thu thời gian thực
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div
+            class="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119] p-5 transition-all hover:border-white/[0.12]"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p
+                  class="text-xs font-medium uppercase tracking-wider text-slate-400"
                 >
-                  🔍
-                </span>
+                  Tổng đơn
+                </p>
+                <p
+                  class="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                >
+                  {{ kpiStats.totalBookings }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500">Đơn tour toàn sàn</p>
+              </div>
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400"
+              >
+                <span class="material-symbols-outlined"
+                  >confirmation_number</span
+                >
+              </div>
+            </div>
+          </div>
 
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="Tìm theo mã đơn, khách hàng, số điện thoại..."
-                  class="h-10 w-full rounded-xl border border-white/[0.08] bg-[#0b0f17] pl-9 pr-4 text-xs text-white placeholder:text-slate-500 focus:border-amber-400/50 focus:outline-none"
-                />
+          <div
+            class="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119] p-5 transition-all hover:border-white/[0.12]"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p
+                  class="text-xs font-medium uppercase tracking-wider text-slate-400"
+                >
+                  Tổng khách
+                </p>
+                <p
+                  class="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl"
+                >
+                  {{ kpiStats.totalPeople }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500">Số khách đã đăng ký</p>
+              </div>
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-400"
+              >
+                <span class="material-symbols-outlined">groups</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119] p-5 transition-all hover:border-white/[0.12]"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p
+                  class="text-xs font-medium uppercase tracking-wider text-slate-400"
+                >
+                  Chờ duyệt
+                </p>
+                <p
+                  class="mt-2 text-2xl font-bold tracking-tight text-amber-300 sm:text-3xl"
+                >
+                  {{ kpiStats.pendingCount }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500">Cần admin xác nhận</p>
+              </div>
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400"
+              >
+                <span class="material-symbols-outlined">pending_actions</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119] p-5 transition-all hover:border-white/[0.12]"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p
+                  class="text-xs font-medium uppercase tracking-wider text-slate-400"
+                >
+                  Đã trả đủ
+                </p>
+                <p
+                  class="mt-2 text-2xl font-bold tracking-tight text-emerald-300 sm:text-3xl"
+                >
+                  {{ kpiStats.paidCount }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500">
+                  {{ kpiStats.paidPercentage }}% tổng số đơn
+                </p>
+              </div>
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400"
+              >
+                <span class="material-symbols-outlined">payments</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119] p-5 transition-all hover:border-white/[0.12]"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p
+                  class="text-xs font-medium uppercase tracking-wider text-slate-400"
+                >
+                  Doanh thu thực
+                </p>
+                <p
+                  class="mt-2 break-words text-xl font-bold leading-tight text-orange-300 sm:text-2xl"
+                >
+                  {{ formatCurrency(kpiStats.totalRevenue) }}
+                </p>
+                <p class="mt-2 text-xs leading-5 text-slate-500">
+                  Chưa thu: {{ formatCurrency(kpiStats.totalRemaining) }}
+                </p>
+              </div>
+              <div
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400"
+              >
+                <span class="material-symbols-outlined"
+                  >account_balance_wallet</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FILTER & SEARCH -->
+      <section
+        class="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119]"
+      >
+        <div
+          class="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4 sm:px-6"
+        >
+          <div
+            class="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400"
+          >
+            <span class="material-symbols-outlined">filter_list</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold text-white">Bộ lọc dữ liệu</h2>
+            <p class="mt-0.5 text-xs text-slate-500">
+              Tra cứu nhanh theo từ khóa, tiến độ tour và thanh toán
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="grid grid-cols-1 gap-3 p-4 sm:p-5 lg:grid-cols-2 2xl:grid-cols-[minmax(280px,1fr)_220px_220px_auto]"
+        >
+          <div class="relative min-w-0">
+            <span
+              class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-slate-500"
+            >
+              search
+            </span>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Mã đơn, tên, điện thoại, email..."
+              class="w-full rounded-xl border border-white/10 bg-white/[0.03] py-2.5 pl-10 pr-3.5 text-sm text-slate-200 outline-none transition placeholder:text-slate-500 hover:border-white/20 focus:border-orange-500/50 focus:bg-orange-500/[0.02] focus:ring-2 focus:ring-orange-500/20"
+            />
+          </div>
+
+          <select
+            v-model="statusFilter"
+            class="w-full rounded-xl border border-white/10 bg-[#0d1119] px-3.5 py-2.5 text-sm text-slate-200 outline-none transition hover:border-white/20 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20"
+          >
+            <option value="">Tất cả trạng thái đơn</option>
+            <option v-for="key in BOOKING_STATUSES" :key="key" :value="key">
+              {{ STATUS_MAP[key]?.name || key }}
+            </option>
+          </select>
+
+          <select
+            v-model="paymentFilter"
+            class="w-full rounded-xl border border-white/10 bg-[#0d1119] px-3.5 py-2.5 text-sm text-slate-200 outline-none transition hover:border-white/20 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20"
+          >
+            <option value="">Tất cả thanh toán</option>
+            <option value="paid">Đã thanh toán đủ</option>
+            <option value="partial">Đã cọc</option>
+            <option value="pending">Chờ xử lý</option>
+            <option value="unpaid">Chưa thanh toán</option>
+          </select>
+
+          <button
+            type="button"
+            @click="resetFilter"
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-medium text-slate-300 transition hover:border-orange-500/30 hover:bg-orange-500/10 hover:text-orange-300 active:scale-95"
+          >
+            <span class="material-symbols-outlined text-[19px]"
+              >restart_alt</span
+            >
+            Đặt lại
+          </button>
+        </div>
+      </section>
+
+      <!-- LOADING -->
+      <div
+        v-if="isLoading"
+        class="rounded-2xl border border-white/[0.07] bg-[#0d1119] px-5 py-16 text-center"
+      >
+        <span
+          class="material-symbols-outlined animate-spin text-4xl text-orange-400"
+        >
+          progress_activity
+        </span>
+        <p class="mt-4 text-sm font-medium text-slate-300">
+          Đang tải dữ liệu đơn tour...
+        </p>
+      </div>
+
+      <!-- ERROR -->
+      <div
+        v-else-if="isError"
+        class="rounded-2xl border border-rose-500/20 bg-rose-500/[0.04] px-5 py-12 text-center"
+      >
+        <div
+          class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-400"
+        >
+          <span class="material-symbols-outlined text-3xl">error</span>
+        </div>
+        <p class="mt-4 font-semibold text-rose-300">Lỗi khi tải danh sách</p>
+        <p class="mx-auto mt-2 max-w-xl text-sm text-slate-400">
+          {{ error?.message }}
+        </p>
+      </div>
+
+      <!-- MAIN DATA CONTAINER -->
+      <section
+        v-else
+        class="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d1119]"
+      >
+        <!-- TOP META -->
+        <div
+          class="flex flex-col gap-4 border-b border-white/[0.07] px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400"
+            >
+              <span class="material-symbols-outlined">receipt_long</span>
+            </div>
+            <div>
+              <h2 class="font-semibold text-white">Danh sách đơn đặt</h2>
+              <p class="mt-0.5 text-xs text-slate-500">
+                Hiển thị
+                <span class="text-slate-300">{{
+                  paginatedBookings.length
+                }}</span>
+                /
+                <span class="text-slate-300">{{
+                  filteredBookings.length
+                }}</span>
+                đơn
+              </p>
+            </div>
+          </div>
+          <div
+            class="inline-flex w-fit items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-1.5 text-xs text-slate-400"
+          >
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+            Hệ thống quản trị
+          </div>
+        </div>
+
+        <!-- EMPTY -->
+        <div
+          v-if="paginatedBookings.length === 0"
+          class="px-5 py-16 text-center"
+        >
+          <span class="material-symbols-outlined text-4xl text-slate-600"
+            >inbox</span
+          >
+          <p class="mt-3 font-medium text-slate-300">
+            Không có đơn đặt tour phù hợp
+          </p>
+          <p class="mt-1 text-xs text-slate-500">
+            Thử thay đổi từ khóa hoặc điều kiện bộ lọc
+          </p>
+        </div>
+
+        <!-- DESKTOP TABLE -->
+        <div v-else class="hidden overflow-x-auto xl:block">
+          <table class="w-full min-w-[1300px] border-collapse text-left">
+            <thead>
+              <tr
+                class="border-b border-white/[0.07] bg-white/[0.02] text-[11px] font-semibold uppercase tracking-wider text-slate-500"
+              >
+                <th class="whitespace-nowrap px-5 py-4">Mã đơn</th>
+                <th class="px-5 py-4">Khách hàng</th>
+                <th class="px-5 py-4">Tour & Khởi hành</th>
+                <th class="whitespace-nowrap px-5 py-4">Số khách</th>
+                <th class="whitespace-nowrap px-5 py-4">Thanh toán</th>
+                <th class="px-5 py-4">Trạng thái</th>
+                <th class="whitespace-nowrap px-5 py-4">Ngày đặt</th>
+                <th class="whitespace-nowrap px-5 py-4 text-right">
+                  Thao tác tiếp theo
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="item in paginatedBookings"
+                :key="item.id"
+                class="border-b border-white/[0.045] transition-colors hover:bg-white/[0.02] last:border-0"
+              >
+                <!-- MÃ ĐƠN -->
+                <td
+                  class="whitespace-nowrap px-5 py-5 font-mono text-xs font-semibold text-orange-300"
+                >
+                  <span
+                    class="rounded-md border border-orange-500/20 bg-orange-500/10 px-2 py-1"
+                    >#{{ item.id }}</span
+                  >
+                </td>
+
+                <!-- KHÁCH HÀNG -->
+                <td class="px-5 py-5">
+                  <div class="max-w-[200px]">
+                    <p class="truncate text-sm font-semibold text-slate-100">
+                      {{ item.booker_name || "Chưa có tên" }}
+                    </p>
+                    <p
+                      class="mt-1 flex items-center gap-1 text-xs text-slate-400"
+                    >
+                      <span class="material-symbols-outlined text-[14px]"
+                        >call</span
+                      >
+                      {{ item.booker_phone || "--" }}
+                    </p>
+                  </div>
+                </td>
+
+                <!-- TOUR -->
+                <td class="px-5 py-5">
+                  <div class="max-w-[250px]">
+                    <p class="line-clamp-2 text-sm font-medium text-slate-200">
+                      {{
+                        item.tour?.name ||
+                        item.tour?.title ||
+                        `Tour #${item.tour_id || "--"}`
+                      }}
+                    </p>
+                    <p
+                      v-if="item.schedule?.departure_date"
+                      class="mt-1 flex items-center gap-1 text-xs text-slate-500"
+                    >
+                      <span class="material-symbols-outlined text-[14px]"
+                        >calendar_month</span
+                      >
+                      {{ formatDate(item.schedule.departure_date) }}
+                    </p>
+                  </div>
+                </td>
+
+                <!-- SỐ KHÁCH -->
+                <td
+                  class="whitespace-nowrap px-5 py-5 text-sm font-semibold text-slate-300"
+                >
+                  {{ item.total_people || 0 }} khách
+                </td>
+
+                <!-- TIỀN & THANH TOÁN -->
+                <td class="whitespace-nowrap px-5 py-5">
+                  <p class="text-sm font-bold text-white">
+                    {{ formatCurrency(getTotalAmount(item)) }}
+                  </p>
+                  <div class="mt-1 flex items-center gap-2">
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-medium"
+                      :class="getPaymentClass(item)"
+                    >
+                      <span
+                        class="h-1 w-1 rounded-full"
+                        :class="getPaymentDotClass(item)"
+                      ></span>
+                      {{ getPaymentText(item) }}
+                    </span>
+                    <span class="text-[11px] text-slate-500">{{
+                      getPaymentMethodText(item)
+                    }}</span>
+                  </div>
+                </td>
+
+                <!-- TRẠNG THÁI HIỆN TẠI -->
+                <td class="px-5 py-5">
+                  <span
+                    class="inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-medium"
+                    :class="getStatusClass(item.status)"
+                  >
+                    {{ getStatusName(item.status) }}
+                  </span>
+                </td>
+
+                <!-- NGÀY ĐẶT -->
+                <td class="whitespace-nowrap px-5 py-5 text-xs text-slate-400">
+                  {{ formatDate(item.created_at) }}
+                </td>
+
+                <!-- THAO TÁC DUYỆT (TỐI ĐA 1 - 2 NÚT) -->
+                <td class="whitespace-nowrap px-5 py-5 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <!-- Nút thao tác hợp lệ theo State Machine -->
+                    <template v-if="getAvailableActions(item).length > 0">
+                      <button
+                        v-for="action in getAvailableActions(item)"
+                        :key="action.status"
+                        type="button"
+                        @click="duyetDon(item.id, action.status)"
+                        class="inline-flex h-8 select-none items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition active:scale-95"
+                        :class="[
+                          action.variant === 'primary' &&
+                            'border-orange-500/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20',
+                          action.variant === 'secondary' &&
+                            'border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/20 hover:text-white',
+                          action.variant === 'success' &&
+                            'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20',
+                          action.variant === 'danger' &&
+                            'border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20',
+                          action.variant === 'warning' &&
+                            'border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20',
+                        ]"
+                      >
+                        <span class="material-symbols-outlined text-[15px]">{{
+                          action.icon
+                        }}</span>
+                        {{ action.label }}
+                      </button>
+                    </template>
+
+                    <!-- Trạng thái kết thúc không có nút -->
+                    <span v-else class="text-xs italic text-slate-500">
+                      Đã hoàn tất
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- MOBILE / TABLET CARDS -->
+        <div
+          v-if="paginatedBookings.length > 0"
+          class="grid grid-cols-1 gap-4 p-3 sm:p-5 xl:hidden"
+        >
+          <article
+            v-for="item in paginatedBookings"
+            :key="item.id"
+            class="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#10151f]"
+          >
+            <!-- TOP CARD -->
+            <div class="flex items-start justify-between gap-3 p-4">
+              <div>
+                <span class="font-mono text-xs font-semibold text-orange-400"
+                  >#{{ item.id }}</span
+                >
+                <p class="mt-1 text-sm font-semibold text-white">
+                  {{ item.booker_name || "Chưa có tên" }}
+                </p>
+                <p class="text-xs text-slate-400">
+                  {{ item.booker_phone || "--" }}
+                </p>
+              </div>
+              <span
+                class="rounded-lg border px-2.5 py-1 text-[11px] font-medium"
+                :class="getStatusClass(item.status)"
+              >
+                {{ getStatusName(item.status) }}
+              </span>
+            </div>
+
+            <div class="mx-4 h-px bg-white/[0.06]"></div>
+
+            <!-- TOUR & GIÁ -->
+            <div class="space-y-2 p-4 text-xs">
+              <p class="font-medium text-slate-200">
+                {{
+                  item.tour?.name ||
+                  item.tour?.title ||
+                  `Tour #${item.tour_id || "--"}`
+                }}
+              </p>
+              <div class="flex items-center justify-between text-slate-400">
+                <span
+                  >Số khách:
+                  <strong class="text-slate-200">{{
+                    item.total_people || 0
+                  }}</strong></span
+                >
+                <span v-if="item.schedule?.departure_date"
+                  >Khởi hành:
+                  {{ formatDate(item.schedule.departure_date) }}</span
+                >
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-sm font-bold text-white">{{
+                  formatCurrency(getTotalAmount(item))
+                }}</span>
+                <span
+                  class="rounded border px-2 py-0.5 text-[10px] font-medium"
+                  :class="getPaymentClass(item)"
+                >
+                  {{ getPaymentText(item) }}
+                </span>
               </div>
             </div>
 
-            <!-- Booking Status -->
-
-            <div class="lg:col-span-3">
-              <select
-                v-model="statusFilter"
-                class="h-10 w-full cursor-pointer rounded-xl border border-white/[0.08] bg-[#0b0f17] px-3 text-xs text-slate-300 focus:border-amber-400/50 focus:outline-none"
+            <!-- ACTION FOOTER MOBILE -->
+            <div class="border-t border-white/[0.06] bg-white/[0.015] p-3">
+              <div
+                v-if="getAvailableActions(item).length > 0"
+                class="flex items-center gap-2"
               >
-                <option value="">Tất cả trạng thái booking</option>
-
-                <option
-                  v-for="(status, key) in STATUS_MAP"
-                  :key="key"
-                  :value="key"
+                <button
+                  v-for="action in getAvailableActions(item)"
+                  :key="action.status"
+                  type="button"
+                  @click="duyetDon(item.id, action.status)"
+                  class="inline-flex h-9 flex-1 select-none items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition active:scale-95"
+                  :class="[
+                    action.variant === 'primary' &&
+                      'border-orange-500/30 bg-orange-500/10 text-orange-300',
+                    action.variant === 'secondary' &&
+                      'border-white/10 bg-white/[0.04] text-slate-300',
+                    action.variant === 'success' &&
+                      'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+                    action.variant === 'danger' &&
+                      'border-rose-500/30 bg-rose-500/10 text-rose-300',
+                    action.variant === 'warning' &&
+                      'border-amber-500/30 bg-amber-500/10 text-amber-300',
+                  ]"
                 >
-                  {{ status.name }}
-                </option>
-              </select>
+                  <span class="material-symbols-outlined text-[16px]">{{
+                    action.icon
+                  }}</span>
+                  {{ action.label }}
+                </button>
+              </div>
+              <p v-else class="text-center text-xs italic text-slate-500">
+                Đơn tour đã hoàn tất quy trình
+              </p>
             </div>
+          </article>
+        </div>
 
-            <!-- Payment Status -->
-
-            <div class="lg:col-span-2">
-              <select
-                v-model="paymentFilter"
-                class="h-10 w-full cursor-pointer rounded-xl border border-white/[0.08] bg-[#0b0f17] px-3 text-xs text-slate-300 focus:border-amber-400/50 focus:outline-none"
-              >
-                <option value="">Mọi giao dịch</option>
-                <option value="paid">Đã thanh toán</option>
-                <option value="pending">Chờ chuyển khoản</option>
-                <option value="unpaid">Chưa thanh toán</option>
-              </select>
-            </div>
-
-            <!-- Reset -->
-
-            <div class="lg:col-span-1">
-              <button
-                type="button"
-                @click="resetFilter"
-                class="h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
-              >
-                Đặt lại
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- DATA TABLE -->
-
-        <section
-          class="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#121721] shadow-xl"
+        <!-- PAGINATION -->
+        <div
+          v-if="filteredBookings.length > 0"
+          class="flex flex-col gap-4 border-t border-white/[0.07] px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between"
         >
-          <!-- Loading -->
+          <p class="text-xs text-slate-500 sm:text-sm">
+            Trang
+            <span class="font-semibold text-slate-200">{{ currentPage }}</span>
+            /
+            <span class="font-semibold text-slate-200">{{ totalPages }}</span>
+            (Tổng
+            <span class="font-semibold text-slate-300">{{
+              filteredBookings.length
+            }}</span>
+            đơn)
+          </p>
 
-          <div
-            v-if="isLoading"
-            class="flex flex-col items-center justify-center py-20 text-slate-400"
-          >
-            <div
-              class="h-8 w-8 animate-spin rounded-full border-2 border-amber-400 border-t-transparent"
-            ></div>
-
-            <p class="mt-4 text-xs tracking-wide">
-              Đang đồng bộ dữ liệu booking...
-            </p>
-          </div>
-
-          <!-- Empty -->
-
-          <div
-            v-else-if="filteredBookings.length === 0"
-            class="py-20 text-center"
-          >
-            <div class="text-3xl opacity-30">📁</div>
-
-            <p class="mt-2 text-sm font-semibold text-slate-300">
-              Không tìm thấy dữ liệu phù hợp
-            </p>
-
-            <p class="mt-1 text-xs text-slate-500">
-              Hãy thử xóa bớt điều kiện lọc hoặc từ khóa tìm kiếm
-            </p>
-          </div>
-
-          <!-- Table -->
-
-          <div v-else class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr
-                  class="border-b border-white/[0.06] bg-white/[0.02] text-[11px] font-semibold uppercase tracking-wider text-slate-400"
-                >
-                  <th class="py-3.5 pl-6 pr-3">Mã đơn</th>
-                  <th class="px-3 py-3.5">Khách hàng</th>
-                  <th class="px-3 py-3.5">Khởi hành / Lịch trình</th>
-                  <th class="px-3 py-3.5">Ngày đặt</th>
-                  <th class="px-3 py-3.5">Số lượng</th>
-                  <th class="px-3 py-3.5">Tổng tiền</th>
-                  <th class="px-3 py-3.5">Thanh toán</th>
-                  <th class="px-3 py-3.5">Trạng thái</th>
-                  <th class="py-3.5 pl-3 pr-6 text-right">Thao tác</th>
-                </tr>
-              </thead>
-
-              <tbody class="divide-y divide-white/[0.04]">
-                <tr
-                  v-for="item in paginatedBookings"
-                  :key="item.id"
-                  class="transition-colors hover:bg-white/[0.02]"
-                >
-                  <!-- ID -->
-
-                  <td
-                    class="py-4 pl-6 pr-3 font-mono font-semibold text-amber-300"
-                  >
-                    #BK-{{ item.id }}
-                  </td>
-
-                  <!-- Customer -->
-
-                  <td class="px-3 py-4">
-                    <div class="font-medium text-slate-200">
-                      {{ item.booker_name || `Khách User #${item.user_id}` }}
-                    </div>
-
-                    <div class="mt-0.5 font-mono text-[11px] text-slate-500">
-                      {{ item.booker_phone || "Không có SĐT" }}
-                    </div>
-                  </td>
-
-                  <!-- Departure -->
-
-                  <td class="max-w-[240px] px-3 py-4">
-                    <div
-                      class="truncate text-slate-300"
-                      :title="item.departure"
-                    >
-                      {{ item.departure || "Điểm hẹn linh hoạt" }}
-                    </div>
-
-                    <div class="mt-0.5 text-[10px] text-slate-500">
-                      Tour #{{ item.tour_id }} • Lịch #{{ item.schedule_id }}
-                    </div>
-                  </td>
-
-                  <!-- Created At -->
-
-                  <td class="px-3 py-4 font-mono text-slate-400">
-                    {{ formatDate(item.created_at) }}
-                  </td>
-
-                  <!-- People -->
-
-                  <td class="px-3 py-4 text-slate-300">
-                    <span class="font-mono font-medium text-white">
-                      {{ item.total_people }}
-                    </span>
-                    vé
-                  </td>
-
-                  <!-- Money -->
-
-                  <td class="px-3 py-4 font-mono font-bold text-amber-400">
-                    {{ formatCurrency(item.total_amount) }}
-                  </td>
-
-                  <!-- Payment Status -->
-
-                  <td class="px-3 py-4">
-                    <div v-if="item.payments && item.payments.length > 0">
-                      <span
-                        v-if="
-                          item.payments[0].status === 'paid' ||
-                          item.status === 'paid'
-                        "
-                        class="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400"
-                      >
-                        <span
-                          class="h-1.5 w-1.5 rounded-full bg-emerald-400"
-                        ></span>
-                        Đã thanh toán
-                      </span>
-
-                      <span
-                        v-else
-                        class="inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400"
-                      >
-                        <span
-                          class="h-1.5 w-1.5 rounded-full bg-amber-400"
-                        ></span>
-                        Chờ thanh toán
-                      </span>
-
-                      <div
-                        class="mt-1 text-[10px] font-mono uppercase text-slate-500"
-                      >
-                        {{ item.payments[0].payment_method || "Online" }}
-                      </div>
-                    </div>
-
-                    <div v-else>
-                      <span
-                        class="inline-flex items-center gap-1.5 rounded-md bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400"
-                      >
-                        <span
-                          class="h-1.5 w-1.5 rounded-full bg-rose-400"
-                        ></span>
-                        Chưa giao dịch
-                      </span>
-                    </div>
-                  </td>
-
-                  <!-- Booking Status -->
-
-                  <td class="px-3 py-4">
-                    <span
-                      class="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium"
-                      :class="getStatusClass(item.status)"
-                    >
-                      <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
-
-                      {{ getStatusName(item.status) }}
-                    </span>
-                  </td>
-
-                  <!-- Actions -->
-
-                  <!-- ACTIONS -->
-                  <td class="py-4 pl-3 pr-6 text-right">
-                    <div class="flex items-center justify-end gap-1.5">
-                      <!-- =========================
-         DUYỆT / CHUYỂN TRẠNG THÁI
-    ========================== -->
-                      <button
-                        v-for="status in getStatusDuyet(item)"
-                        :key="status"
-                        type="button"
-                        class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 transition hover:bg-amber-500 hover:text-slate-950"
-                        @click="duyetDon(item.id, status)"
-                      >
-                        <span v-if="status === 'confirmed'"> Duyệt đơn </span>
-
-                        <span v-else-if="status === 'paid'">
-                          Xác nhận thanh toán
-                        </span>
-
-                        <span v-else-if="status === 'ready'">
-                          Xác nhận sẵn sàng
-                        </span>
-
-                        <span v-else-if="status === 'ongoing'">
-                          Bắt đầu tour
-                        </span>
-
-                        <span v-else-if="status === 'completed'">
-                          Hoàn thành
-                        </span>
-
-                        <span v-else> → {{ getStatusName(status) }} </span>
-                      </button>
-
-                      <!-- =========================
-         CHƯA THANH TOÁN
-         → HỦY ĐƠN
-    ========================== -->
-                      <button
-                        v-if="
-                          canCancel(item.status) &&
-                          !isBookingPaid(item) &&
-                          item.status !== 'refund_pending'
-                        "
-                        type="button"
-                        @click="duyetDon(item.id, 'cancelled')"
-                        class="rounded-lg border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-[11px] font-medium text-rose-400 transition hover:bg-rose-500 hover:text-white"
-                      >
-                        Hủy đơn
-                      </button>
-
-                      <!-- =========================
-         ĐÃ THANH TOÁN
-         → HỦY + YÊU CẦU HOÀN TIỀN
-    ========================== -->
-                      <button
-                        v-if="
-                          canCancel(item.status) &&
-                          isBookingPaid(item) &&
-                          item.status !== 'refund_pending'
-                        "
-                        type="button"
-                        @click="duyetDon(item.id, 'refund_pending')"
-                        class="rounded-lg border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[11px] font-medium text-orange-400 transition hover:bg-orange-500 hover:text-white"
-                      >
-                        Yêu cầu hoàn tiền
-                      </button>
-
-                      <!-- =========================
-         ĐANG CHỜ HOÀN TIỀN
-         → HIỆN NÚT XÁC NHẬN HOÀN TIỀN
-    ========================== -->
-                      <button
-                        v-if="item.status === 'refund_pending'"
-                        type="button"
-                        @click="duyetDon(item.id, 'refunded')"
-                        class="rounded-lg border border-green-500/20 bg-green-500/10 px-2.5 py-1 text-[11px] font-medium text-green-400 transition hover:bg-green-500 hover:text-white"
-                      >
-                        Xác nhận hoàn tiền
-                      </button>
-
-                      <!-- =========================
-         ĐÃ HOÀN TIỀN
-         → KHÔNG HIỆN NÚT HOÀN TIỀN NỮA
-    ========================== -->
-                      <span
-                        v-if="item.status === 'refunded'"
-                        class="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400"
-                      >
-                        Đã hoàn tiền
-                      </span>
-
-                      <!-- =========================
-         CHI TIẾT
-    ========================== -->
-                      <RouterLink
-                        :to="`/admin/bookingDetail/${item.id}`"
-                        class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] font-medium text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
-                      >
-                        Chi tiết
-                      </RouterLink>
-                    </div>
-                  </td>
-                  ```
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- PAGINATION -->
-
-          <div
-            v-if="filteredBookings.length > 0"
-            class="flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] bg-white/[0.01] px-6 py-3.5 sm:flex-row"
-          >
-            <span class="text-xs text-slate-500">
-              Đang xem
-
-              <strong class="font-mono text-slate-300">
-                {{ (currentPage - 1) * itemsPerPage + 1 }}
-              </strong>
-
-              -
-
-              <strong class="font-mono text-slate-300">
-                {{
-                  Math.min(currentPage * itemsPerPage, filteredBookings.length)
-                }}
-              </strong>
-
-              trong
-
-              <strong class="font-mono text-slate-300">
-                {{ filteredBookings.length }}
-              </strong>
-
-              đơn
-            </span>
-
-            <div class="flex items-center gap-1.5">
-              <button
-                type="button"
-                :disabled="currentPage === 1"
-                @click="changePage(currentPage - 1)"
-                class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              @click="changePage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              aria-label="Trang trước"
+              class="inline-flex h-9 w-9 select-none items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] disabled:pointer-events-none disabled:opacity-30"
+            >
+              <span class="material-symbols-outlined text-[19px]"
+                >chevron_left</span
               >
-                Trước
-              </button>
+            </button>
 
+            <template v-for="page in totalPages" :key="page">
               <button
-                v-for="page in totalPages"
-                :key="page"
+                v-if="
+                  page === 1 ||
+                  page === totalPages ||
+                  Math.abs(page - currentPage) <= 1
+                "
                 type="button"
                 @click="changePage(page)"
-                :class="[
-                  'h-7 min-w-[28px] rounded-lg px-2 text-xs font-mono font-medium transition',
+                class="inline-flex h-9 min-w-9 select-none items-center justify-center rounded-lg border px-3 text-xs font-medium transition"
+                :class="
                   currentPage === page
-                    ? 'bg-amber-500 font-bold text-slate-950'
-                    : 'border border-white/[0.08] bg-white/[0.03] text-slate-400 hover:bg-white/[0.08] hover:text-white',
-                ]"
+                    ? 'border-orange-500/40 bg-orange-500/15 font-semibold text-orange-300'
+                    : 'border-white/10 bg-white/[0.03] text-slate-400 hover:bg-white/[0.07] hover:text-white'
+                "
               >
                 {{ page }}
               </button>
-
-              <button
-                type="button"
-                :disabled="currentPage === totalPages"
-                @click="changePage(currentPage + 1)"
-                class="rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:bg-white/[0.08] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+              <span
+                v-else-if="page === currentPage - 2 || page === currentPage + 2"
+                class="px-1 text-slate-600"
               >
-                Sau
-              </button>
-            </div>
+                ...
+              </span>
+            </template>
+
+            <button
+              type="button"
+              @click="changePage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              aria-label="Trang sau"
+              class="inline-flex h-9 w-9 select-none items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-xs font-medium text-slate-300 transition hover:bg-white/[0.07] disabled:pointer-events-none disabled:opacity-30"
+            >
+              <span class="material-symbols-outlined text-[19px]"
+                >chevron_right</span
+              >
+            </button>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -1011,16 +1237,110 @@ const changePage = (page) => {
 <style scoped>
 .toast-enter-active,
 .toast-leave-active {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.toast-enter-from {
-  opacity: 0;
-  transform: translateY(-8px) scale(0.96);
-}
-
+.toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(-8px) scale(0.96);
+  transform: translateY(-8px) scale(0.98);
+}
+
+.admin-page {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.admin-page :deep(h1),
+.admin-page :deep(h2),
+.admin-page :deep(h3),
+.admin-page :deep(h4) {
+  color: #0f172a;
+}
+
+.admin-page :deep([class*="text-orange-200"]) {
+  color: #2563eb;
+}
+
+.admin-page :deep(:is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"])),
+.admin-page :deep([class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"])),
+.admin-page :deep([class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"])),
+.admin-page :deep([class*="bg-slate-800"]),
+.admin-page :deep([class*="bg-slate-900"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.admin-page :deep([class*="border-white/"]) {
+  border-color: #e2e8f0;
+}
+
+.admin-page :deep([class~="text-white"]),
+.admin-page :deep([class~="text-slate-100"]),
+.admin-page :deep([class~="text-slate-200"]),
+.admin-page :deep([class*="text-gray-300"]) {
+  color: #334155;
+}
+
+.admin-page :deep([class*="text-white/"]),
+.admin-page :deep([class*="text-slate-300"]),
+.admin-page :deep([class*="text-slate-400"]),
+.admin-page :deep([class*="text-slate-500"]),
+.admin-page :deep([class*="text-slate-600"]),
+.admin-page :deep([class*="text-gray-400"]) {
+  color: #64748b;
+}
+
+.admin-page :deep([class*="bg-gradient"][class*="text-white"]),
+.admin-page :deep([class*="bg-gradient"] [class*="text-white"]),
+.admin-page :deep([class*="bg-orange-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-emerald-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-green-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-red-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-rose-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-blue-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-sky-"] [class*="text-white"]),
+.admin-page :deep([class*="bg-amber-"] [class*="text-white"]) {
+  color: #fff;
+}
+
+.admin-page :deep(input),
+.admin-page :deep(select),
+.admin-page :deep(textarea) {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #1e293b;
+}
+
+.admin-page :deep(input::placeholder),
+.admin-page :deep(textarea::placeholder) {
+  color: #94a3b8;
+}
+
+.admin-page :deep(input:focus),
+.admin-page :deep(select:focus),
+.admin-page :deep(textarea:focus) {
+  border-color: #2563eb;
+  outline-color: #2563eb;
+}
+
+.admin-page :deep(th) {
+  background-color: #f8fafc;
+  color: #475569;
+}
+
+.admin-page :deep(td),
+.admin-page :deep(th) {
+  border-color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .admin-page :deep(table) {
+    min-width: 640px;
+  }
 }
 </style>

@@ -1,0 +1,29 @@
+[33m553e5b1[m Initial commit
+[33m05c30b5[m Update project
+[33mcc94741[m initial project
+[33m1d63cba[m fix mongodb connection
+[33m97aab71[m fix frontend api base url
+[33m15f5bcb[m fix MyBookings import case
+[33m20c82c2[m fix community route import
+[33me1f9583[m fix community component import case
+[33mba2a213[m fix cors for vercel frontend
+[33mc6307ba[m fix cors vercel domain
+[33mff3ee3c[m fix cors for vercel
+[33m9a371cf[m fix google login production url
+[33mfef328c[m fix google oauth route
+[33m78c8366[m fix google oauth production redirect
+[33m2d05d04[m fix vercel vue router rewrite
+[33m3ecd0d9[m fix: update VNPAY timezone and payment URL
+[33m8e2f3de[m update giao dien
+[33m0134bef[m thêm thanh toán sau
+[33m677dc22[m fix tthnah toán sau
+[33m7737d7b[m fix thanh tonas sau
+[33m3eceb5f[m thêm huỷ tourr theo thời gian và cập nhật lại từ động điền giao diện
+[33md5809cf[m thêm huỷ tour , thêm điểm trả
+[33m99714da[m fix createbooking
+[33m8942959[m font my booking huỷ tour
+[33m8a7e900[m fix thời gian
+[33m5ee4ab3[m fix h myBooking
+[33m1d5d378[m fix 1
+[33m76f224b[m fix lỗi nút huỷ tour
+[33mb3d8948[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix-ko gọi dc hàm

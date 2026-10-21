@@ -133,7 +133,7 @@ const create = async () => {
 </script>
 
 <template>
-  <div class="relative min-h-screen pt-20 pb-16 text-white">
+  <div class="customer-redesign relative min-h-screen pt-20 pb-16 text-white">
     <!-- UI TOAST NOTIFICATION CONTAINER -->
     <transition
       enter-active-class="transform transition ease-out duration-300"
@@ -163,7 +163,7 @@ const create = async () => {
     </transition>
 
     <!-- Background -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="customer-atmosphere fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Travel background"
@@ -201,7 +201,7 @@ const create = async () => {
       >
         <div class="mb-8">
           <div
-            class="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-400/10 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300"
+            class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-700"
           >
             <span>✦</span> Community
           </div>
@@ -229,7 +229,7 @@ const create = async () => {
               v-model="form.content"
               rows="6"
               placeholder="Bạn đang nghĩ gì? Hãy chia sẻ về chuyến đi, địa điểm, món ăn hoặc trải nghiệm của bạn..."
-              class="w-full resize-none rounded-2xl border border-white/15 bg-black/30 p-5 text-sm leading-7 text-white placeholder-white/35 outline-none transition focus:border-orange-300/50 focus:bg-black/40 focus:ring-4 focus:ring-orange-300/10"
+              class="w-full resize-none rounded-2xl border border-white/15 bg-black/30 p-5 text-sm leading-7 text-white placeholder-white/35 outline-none transition focus:border-blue-300/60 focus:bg-black/40 focus:ring-4 focus:ring-blue-300/15"
             ></textarea>
           </div>
 
@@ -247,7 +247,7 @@ const create = async () => {
                   v-model="form.location"
                   type="text"
                   placeholder="Hà Giang, Đà Nẵng..."
-                  class="w-full rounded-2xl border border-white/15 bg-black/30 py-3.5 pl-11 pr-4 text-sm text-white placeholder-white/35 outline-none transition focus:border-orange-300/50 focus:bg-black/40"
+                  class="w-full rounded-2xl border border-white/15 bg-black/30 py-3.5 pl-11 pr-4 text-sm text-white placeholder-white/35 outline-none transition focus:border-blue-300/60 focus:bg-black/40"
                 />
               </div>
             </div>
@@ -258,7 +258,7 @@ const create = async () => {
               >
               <select
                 v-model="form.tour_id"
-                class="w-full rounded-2xl border border-white/15 bg-[#111722] px-4 py-3.5 text-sm text-white outline-none transition focus:border-orange-300/50"
+                class="w-full rounded-2xl border border-white/15 bg-[#111722] px-4 py-3.5 text-sm text-white outline-none transition focus:border-blue-300/60"
               >
                 <option :value="null" class="text-white/50">
                   -- Không gắn tour --
@@ -306,7 +306,7 @@ const create = async () => {
             <!-- Khung Drop file nếu chưa chọn ảnh -->
             <label
               v-else
-              class="block cursor-pointer rounded-2xl border-2 border-dashed border-white/15 bg-black/20 p-8 text-center transition hover:border-orange-300/40 hover:bg-black/30"
+              class="block cursor-pointer rounded-2xl border-2 border-dashed border-white/15 bg-black/20 p-8 text-center transition hover:border-blue-300/60 hover:bg-black/30"
             >
               <input
                 type="file"
@@ -342,13 +342,13 @@ const create = async () => {
                 <span
                   v-for="(tag, idx) in form.hashtags"
                   :key="idx"
-                  class="inline-flex items-center gap-1.5 rounded-lg bg-orange-400/15 border border-orange-400/30 px-2.5 py-1 text-xs text-orange-200"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs text-blue-700"
                 >
                   {{ tag }}
                   <button
                     type="button"
                     @click="toggleHashtag(tag)"
-                    class="text-orange-200/70 hover:text-white"
+                    class="text-blue-600 hover:text-blue-800"
                   >
                     ✕
                   </button>
@@ -378,7 +378,7 @@ const create = async () => {
                 @click="toggleHashtag(tag)"
                 :class="
                   form.hashtags.includes(tag)
-                    ? 'border-orange-300/30 bg-orange-300/15 text-orange-200'
+                    ? 'border-blue-200 bg-blue-50 text-blue-700'
                     : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
                 "
                 class="rounded-xl border px-3 py-1.5 text-xs transition"
@@ -412,3 +412,62 @@ const create = async () => {
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

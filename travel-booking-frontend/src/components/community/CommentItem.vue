@@ -1,6 +1,6 @@
 <template>
   <section
-    class="rounded-[28px] border border-white/15 bg-white/[0.07] p-6 backdrop-blur-2xl"
+    class="light-surface rounded-[28px] border border-white/15 bg-white/[0.07] p-6 backdrop-blur-2xl"
   >
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-bold text-white">
@@ -145,3 +145,29 @@
     </button>
   </section>
 </template>
+
+<style scoped>
+.light-surface {
+  border-color: #e2e8f0 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.light-surface :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.light-surface :deep([class*="bg-black/"]),
+.light-surface :deep([class*="bg-white/"]),
+.light-surface :deep([class*="bg-[#111722"]) {
+  background-color: #f8fafc !important;
+}
+
+.light-surface :deep(.text-white) {
+  color: #1e293b !important;
+}
+
+.light-surface :deep([class*="text-white/"]) {
+  color: #64748b !important;
+}
+</style>

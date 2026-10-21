@@ -299,30 +299,50 @@ const cleanupUploadedFiles = (files) => {
   const list = Array.isArray(files) ? files : [files];
   list.forEach((filePath) => {
     if (filePath && fs.existsSync(filePath)) {
-      fs.unlink(filePath, () => {});
+      fs.unlink(filePath, () => { });
     }
   });
 };
 
 // tao moi tour
 // Tạo mới tour
+
 export const createTourController = async (req, res, next) => {
   // =====================================================
-  // Gom danh sách file đã upload để rollback nếu có lỗi
+  // 1. Thu thập file upload để dọn dẹp nếu xảy ra lỗi
   // =====================================================
   const uploadedFiles = [];
 
-  if (req.files?.thumbnail?.[0]) {
-    uploadedFiles.push(req.files.thumbnail[0].path);
+  if (req.files?.thumbnail?.length) {
+    req.files.thumbnail.forEach((file) => {
+      if (file.path) uploadedFiles.push(file.path);
+    });
   }
 
-  if (req.files?.tour_images) {
-    req.files.tour_images.forEach((f) => {
-      uploadedFiles.push(f.path);
+  if (req.files?.tour_images?.length) {
+    req.files.tour_images.forEach((file) => {
+      if (file.path) uploadedFiles.push(file.path);
     });
-  } else if (req.file) {
+  }
+
+  if (req.file?.path) {
     uploadedFiles.push(req.file.path);
   }
+
+  // Loại bỏ đường dẫn trùng lặp
+  const uniqueUploadedFiles = [...new Set(uploadedFiles)];
+
+  // =====================================================
+  // 2. Hàm trả lỗi và dọn file đã upload
+  // =====================================================
+  const fail = (statusCode, message) => {
+    cleanupUploadedFiles(uniqueUploadedFiles);
+
+    return res.status(statusCode).json({
+      success: false,
+      message,
+    });
+  };
 
   try {
     const {
@@ -348,185 +368,258 @@ export const createTourController = async (req, res, next) => {
     } = req.body;
 
     // =====================================================
-    // 1. Lấy ID operator và category
+    // 3. Kiểm tra dữ liệu bắt buộc
     // =====================================================
-    const finalOperatorId = operator_id || operatorId;
-    const finalCategoryId = category_id || idCategory;
+    const finalOperatorId = operator_id ?? operatorId;
+    const finalCategoryId = category_id ?? idCategory;
 
-    // =====================================================
-    // 2. Validate dữ liệu bắt buộc
-    // =====================================================
-    if (!finalOperatorId || !finalCategoryId || !name || !slug || !price) {
-      cleanupUploadedFiles(uploadedFiles);
-
-      return res.status(400).json({
-        success: false,
-        message:
-          "Vui lòng cung cấp đầy đủ: Tên, slug, giá vé người lớn, danh mục và đơn vị tổ chức",
-      });
+    if (
+      finalOperatorId == null ||
+      String(finalOperatorId).trim() === "" ||
+      finalCategoryId == null ||
+      String(finalCategoryId).trim() === "" ||
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof slug !== "string" ||
+      !slug.trim() ||
+      price === undefined ||
+      price === null ||
+      String(price).trim() === ""
+    ) {
+      return fail(
+        400,
+        "Vui lòng cung cấp tên tour, slug, giá tour, danh mục và đơn vị tổ chức",
+      );
     }
 
     // =====================================================
-    // 3. Convert operator ID
+    // 4. Chuyển đổi và kiểm tra ID
     // =====================================================
     let operatorBigInt;
+    let categoryBigInt;
 
     try {
-      operatorBigInt = BigInt(finalOperatorId);
-    } catch {
-      cleanupUploadedFiles(uploadedFiles);
+      operatorBigInt = BigInt(String(finalOperatorId).trim());
+      categoryBigInt = BigInt(String(finalCategoryId).trim());
 
-      return res.status(400).json({
-        success: false,
-        message: "ID đơn vị tổ chức không hợp lệ",
-      });
+      if (operatorBigInt <= 0n || categoryBigInt <= 0n) {
+        throw new Error("ID phải lớn hơn 0");
+      }
+    } catch {
+      return fail(400, "ID đơn vị tổ chức hoặc danh mục không hợp lệ");
     }
 
     // =====================================================
-    // 4. Kiểm tra đơn vị tổ chức
+    // 5. Kiểm tra đơn vị tổ chức
     // =====================================================
-    const operator = await prisma.tour_operators.findUnique({
+    const operator = await prisma.tour_operators.findFirst({
       where: {
         id: operatorBigInt,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        user_id: true,
+        status: true,
       },
     });
 
     if (!operator) {
-      cleanupUploadedFiles(uploadedFiles);
+      return fail(404, "Đơn vị tổ chức tour không tồn tại");
+    }
 
-      return res.status(404).json({
-        success: false,
-        message: "Nhà cung cấp tour không tồn tại",
-      });
+    if (!operator.user_id) {
+      return fail(400, "Đơn vị tổ chức chưa có chủ tài khoản");
     }
 
     // =====================================================
-    // 5. Lấy ID chủ tour
+    // 6. Kiểm tra danh mục
     // =====================================================
-    const ownerId = operator.user_id;
-
-    if (!ownerId) {
-      cleanupUploadedFiles(uploadedFiles);
-
-      return res.status(400).json({
-        success: false,
-        message: "Đơn vị tổ chức chưa có chủ tài khoản",
-      });
-    }
-
-    // =====================================================
-    // 6. Convert category ID
-    // =====================================================
-    let categoryBigInt;
-
-    try {
-      categoryBigInt = BigInt(finalCategoryId);
-    } catch {
-      cleanupUploadedFiles(uploadedFiles);
-
-      return res.status(400).json({
-        success: false,
-        message: "ID danh mục không hợp lệ",
-      });
-    }
-
-    // =====================================================
-    // 7. Kiểm tra danh mục
-    // =====================================================
-    const category = await prisma.categories.findUnique({
+    const category = await prisma.categories.findFirst({
       where: {
         id: categoryBigInt,
+        deleted_at: null,
+        status: "active",
+      },
+      select: {
+        id: true,
       },
     });
 
     if (!category) {
-      cleanupUploadedFiles(uploadedFiles);
-
-      return res.status(404).json({
-        success: false,
-        message: "Loại tour không tồn tại",
-      });
+      return fail(404, "Danh mục tour không tồn tại hoặc đã bị vô hiệu hóa");
     }
+
+    // =====================================================
+    // 7. Chuẩn hóa tên và slug
+    // =====================================================
+    const finalName = name.trim();
+    const finalSlug = slug.trim();
 
     // =====================================================
     // 8. Kiểm tra slug trùng
     // =====================================================
-    const slugExists = await prisma.tours.findUnique({
+    const existingTour = await prisma.tours.findUnique({
       where: {
-        slug: slug.trim(),
+        slug: finalSlug,
+      },
+      select: {
+        id: true,
       },
     });
 
-    if (slugExists) {
-      cleanupUploadedFiles(uploadedFiles);
-
-      return res.status(409).json({
-        success: false,
-        message: "Slug tour đã tồn tại, vui lòng chọn tên hoặc slug khác",
-      });
+    if (existingTour) {
+      return fail(409, "Slug tour đã tồn tại, vui lòng chọn slug khác");
     }
 
     // =====================================================
-    // 9. Lấy đường dẫn file ảnh
+    // 9. Kiểm tra và chuẩn hóa giá
+    // =====================================================
+    const adultPrice = Number(price);
+
+    const childPrice =
+      child_price !== undefined &&
+        child_price !== null &&
+        String(child_price).trim() !== ""
+        ? Number(child_price)
+        : null;
+
+    const infantPrice =
+      infant_price !== undefined &&
+        infant_price !== null &&
+        String(infant_price).trim() !== ""
+        ? Number(infant_price)
+        : 0;
+
+    if (
+      !Number.isFinite(adultPrice) ||
+      adultPrice < 0 ||
+      (childPrice !== null &&
+        (!Number.isFinite(childPrice) || childPrice < 0)) ||
+      !Number.isFinite(infantPrice) ||
+      infantPrice < 0
+    ) {
+      return fail(400, "Giá tour và giá vé phải là số hợp lệ, không âm");
+    }
+
+    // =====================================================
+    // 10. Parse JSON
+    // =====================================================
+    const parseArray = (value, fieldName) => {
+      if (value === undefined || value === null || value === "") {
+        return [];
+      }
+
+      let parsed = value;
+
+      if (typeof value === "string") {
+        try {
+          parsed = JSON.parse(value);
+        } catch {
+          throw new Error(`${fieldName} phải là JSON hợp lệ`);
+        }
+      }
+
+      if (!Array.isArray(parsed)) {
+        throw new Error(`${fieldName} phải là một mảng`);
+      }
+
+      return parsed;
+    };
+
+    let parsedSchedules;
+    let parsedDestinations;
+    let parsedItineraries;
+
+    try {
+      parsedSchedules = parseArray(schedules, "Lịch khởi hành");
+      parsedDestinations = parseArray(destinations, "Điểm đến");
+      parsedItineraries = parseArray(itineraries, "Lịch trình");
+    } catch (error) {
+      return fail(400, error.message);
+    }
+
+    // =====================================================
+    // 11. Chuẩn hóa thông tin thời lượng và số người
+    // =====================================================
+    const parsePositiveInteger = (value, fallback, fieldName) => {
+      if (value === undefined || value === null || value === "") {
+        return fallback;
+      }
+
+      const number = Number(value);
+
+      if (!Number.isSafeInteger(number) || number < 1) {
+        throw new Error(`${fieldName} phải là số nguyên lớn hơn 0`);
+      }
+
+      return number;
+    };
+
+    let durationDays;
+    let durationNights;
+    let maxPeople;
+
+    try {
+      durationDays = parsePositiveInteger(duration_days, 1, "Số ngày tour");
+
+      durationNights =
+        duration_nights === undefined ||
+          duration_nights === null ||
+          duration_nights === ""
+          ? Math.max(durationDays - 1, 0)
+          : Number(duration_nights);
+
+      maxPeople = parsePositiveInteger(max_people, 30, "Số lượng khách tối đa");
+
+      if (!Number.isSafeInteger(durationNights) || durationNights < 0) {
+        throw new Error("Số đêm tour không hợp lệ");
+      }
+    } catch (error) {
+      return fail(400, error.message);
+    }
+
+    // =====================================================
+    // 12. Lấy ảnh
     // =====================================================
     const thumbnail = req.files?.thumbnail?.[0]?.path || req.file?.path || null;
 
     const galleryImages = req.files?.tour_images
-      ? req.files.tour_images.map((f) => f.path)
+      ? req.files.tour_images.map((file) => file.path).filter(Boolean)
       : [];
 
     // =====================================================
-    // 10. Parse JSON an toàn
-    // =====================================================
-    const parsedSchedules = safeJsonParse(schedules);
-    const parsedDestinations = safeJsonParse(destinations);
-    const parsedItineraries = safeJsonParse(itineraries);
-
-    // =====================================================
-    // 11. Chuẩn bị giá
-    // =====================================================
-    const adultPrice = Number(price);
-
-    const parsedChildPrice =
-      child_price !== undefined && child_price !== null && child_price !== ""
-        ? Number(child_price)
-        : null;
-
-    const parsedInfantPrice =
-      infant_price !== undefined && infant_price !== null && infant_price !== ""
-        ? Number(infant_price)
-        : 0;
-
-    // =====================================================
-    // 12. Tạo tour
+    // 13. Tạo tour thông qua service hiện tại
     // =====================================================
     const result = await createTourService({
       operator_id: operatorBigInt,
       category_id: categoryBigInt,
 
-      name: name.trim(),
-      slug: slug.trim(),
-
-      description: description?.trim() || null,
+      name: finalName,
+      slug: finalSlug,
+      description:
+        typeof description === "string" && description.trim()
+          ? description.trim()
+          : null,
 
       // Giá
       price: adultPrice,
-      child_price: parsedChildPrice,
-      infant_price: parsedInfantPrice,
+      child_price: childPrice,
+      infant_price: infantPrice,
 
-      // Thời gian
-      duration_days: Number(duration_days) || 1,
-      duration_nights: Number(duration_nights) || 0,
+      // Thời lượng
+      duration_days: durationDays,
+      duration_nights: durationNights,
 
       // Số lượng
-      max_people: Number(max_people) || 30,
+      max_people: maxPeople,
 
       // Thông tin tour
       difficulty_level: difficulty_level || "Dễ",
       transportation: transportation || "Xe du lịch",
       status: status || "active",
 
-      // Hình ảnh
+      // Ảnh
       thumbnail,
       galleryImages,
 
@@ -537,25 +630,23 @@ export const createTourController = async (req, res, next) => {
     });
 
     // =====================================================
-    // 13. Tạo ví tổng cho chủ tour nếu chưa có
+    // 14. Đảm bảo ví chủ tour tồn tại
     // =====================================================
-    const existingWallet = await prisma.wallets.findUnique({
+    // user_id có unique trong schema wallets.
+    // upsert tránh lỗi trùng khi nhiều request đồng thời.
+    await prisma.wallets.upsert({
       where: {
-        user_id: ownerId,
+        user_id: operator.user_id,
+      },
+      update: {},
+      create: {
+        user_id: operator.user_id,
+        balance: 0,
       },
     });
 
-    if (!existingWallet) {
-      await prisma.wallets.create({
-        data: {
-          user_id: ownerId,
-          balance: 0,
-        },
-      });
-    }
-
     // =====================================================
-    // 14. Response
+    // 15. Trả kết quả
     // =====================================================
     return res.status(201).json({
       success: true,
@@ -564,40 +655,114 @@ export const createTourController = async (req, res, next) => {
     });
   } catch (error) {
     // =====================================================
-    // Rollback file nếu có lỗi
+    // 16. Dọn file nếu xảy ra lỗi
     // =====================================================
-    cleanupUploadedFiles(uploadedFiles);
+    cleanupUploadedFiles(uniqueUploadedFiles);
 
-    next(error);
+    return next(error);
   }
 };
 
 // get chi tiet tour
+// =========================================================================
+// 2. LẤY CHI TIẾT TOUR
+// =========================================================================
+
 export const getOneTour = async (req, res, next) => {
   try {
     const idTour = BigInt(req.params.id);
 
-    const tour = await prisma.tours.findUnique({
+    const tour = await prisma.tours.findFirst({
       where: {
         id: idTour,
+        deleted_at: null,
       },
+
       include: {
+        // =========================
+        // CATEGORY
+        // =========================
         category: true,
+
+        // =========================
+        // OPERATOR
+        // =========================
+        operator: {
+          select: {
+            id: true,
+            user_id: true,
+            company_name: true,
+            phone: true,
+            email: true,
+          },
+        },
+
+        // =========================
+        // GALLERY IMAGES
+        // =========================
         images: {
-          where: { deleted_at: null },
-          orderBy: { sort_order: "asc" },
+          where: {
+            deleted_at: null,
+          },
+          orderBy: {
+            sort_order: "asc",
+          },
         },
+
+        // =========================
+        // TICKET TYPES
+        // =========================
+        ticket_types: {
+          where: {
+            deleted_at: null,
+          },
+          orderBy: {
+            price: "asc",
+          },
+        },
+
+        // =========================
+        // PICKUP POINTS
+        // =========================
+        pickup_points: {
+          where: {
+            deleted_at: null,
+          },
+          orderBy: {
+            surcharge: "asc",
+          },
+        },
+
+        // =========================
+        // SCHEDULES
+        // =========================
         schedules: {
-          where: { deleted_at: null },
-          orderBy: { departure_date: "asc" },
+          where: {
+            deleted_at: null,
+          },
+          orderBy: {
+            departure_date: "asc",
+          },
         },
+
+        // =========================
+        // ITINERARIES
+        // =========================
         itineraries: {
-          where: { deleted_at: null },
-          orderBy: { day_number: "asc" },
+          where: {
+            deleted_at: null,
+          },
+          orderBy: {
+            day_number: "asc",
+          },
           include: {
             activities: {
-              where: { deleted_at: null },
-              orderBy: { visit_order: "asc" },
+              where: {
+                deleted_at: null,
+              },
+              orderBy: {
+                visit_order: "asc",
+              },
               include: {
                 destination: {
                   select: {
@@ -618,6 +783,9 @@ export const getOneTour = async (req, res, next) => {
       },
     });
 
+    // =========================
+    // KHÔNG TÌM THẤY TOUR
+    // =========================
     if (!tour) {
       return res.status(404).json({
         success: false,
@@ -625,29 +793,104 @@ export const getOneTour = async (req, res, next) => {
       });
     }
 
-    // Format dữ liệu trả về cho client (serialize BigInt và Decimal)
+    // =====================================================
+    // FORMAT DATA
+    // =====================================================
+
     const data = {
+      // =========================
+      // THÔNG TIN CƠ BẢN
+      // =========================
       id: tour.id.toString(),
+
       operator_id: tour.operator_id.toString(),
+
       category_id: tour.category_id.toString(),
 
       name: tour.name,
+
       slug: tour.slug,
+
       description: tour.description,
 
-      // === CÁC LOẠI GIÁ VÉ THEO SCHEMA MỚI ===
-      price: tour.price ? tour.price.toString() : "0", // Người lớn
-      child_price: tour.child_price ? tour.child_price.toString() : null, // Trẻ em
-      infant_price: tour.infant_price ? tour.infant_price.toString() : "0", // Em bé
+      // =========================
+      // LOẠI TOUR
+      // =========================
+      supported_tour_types: tour.supported_tour_types || [],
 
-      duration_days: tour.duration_days,
-      duration_nights: tour.duration_nights,
+      is_customizable: tour.is_customizable,
+
+      min_people: tour.min_people,
+
       max_people: tour.max_people,
 
+      // =========================
+      // GIÁ CƠ BẢN
+      // =========================
+      base_price: tour.base_price ? tour.base_price.toString() : "0",
+
+      // =========================
+      // THỜI GIAN
+      // =========================
+      duration_days: tour.duration_days,
+
+      duration_nights: tour.duration_nights,
+
+      // =========================
+      // THÔNG TIN TOUR
+      // =========================
       difficulty_level: tour.difficulty_level,
+
       transportation: tour.transportation,
 
       thumbnail: tour.thumbnail,
+
+      status: tour.status,
+
+      // =========================
+      // TIMESTAMP
+      // =========================
+      created_at: tour.created_at,
+
+      updated_at: tour.updated_at,
+
+      deleted_at: tour.deleted_at,
+
+      // =========================
+      // CATEGORY
+      // =========================
+      category: tour.category
+        ? {
+          id: tour.category.id.toString(),
+          name: tour.category.name,
+          description: tour.category.description,
+          image: tour.category.image,
+          status: tour.category.status,
+        }
+        : null,
+
+      // =========================
+      // OPERATOR
+      // =========================
+      operator: tour.operator
+        ? {
+          id: tour.operator.id.toString(),
+
+          user_id: tour.operator.user_id
+            ? tour.operator.user_id.toString()
+            : null,
+
+          company_name: tour.operator.company_name,
+
+          phone: tour.operator.phone,
+
+          email: tour.operator.email,
+        }
+        : null,
+
+      // =========================
+      // GALLERY IMAGES
+      // =========================
       gallery_images:
         tour.images?.map((img) => ({
           id: img.id.toString(),
@@ -655,79 +898,197 @@ export const getOneTour = async (req, res, next) => {
           sort_order: img.sort_order,
         })) || [],
 
-      status: tour.status,
+      // =========================
+      // TICKET TYPES
+      // =========================
+      ticket_types:
+        tour.ticket_types?.map((ticket) => ({
+          id: ticket.id.toString(),
 
-      created_at: tour.created_at,
-      updated_at: tour.updated_at,
-      deleted_at: tour.deleted_at,
+          tour_id: ticket.tour_id.toString(),
 
-      category: tour.category
-        ? {
-            id: tour.category.id.toString(),
-            name: tour.category.name,
-            description: tour.category.description,
-            image: tour.category.image,
-            status: tour.category.status,
-          }
-        : null,
+          // QUAN TRỌNG:
+          // Loại tour mà ticket này áp dụng
+          tour_type: ticket.tour_type,
 
-      schedules: tour.schedules.map((schedule) => ({
-        id: schedule.id.toString(),
-        tour_id: schedule.tour_id.toString(),
-        departure_date: schedule.departure_date,
-        departure_time: schedule.departure_time,
-        return_date: schedule.return_date,
-        return_time: schedule.return_time,
-        total_slots: schedule.total_slots,
-        available_slots: schedule.available_slots,
-        status: schedule.status,
-        created_at: schedule.created_at,
-        updated_at: schedule.updated_at,
-      })),
+          category: ticket.category,
 
-      itineraries: tour.itineraries.map((itinerary) => ({
-        id: itinerary.id.toString(),
-        tour_id: itinerary.tour_id.toString(),
-        day_number: itinerary.day_number,
-        title: itinerary.title,
-        description: itinerary.description,
+          name: ticket.name,
 
-        activities: itinerary.activities.map((activity) => ({
-          id: activity.id.toString(),
-          itinerary_id: activity.itinerary_id.toString(),
-          destination_id: activity.destination_id
-            ? activity.destination_id.toString()
+          code: ticket.code,
+
+          description: ticket.description,
+
+          price: ticket.price ? ticket.price.toString() : "0",
+
+          total_pax: ticket.total_pax,
+
+          adult_pax: ticket.adult_pax,
+
+          child_pax: ticket.child_pax,
+
+          infant_pax: ticket.infant_pax,
+
+          min_quantity: ticket.min_quantity,
+
+          max_quantity: ticket.max_quantity,
+
+          status: ticket.status,
+
+          created_at: ticket.created_at,
+
+          deleted_at: ticket.deleted_at,
+        })) || [],
+
+      // =========================
+      // PICKUP POINTS
+      // =========================
+      pickup_points:
+        tour.pickup_points?.map((pickup) => ({
+          id: pickup.id.toString(),
+
+          tour_id: pickup.tour_id.toString(),
+
+          name: pickup.name,
+
+          address: pickup.address,
+
+          pickup_time: pickup.pickup_time,
+
+          surcharge: pickup.surcharge ? pickup.surcharge.toString() : "0",
+
+          created_at: pickup.created_at,
+
+          deleted_at: pickup.deleted_at,
+        })) || [],
+
+      // =========================
+      // LỊCH KHỞI HÀNH
+      // =========================
+      schedules:
+        tour.schedules?.map((schedule) => ({
+          id: schedule.id.toString(),
+
+          tour_id: schedule.tour_id.toString(),
+
+          lead_booker_id: schedule.lead_booker_id
+            ? schedule.lead_booker_id.toString()
             : null,
-          start_time: activity.start_time
-            ? activity.start_time.toISOString().slice(11, 19)
-            : null,
-          end_time: activity.end_time
-            ? activity.end_time.toISOString().slice(11, 19)
-            : null,
-          title: activity.title,
-          description: activity.description,
-          activity_type: activity.activity_type,
-          visit_order: activity.visit_order,
-          transportation: activity.transportation,
-          estimated_cost: activity.estimated_cost
-            ? activity.estimated_cost.toString()
-            : null,
-          note: activity.note,
-          destination: activity.destination
-            ? {
-                id: activity.destination.id.toString(),
-                name: activity.destination.name,
-                description: activity.destination.description,
-                address: activity.destination.address,
-                province: activity.destination.province,
-                latitude: activity.destination.latitude?.toString(),
-                longitude: activity.destination.longitude?.toString(),
-                image: activity.destination.image,
-              }
-            : null,
-        })),
-      })),
+
+          // QUAN TRỌNG:
+          // Loại tour mà lịch này áp dụng
+          tour_type: schedule.tour_type,
+
+          departure_date: schedule.departure_date,
+
+          departure_time: schedule.departure_time,
+
+          return_date: schedule.return_date,
+
+          return_time: schedule.return_time,
+
+          total_slots: schedule.total_slots,
+
+          available_slots: schedule.available_slots,
+
+          // Không còn min_slots
+
+          is_private: schedule.is_private,
+
+          status: schedule.status,
+
+          created_at: schedule.created_at,
+
+          updated_at: schedule.updated_at,
+
+          deleted_at: schedule.deleted_at,
+        })) || [],
+
+      // =========================
+      // LỊCH TRÌNH
+      // =========================
+      itineraries:
+        tour.itineraries?.map((itinerary) => ({
+          id: itinerary.id.toString(),
+
+          tour_id: itinerary.tour_id.toString(),
+
+          day_number: itinerary.day_number,
+
+          title: itinerary.title,
+
+          description: itinerary.description,
+
+          // =========================
+          // HOẠT ĐỘNG
+          // =========================
+          activities:
+            itinerary.activities?.map((activity) => ({
+              id: activity.id.toString(),
+
+              itinerary_id: activity.itinerary_id.toString(),
+
+              destination_id: activity.destination_id
+                ? activity.destination_id.toString()
+                : null,
+
+              start_time: activity.start_time
+                ? activity.start_time.toISOString().slice(11, 19)
+                : null,
+
+              end_time: activity.end_time
+                ? activity.end_time.toISOString().slice(11, 19)
+                : null,
+
+              title: activity.title,
+
+              description: activity.description,
+
+              activity_type: activity.activity_type,
+
+              visit_order: activity.visit_order,
+
+              transportation: activity.transportation,
+
+              estimated_cost: activity.estimated_cost
+                ? activity.estimated_cost.toString()
+                : null,
+
+              note: activity.note,
+
+              // =========================
+              // DESTINATION
+              // =========================
+              destination: activity.destination
+                ? {
+                  id: activity.destination.id.toString(),
+
+                  name: activity.destination.name,
+
+                  description: activity.destination.description,
+
+                  address: activity.destination.address,
+
+                  province: activity.destination.province,
+
+                  latitude: activity.destination.latitude
+                    ? activity.destination.latitude.toString()
+                    : null,
+
+                  longitude: activity.destination.longitude
+                    ? activity.destination.longitude.toString()
+                    : null,
+
+                  image: activity.destination.image,
+                }
+                : null,
+            })) || [],
+        })) || [],
     };
+
+    // =====================================================
+    // RESPONSE
+    // =====================================================
 
     return res.status(200).json({
       success: true,
@@ -741,57 +1102,566 @@ export const getOneTour = async (req, res, next) => {
 };
 
 // =========================================================================
-// 3. LẤY DANH SÁCH TẤT CẢ TOUR (GET ALL TOURS)
+// 3. LẤY DANH SÁCH TẤT CẢ TOUR
 // =========================================================================
+
 export const getAllTour = async (req, res, next) => {
   try {
-    const { keyword } = req.query;
+    // =====================================================
+    // KIỂM TRA ROLE NGƯỜI DÙNG
+    // =====================================================
 
-    const tours = await prisma.tours.findMany({
+    const idUser = BigInt(req.user.id);
+
+    const userRole = await prisma.user_roles.findFirst({
       where: {
+        user_id: idUser,
         deleted_at: null,
-        status: "active",
-        ...(keyword && {
-          OR: [
-            { name: { contains: keyword.trim(), mode: "insensitive" } },
-            { description: { contains: keyword.trim(), mode: "insensitive" } },
-            { slug: { contains: keyword.trim(), mode: "insensitive" } },
-          ],
-        }),
       },
+
       include: {
-        category: {
-          select: { id: true, name: true },
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
-      },
-      orderBy: {
-        id: "desc",
       },
     });
 
-    const data = tours.map((tour) => ({
-      ...tour,
+    const roleName = userRole?.role?.name;
+
+    // Chỉ cho phép 3 role
+    if (
+      roleName !== "ADMIN" &&
+      roleName !== "STAFF" &&
+      roleName !== "TOUR_OPERATOR_OWNER"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền quản lý tour",
+      });
+    }
+
+    // =====================================================
+    // ĐIỀU KIỆN LẤY TOUR
+    // =====================================================
+
+    let where = {
+      deleted_at: null,
+    };
+
+    // =====================================================
+    // ADMIN + STAFF
+    // =====================================================
+
+    if (roleName === "ADMIN" || roleName === "STAFF") {
+      where = {
+        deleted_at: null,
+      };
+    }
+
+    // =====================================================
+    // TOUR OPERATOR OWNER
+    // =====================================================
+
+    if (roleName === "TOUR_OPERATOR_OWNER") {
+      where = {
+        deleted_at: null,
+
+        operator: {
+          user_id: idUser,
+          deleted_at: null,
+        },
+      };
+    }
+
+    // =====================================================
+    // LẤY DANH SÁCH TOUR
+    // =====================================================
+
+    const toursResult = await prisma.tours.findMany({
+      where,
+
+      include: {
+        // =========================
+        // CATEGORY
+        // =========================
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        // =========================
+        // OPERATOR
+        // =========================
+        operator: {
+          select: {
+            id: true,
+            company_name: true,
+            phone: true,
+            email: true,
+          },
+        },
+
+        // =========================
+        // TICKET TYPES
+        // =========================
+        ticket_types: {
+          where: {
+            deleted_at: null,
+          },
+
+          orderBy: {
+            price: "asc",
+          },
+        },
+
+        // =========================
+        // PICKUP POINTS
+        // =========================
+        pickup_points: {
+          where: {
+            deleted_at: null,
+          },
+
+          orderBy: {
+            surcharge: "asc",
+          },
+        },
+
+        // =========================
+        // SCHEDULES
+        // =========================
+        schedules: {
+          where: {
+            deleted_at: null,
+          },
+
+          orderBy: {
+            departure_date: "asc",
+          },
+        },
+      },
+
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+
+    // =====================================================
+    // FORMAT DATA
+    // =====================================================
+
+    const tours = toursResult.map((tour) => ({
       id: tour.id.toString(),
-      operator_id: tour.operator_id ? tour.operator_id.toString() : null,
-      category_id: tour.category_id ? tour.category_id.toString() : null,
-      // Format giá sang string để tránh tràn số JSON
-      price: tour.price ? tour.price.toString() : "0",
-      child_price: tour.child_price ? tour.child_price.toString() : null,
-      infant_price: tour.infant_price ? tour.infant_price.toString() : "0",
+
+      operator_id: tour.operator_id.toString(),
+
+      category_id: tour.category_id.toString(),
+
+      name: tour.name,
+
+      slug: tour.slug,
+
+      description: tour.description,
+
+      supported_tour_types: tour.supported_tour_types || [],
+
+      is_customizable: tour.is_customizable,
+
+      min_people: tour.min_people,
+
+      max_people: tour.max_people,
+
+      base_price: tour.base_price ? tour.base_price.toString() : "0",
+
+      duration_days: tour.duration_days,
+
+      duration_nights: tour.duration_nights,
+
+      difficulty_level: tour.difficulty_level,
+
+      transportation: tour.transportation,
+
+      thumbnail: tour.thumbnail,
+
+      status: tour.status,
+
+      created_at: tour.created_at,
+
+      updated_at: tour.updated_at,
+
+      deleted_at: tour.deleted_at,
+
       category: tour.category
         ? {
-            id: tour.category.id.toString(),
-            name: tour.category.name,
-          }
+          id: tour.category.id.toString(),
+          name: tour.category.name,
+        }
         : null,
+
+      operator: tour.operator
+        ? {
+          id: tour.operator.id.toString(),
+          company_name: tour.operator.company_name,
+          phone: tour.operator.phone,
+          email: tour.operator.email,
+        }
+        : null,
+
+      ticket_types:
+        tour.ticket_types?.map((ticket) => ({
+          id: ticket.id.toString(),
+
+          tour_id: ticket.tour_id.toString(),
+
+          tour_type: ticket.tour_type,
+
+          category: ticket.category,
+
+          name: ticket.name,
+
+          code: ticket.code,
+
+          description: ticket.description,
+
+          price: ticket.price ? ticket.price.toString() : "0",
+
+          total_pax: ticket.total_pax,
+
+          adult_pax: ticket.adult_pax,
+
+          child_pax: ticket.child_pax,
+
+          infant_pax: ticket.infant_pax,
+
+          min_quantity: ticket.min_quantity,
+
+          max_quantity: ticket.max_quantity,
+
+          status: ticket.status,
+
+          created_at: ticket.created_at,
+
+          deleted_at: ticket.deleted_at,
+        })) || [],
+
+      pickup_points:
+        tour.pickup_points?.map((pickup) => ({
+          id: pickup.id.toString(),
+
+          tour_id: pickup.tour_id.toString(),
+
+          name: pickup.name,
+
+          address: pickup.address,
+
+          pickup_time: pickup.pickup_time,
+
+          surcharge: pickup.surcharge ? pickup.surcharge.toString() : "0",
+
+          created_at: pickup.created_at,
+
+          deleted_at: pickup.deleted_at,
+        })) || [],
+
+      schedules:
+        tour.schedules?.map((schedule) => ({
+          id: schedule.id.toString(),
+
+          tour_id: schedule.tour_id.toString(),
+
+          lead_booker_id: schedule.lead_booker_id
+            ? schedule.lead_booker_id.toString()
+            : null,
+
+          tour_type: schedule.tour_type,
+
+          departure_date: schedule.departure_date,
+
+          departure_time: schedule.departure_time,
+
+          return_date: schedule.return_date,
+
+          return_time: schedule.return_time,
+
+          total_slots: schedule.total_slots,
+
+          available_slots: schedule.available_slots,
+
+          is_private: schedule.is_private,
+
+          status: schedule.status,
+
+          created_at: schedule.created_at,
+
+          updated_at: schedule.updated_at,
+
+          deleted_at: schedule.deleted_at,
+        })) || [],
     }));
+
+    // =====================================================
+    // RESPONSE
+    // =====================================================
 
     return res.status(200).json({
       success: true,
-      message: "Lấy danh sách tour thành công",
-      data,
+      count: tours.length,
+      tours,
     });
   } catch (error) {
+    console.error("GET ALL TOUR ERROR:", error);
+    next(error);
+  }
+};
+
+// =========================================================================
+// 4. LẤY DANH SÁCH TẤT CẢ TOUR PUBLIC
+// =========================================================================
+
+export const getAllTourPublic = async (req, res, next) => {
+  try {
+    const toursResult = await prisma.tours.findMany({
+      where: {
+        deleted_at: null,
+      },
+
+      include: {
+        // =========================
+        // CATEGORY
+        // =========================
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        // =========================
+        // OPERATOR
+        // =========================
+        operator: {
+          select: {
+            id: true,
+            company_name: true,
+            phone: true,
+            email: true,
+          },
+        },
+
+        // =========================
+        // TICKET TYPES
+        // =========================
+        ticket_types: {
+          where: {
+            deleted_at: null,
+          },
+
+          orderBy: {
+            price: "asc",
+          },
+        },
+
+        // =========================
+        // PICKUP POINTS
+        // =========================
+        pickup_points: {
+          where: {
+            deleted_at: null,
+          },
+
+          orderBy: {
+            surcharge: "asc",
+          },
+        },
+
+        // =========================
+        // SCHEDULES
+        // =========================
+        schedules: {
+          where: {
+            deleted_at: null,
+          },
+
+          orderBy: {
+            departure_date: "asc",
+          },
+        },
+      },
+
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+
+    // =====================================================
+    // FORMAT DATA
+    // =====================================================
+
+    const tours = toursResult.map((tour) => ({
+      id: tour.id.toString(),
+
+      operator_id: tour.operator_id.toString(),
+
+      category_id: tour.category_id.toString(),
+
+      name: tour.name,
+
+      slug: tour.slug,
+
+      description: tour.description,
+
+      supported_tour_types: tour.supported_tour_types || [],
+
+      is_customizable: tour.is_customizable,
+
+      min_people: tour.min_people,
+
+      max_people: tour.max_people,
+
+      base_price: tour.base_price ? tour.base_price.toString() : "0",
+
+      duration_days: tour.duration_days,
+
+      duration_nights: tour.duration_nights,
+
+      difficulty_level: tour.difficulty_level,
+
+      transportation: tour.transportation,
+
+      thumbnail: tour.thumbnail,
+
+      status: tour.status,
+
+      created_at: tour.created_at,
+
+      updated_at: tour.updated_at,
+
+      deleted_at: tour.deleted_at,
+
+      category: tour.category
+        ? {
+          id: tour.category.id.toString(),
+          name: tour.category.name,
+        }
+        : null,
+
+      operator: tour.operator
+        ? {
+          id: tour.operator.id.toString(),
+          company_name: tour.operator.company_name,
+          phone: tour.operator.phone,
+          email: tour.operator.email,
+        }
+        : null,
+
+      ticket_types:
+        tour.ticket_types?.map((ticket) => ({
+          id: ticket.id.toString(),
+
+          tour_id: ticket.tour_id.toString(),
+
+          tour_type: ticket.tour_type,
+
+          category: ticket.category,
+
+          name: ticket.name,
+
+          code: ticket.code,
+
+          description: ticket.description,
+
+          price: ticket.price ? ticket.price.toString() : "0",
+
+          total_pax: ticket.total_pax,
+
+          adult_pax: ticket.adult_pax,
+
+          child_pax: ticket.child_pax,
+
+          infant_pax: ticket.infant_pax,
+
+          min_quantity: ticket.min_quantity,
+
+          max_quantity: ticket.max_quantity,
+
+          status: ticket.status,
+
+          created_at: ticket.created_at,
+
+          deleted_at: ticket.deleted_at,
+        })) || [],
+
+      pickup_points:
+        tour.pickup_points?.map((pickup) => ({
+          id: pickup.id.toString(),
+
+          tour_id: pickup.tour_id.toString(),
+
+          name: pickup.name,
+
+          address: pickup.address,
+
+          pickup_time: pickup.pickup_time,
+
+          surcharge: pickup.surcharge ? pickup.surcharge.toString() : "0",
+
+          created_at: pickup.created_at,
+
+          deleted_at: pickup.deleted_at,
+        })) || [],
+
+      schedules:
+        tour.schedules?.map((schedule) => ({
+          id: schedule.id.toString(),
+
+          tour_id: schedule.tour_id.toString(),
+
+          lead_booker_id: schedule.lead_booker_id
+            ? schedule.lead_booker_id.toString()
+            : null,
+
+          tour_type: schedule.tour_type,
+
+          departure_date: schedule.departure_date,
+
+          departure_time: schedule.departure_time,
+
+          return_date: schedule.return_date,
+
+          return_time: schedule.return_time,
+
+          total_slots: schedule.total_slots,
+
+          available_slots: schedule.available_slots,
+
+          is_private: schedule.is_private,
+
+          status: schedule.status,
+
+          created_at: schedule.created_at,
+
+          updated_at: schedule.updated_at,
+
+          deleted_at: schedule.deleted_at,
+        })) || [],
+    }));
+
+    // =====================================================
+    // RESPONSE
+    // =====================================================
+
+    return res.status(200).json({
+      success: true,
+      count: tours.length,
+      tours,
+    });
+  } catch (error) {
+    console.error("GET ALL TOUR PUBLIC ERROR:", error);
     next(error);
   }
 };
@@ -1917,6 +2787,7 @@ export const getSchedulesByTour = async (req, res, next) => {
         total_slots: schedule.total_slots,
         available_slots: schedule.available_slots,
         status: schedule.status,
+        tour_type: schedule.tour_type,
       })),
     });
   } catch (error) {
@@ -2109,7 +2980,7 @@ export const getAllItineraries = async (req, res, next) => {
             slug: true,
             duration_days: true,
             duration_nights: true,
-            price: true,
+            price: item.tour.price ? Number(item.tour.price.toString()) : 0,
           },
         },
         // Danh sách hoạt động trong ngày
@@ -2145,13 +3016,13 @@ export const getAllItineraries = async (req, res, next) => {
       // Thông tin tour kèm theo
       tour: item.tour
         ? {
-            id: item.tour.id.toString(),
-            name: item.tour.name,
-            slug: item.tour.slug,
-            duration_days: item.tour.duration_days,
-            duration_nights: item.tour.duration_nights,
-            price: item.tour.price ? Number(item.tour.price.toString()) : 0,
-          }
+          id: item.tour.id.toString(),
+          name: item.tour.name,
+          slug: item.tour.slug,
+          duration_days: item.tour.duration_days,
+          duration_nights: item.tour.duration_nights,
+          price: item.tour.price ? Number(item.tour.price.toString()) : 0,
+        }
         : null,
 
       // Danh sách hoạt động chi tiết
@@ -2173,10 +3044,10 @@ export const getAllItineraries = async (req, res, next) => {
 
         destination: activity.destination
           ? {
-              id: activity.destination.id.toString(),
-              name: activity.destination.name,
-              province: activity.destination.province,
-            }
+            id: activity.destination.id.toString(),
+            name: activity.destination.name,
+            province: activity.destination.province,
+          }
           : null,
       })),
     }));
@@ -2189,5 +3060,411 @@ export const getAllItineraries = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+
+
+
+/// nhận yêu cầu tour đoàn
+
+export const reqTourDoan = async (req, res) => {
+  try {
+    const {
+      tour_id,
+      company_name,
+      contact_name,
+      contact_phone,
+      contact_email,
+      estimated_pax,
+      departure_date,
+      duration_days,
+      budget_per_pax,
+      special_requirements,
+    } = req.body;
+
+    // Lấy ID người dùng đã đăng nhập
+    const user_id = req.user?.id;
+
+    // Kiểm tra đăng nhập
+    if (!user_id) {
+      return res.status(401).json({
+        success: false,
+        message: "Vui lòng đăng nhập để gửi yêu cầu tour đoàn.",
+      });
+    }
+
+    // Kiểm tra thông tin bắt buộc
+    if (
+      !contact_name ||
+      !contact_phone ||
+      !contact_email ||
+      estimated_pax == null ||
+      !departure_date
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập đầy đủ thông tin bắt buộc.",
+      });
+    }
+
+    // Kiểm tra số lượng người
+    const soNguoi = Number(estimated_pax);
+
+    if (!Number.isInteger(soNguoi) || soNguoi < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Số người tham gia phải là số nguyên lớn hơn 0.",
+      });
+    }
+
+    // Kiểm tra ngày khởi hành
+    const ngayKhoiHanh = new Date(departure_date);
+
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(departure_date) ||
+      Number.isNaN(ngayKhoiHanh.getTime()) ||
+      ngayKhoiHanh.toISOString().slice(0, 10) !== departure_date
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày khởi hành không hợp lệ.",
+      });
+    }
+
+    if (ngayKhoiHanh < new Date(new Date().toISOString().slice(0, 10))) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày khởi hành không được ở trong quá khứ.",
+      });
+    }
+
+    // Kiểm tra thời lượng tour
+    let soNgay = null;
+
+    if (duration_days != null && duration_days !== "") {
+      soNgay = Number(duration_days);
+
+      if (!Number.isInteger(soNgay) || soNgay < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Thời lượng tour phải là số nguyên lớn hơn 0.",
+        });
+      }
+    }
+
+    // Kiểm tra ngân sách
+    let nganSach = null;
+
+    if (budget_per_pax != null && budget_per_pax !== "") {
+      nganSach = Number(budget_per_pax);
+
+      if (!Number.isFinite(nganSach) || nganSach < 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Ngân sách mỗi người không hợp lệ.",
+        });
+      }
+    }
+
+    // Kiểm tra tour có sẵn nếu khách cung cấp tour_id
+    let tourId = null;
+
+    if (tour_id != null && tour_id !== "") {
+      tourId = BigInt(tour_id);
+
+      const tour = await prisma.tours.findFirst({
+        where: {
+          id: tourId,
+          deleted_at: null,
+          status: "active",
+        },
+        select: { id: true },
+      });
+
+      if (!tour) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy tour đang hoạt động.",
+        });
+      }
+    }
+
+    // Chống tạo yêu cầu trùng: cùng user + cùng tour + cùng ngày khởi hành
+    // đang ở trạng thái chờ xử lý trong vòng 10 phút gần đây.
+    const trungLap = await prisma.custom_tour_requests.findFirst({
+      where: {
+        user_id: BigInt(user_id),
+        tour_id: tourId,
+        departure_date: ngayKhoiHanh,
+        estimated_pax: soNguoi,
+        status: "pending",
+        created_at: { gte: new Date(Date.now() - 10 * 60 * 1000) },
+      },
+      select: { id: true },
+    });
+
+    if (trungLap) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "Bạn đã gửi một yêu cầu tương tự gần đây. Vui lòng chờ xử lý hoặc thay đổi thông tin.",
+      });
+    }
+
+    // Lưu yêu cầu vào database
+    const yeuCau = await prisma.custom_tour_requests.create({
+      data: {
+        user_id: BigInt(user_id),
+        tour_id: tourId,
+        company_name: company_name?.trim() || null,
+        contact_name: contact_name.trim(),
+        contact_phone: contact_phone.trim(),
+        contact_email: contact_email.trim(),
+        estimated_pax: soNguoi,
+        departure_date: ngayKhoiHanh,
+        duration_days: soNgay,
+        budget_per_pax: nganSach,
+        special_requirements:
+          special_requirements?.trim() || null,
+        status: "pending",
+      },
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Gửi yêu cầu tour đoàn thành công.",
+      data: {
+        ...yeuCau,
+        id: yeuCau.id.toString(),
+        user_id: yeuCau.user_id.toString(),
+        tour_id: yeuCau.tour_id?.toString() ?? null,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi reqTourDoan:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể lưu yêu cầu tour đoàn.",
+    });
+  }
+};
+
+
+
+// lấy ra yêu cầu tour đoàn
+
+export const allYeuCauTourDoan = async (req, res) => {
+  try {
+    const yeuCauTourDoan = await prisma.custom_tour_requests.findMany({
+      orderBy: {
+        created_at: 'desc',
+      },
+      include: {
+        tour: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Lấy danh sách yêu cầu tour đoàn thành công',
+      data: yeuCauTourDoan.map((item) => ({
+        ...item,
+        id: item.id.toString(),
+        user_id: item.user_id.toString(),
+        tour_id: item.tour_id?.toString() ?? null,
+        tour: item.tour
+          ? { ...item.tour, id: item.tour.id.toString() }
+          : null,
+      })),
+    });
+  } catch (error) {
+    console.error('Lỗi lấy danh sách yêu cầu tour đoàn:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Không thể lấy danh sách yêu cầu tour đoàn',
+    });
+  }
+};
+
+
+// bảng phản hồi người yêu cầu
+
+export const phanHoi = async (req, res) => {
+  try {
+
+    const { request_id, message } = req.body;
+
+    // 1. Kiểm tra dữ liệu đầu vào
+    if (
+      request_id === undefined ||
+      request_id === null ||
+      !/^[1-9]\d*$/.test(String(request_id))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã yêu cầu tour không hợp lệ.",
+      });
+    }
+
+    if (typeof message !== "string" || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập nội dung phản hồi.",
+      });
+    }
+
+    if (message.trim().length > 2000) {
+      return res.status(400).json({
+        success: false,
+        message: "Nội dung phản hồi không được vượt quá 2000 ký tự.",
+      });
+    }
+
+    const requestId = BigInt(request_id);
+
+    // 2. Kiểm tra yêu cầu tour tồn tại
+    const yeuCau = await prisma.custom_tour_requests.findUnique({
+      where: {
+        id: requestId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!yeuCau) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy yêu cầu đặt tour.",
+      });
+    }
+
+    // 3. Lấy người gửi từ middleware xác thực
+    // Cần bảo đảm route đã dùng middleware xác thực
+    // và kiểm tra quyền admin/nhân viên.
+    const senderId = req.user?.id;
+
+    if (senderId === undefined || senderId === null) {
+      return res.status(401).json({
+        success: false,
+        message: "Vui lòng đăng nhập để gửi phản hồi.",
+      });
+    }
+
+    // 4. Lưu phản hồi vào database
+    const phanHoiMoi = await prisma.tour_negotiation_messages.create({
+      data: {
+        request_id: requestId,
+        sender_id: BigInt(senderId),
+        message: message.trim(),
+        message_type: "text",
+      },
+    });
+
+    // 5. Trả dữ liệu JSON
+    return res.status(201).json({
+      success: true,
+      message: "Gửi phản hồi thành công.",
+      data: {
+        id: phanHoiMoi.id.toString(),
+        request_id: phanHoiMoi.request_id.toString(),
+        sender_id: phanHoiMoi.sender_id?.toString() ?? null,
+        message: phanHoiMoi.message,
+        message_type: phanHoiMoi.message_type,
+        created_at: phanHoiMoi.created_at,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi phản hồi yêu cầu đặt tour:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể gửi phản hồi.",
+    });
+  }
+};
+
+
+/// lây ra lịch sử phản hồi
+
+export const layRaLichSuPhanHoi = async (req, res) => {
+  try {
+    console.log(req.params)
+    const { request_id } = req.params;
+
+    // Kiểm tra mã yêu cầu
+    if (!request_id || !/^\d+$/.test(request_id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã yêu cầu đặt tour không hợp lệ.",
+      });
+    }
+
+    // Kiểm tra yêu cầu đặt tour có tồn tại không
+    const yeuCau = await prisma.custom_tour_requests.findUnique({
+      where: {
+        id: BigInt(request_id),
+      },
+    });
+
+    if (!yeuCau) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy yêu cầu đặt tour.",
+      });
+    }
+
+    // Lấy lịch sử phản hồi của yêu cầu
+    const lichSuPhanHoi =
+      await prisma.tour_negotiation_messages.findMany({
+        where: {
+          request_id: BigInt(request_id),
+        },
+        orderBy: {
+          created_at: "asc",
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              full_name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+    // Chuyển BigInt thành chuỗi để trả JSON
+    const data = lichSuPhanHoi.map((item) => ({
+      ...item,
+      id: item.id.toString(),
+      request_id: item.request_id.toString(),
+      quotation_id: item.quotation_id?.toString() ?? null,
+      sender_id: item.sender_id?.toString() ?? null,
+      sender: item.sender
+        ? {
+          ...item.sender,
+          id: item.sender.id.toString(),
+        }
+        : null,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Lấy lịch sử phản hồi thành công.",
+      data,
+    });
+  } catch (error) {
+    console.error("Lỗi lấy lịch sử phản hồi:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể lấy lịch sử phản hồi.",
+    });
   }
 };

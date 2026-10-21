@@ -69,7 +69,7 @@ defineExpose({ clearAllFilters });
 </script>
 
 <template>
-  <aside class="w-full">
+  <aside class="tour-filter w-full">
     <div
       class="rounded-2xl border border-white/[0.08] bg-[#0f131c] p-5 shadow-sm"
     >
@@ -214,3 +214,48 @@ defineExpose({ clearAllFilters });
     </div>
   </aside>
 </template>
+
+<style scoped>
+.tour-filter :deep(> div) {
+  border-color: #e2e8f0 !important;
+  background-color: #fff !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.tour-filter :deep([class*="bg-[#090b10"]),
+.tour-filter :deep([class*="bg-white/"]) {
+  background-color: #f8fafc !important;
+}
+
+.tour-filter :deep([class*="border-white/"]) {
+  border-color: #e2e8f0 !important;
+}
+
+.tour-filter :deep(.text-white) {
+  color: #1e293b !important;
+}
+
+.tour-filter :deep([class*="text-amber-200"]) {
+  color: #2563eb !important;
+}
+
+.tour-filter :deep([class*="bg-amber-400/"]) {
+  background-color: #eff6ff !important;
+}
+
+.tour-filter :deep([class*="border-amber-300/"]) {
+  border-color: #bfdbfe !important;
+}
+
+.tour-filter :deep(input[type="checkbox"]) {
+  accent-color: #2563eb;
+}
+
+.tour-filter :deep([class*="hover:bg-white/"]:hover) {
+  background-color: #f8fafc !important;
+}
+
+.tour-filter :deep([class*="hover:text-white"]:hover) {
+  color: #1e293b !important;
+}
+</style>

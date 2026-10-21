@@ -1,8 +1,8 @@
 <template>
   <!-- 1. Bọc relative, bỏ toàn bộ màu nền đè để lộ ảnh -->
-  <div class="relative min-h-screen text-white pt-20 pb-16">
+  <div class="customer-redesign relative min-h-screen text-white pt-20 pb-16">
     <!-- 2. Khung nền chuẩn z-0 pointer-events-none, dùng ảnh cục bộ /hero-bg.jpg -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="customer-atmosphere fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <img
         src="/hero-bg.jpg"
         alt="Travel sunset"
@@ -16,7 +16,7 @@
       ></div>
 
       <div
-        class="absolute left-1/2 top-0 h-[600px] w-[850px] -translate-x-1/2 rounded-full bg-orange-400/15 blur-[160px]"
+        class="absolute left-1/2 top-0 h-[600px] w-[850px] -translate-x-1/2 rounded-full bg-blue-400/10 blur-[160px]"
       ></div>
     </div>
 
@@ -32,10 +32,10 @@
         >
           <div>
             <div
-              class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-200 backdrop-blur-xl"
+              class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700"
             >
               <span
-                class="h-2 w-2 rounded-full bg-orange-300 shadow-[0_0_8px_rgba(253,186,116,0.8)]"
+                class="h-2 w-2 rounded-full bg-blue-600"
               ></span>
 
               Saved journeys
@@ -62,7 +62,7 @@
             class="flex w-fit items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.08] px-5 py-4 backdrop-blur-xl shadow-card"
           >
             <div
-              class="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-400/20 text-xl text-rose-300"
+              class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl text-rose-500"
             >
               ♥
             </div>
@@ -394,7 +394,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <div
-                    class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-600 font-bold text-slate-950"
+                    class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 font-bold text-white"
                   >
                     A
                   </div>
@@ -422,7 +422,7 @@
 
               <div class="mt-5">
                 <span
-                  class="rounded-full border border-orange-300/30 bg-orange-400/15 px-3 py-1.5 text-[10px] font-bold text-orange-200"
+                  class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-700"
                 >
                   Bài viết
                 </span>
@@ -438,7 +438,7 @@
                 </p>
 
                 <div class="mt-4 flex flex-wrap gap-2">
-                  <span class="text-xs font-semibold text-orange-300">
+                  <span class="text-xs font-semibold text-blue-600">
                     #HaGiang
                   </span>
 
@@ -459,7 +459,7 @@
 
                 <RouterLink
                   to="/community"
-                  class="text-xs font-semibold text-orange-200 transition hover:text-white"
+                  class="text-xs font-semibold text-blue-700 transition hover:text-blue-800"
                 >
                   Xem bài viết →
                 </RouterLink>
@@ -469,17 +469,17 @@
             <!-- AI ITINERARY -->
 
             <article
-              class="relative overflow-hidden rounded-[26px] border border-orange-300/20 bg-gradient-to-br from-orange-400/15 via-white/[0.06] to-transparent p-6 shadow-2xl md:col-span-2"
+              class="relative overflow-hidden rounded-[26px] border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-transparent p-6 shadow-2xl md:col-span-2"
             >
               <div
-                class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-orange-300/15 blur-3xl"
+                class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-blue-300/15 blur-3xl"
               ></div>
 
               <div class="relative">
                 <div class="flex items-start justify-between">
                   <div>
                     <span
-                      class="rounded-full border border-orange-300/30 bg-orange-300/15 px-3 py-1.5 text-[10px] font-bold text-orange-200 uppercase tracking-wider"
+                      class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-700 uppercase tracking-wider"
                     >
                       ✨ AI ITINERARY
                     </span>
@@ -638,7 +638,7 @@
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-white">Sắp đi?</h3>
 
-              <span class="text-xs font-bold text-orange-300"> 01 chuyến </span>
+              <span class="text-xs font-bold text-blue-600"> 01 chuyến </span>
             </div>
 
             <div
@@ -670,7 +670,7 @@
           <!-- AI SUGGESTION -->
 
           <div
-            class="rounded-[24px] border border-orange-300/20 bg-gradient-to-br from-orange-400/15 via-white/[0.06] to-transparent p-5 backdrop-blur-2xl"
+            class="rounded-[24px] border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-transparent p-5"
           >
             <div class="text-2xl">✨</div>
 
@@ -714,3 +714,62 @@
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #0f172a;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #0f172a;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+</style>

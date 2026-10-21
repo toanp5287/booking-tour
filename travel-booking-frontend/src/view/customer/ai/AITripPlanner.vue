@@ -1,9 +1,9 @@
 <template>
   <div
-    class="relative min-h-screen bg-[#090b10] font-sans text-slate-100 antialiased selection:bg-amber-300/20 selection:text-amber-200"
+    class="customer-redesign relative min-h-screen bg-[#090b10] font-sans text-slate-100 antialiased selection:bg-amber-300/20 selection:text-amber-200"
   >
     <!-- BACKGROUND ATMOSPHERE -->
-    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="customer-atmosphere fixed inset-0 z-0 pointer-events-none overflow-hidden">
       <div
         class="absolute inset-0 bg-gradient-to-b from-[#090b10]/70 via-[#090b10]/95 to-[#090b10]"
       ></div>
@@ -517,3 +517,67 @@
     </main>
   </div>
 </template>
+
+<style scoped>
+.customer-redesign {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.customer-atmosphere {
+  display: none;
+}
+
+.customer-redesign :is([class^="bg-[#"], [class*=" bg-[#"]):not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-black/"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-white/"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="bg-slate-800"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-slate-900"]:not([class~="absolute"]):not([class~="fixed"]),
+.customer-redesign [class*="bg-gray-900"]:not([class~="absolute"]):not([class~="fixed"]) {
+  border-color: #e2e8f0;
+  background-color: #fff;
+  box-shadow: 0 3px 14px rgba(30, 41, 59, 0.06);
+  backdrop-filter: none;
+}
+
+.customer-redesign [class*="text-white"],
+.customer-redesign [class*="text-slate-100"],
+.customer-redesign [class*="text-slate-200"],
+.customer-redesign [class*="text-slate-300"] {
+  color: #334155;
+}
+
+.customer-redesign [class*="border-white/"] {
+  border-color: #e2e8f0;
+}
+
+.customer-redesign h1,
+.customer-redesign h2,
+.customer-redesign h3,
+.customer-redesign h4 {
+  color: #1e293b;
+}
+
+.customer-redesign input,
+.customer-redesign select,
+.customer-redesign textarea {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #273444;
+}
+
+.customer-redesign a:hover {
+  color: #2563eb;
+}
+
+.customer-redesign [class*="text-slate-400"] {
+  color: #64748b;
+}
+
+</style>

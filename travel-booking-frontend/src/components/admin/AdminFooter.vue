@@ -1,5 +1,5 @@
 <template>
-  <footer class="relative mt-10 overflow-hidden border-t border-white/10">
+  <footer class="admin-footer relative mt-10 overflow-hidden border-t">
     <img
       src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2400&q=90"
       alt="Sunset"
@@ -12,7 +12,7 @@
       class="absolute inset-0 bg-gradient-to-t from-[#070a10] via-[#070a10]/80 to-transparent"
     ></div>
 
-    <div class="relative px-5 py-10 sm:px-8 lg:px-10">
+    <div class="footer-content relative px-5 py-10 sm:px-8 lg:px-10">
       <div
         class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
       >
