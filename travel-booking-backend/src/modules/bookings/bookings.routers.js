@@ -15,6 +15,7 @@ import {
   vnpayReturn,
   myBooking,
   refund_pending,
+  cancelBookingCustomer,
   thanhToanHet,
 } from "./bookings.controller.js";
 
@@ -41,6 +42,7 @@ router.get("/:id", verifyToken, requireBookingManage, getDetailBooking);
 router.get("/", verifyToken, requireBookingManage, getBookingAdmin);
 router.patch("/:id/duyet", verifyToken, requireBookingManage, duyetDon);
 
+router.patch("/:id/cancel", verifyToken, cancelBookingCustomer);
 router.patch("/:id/refund_pending", verifyToken, refund_pending);
 router.post("/:id/pay-full", verifyToken, thanhToanHet);
 // router.patch("/:id/hoanTien", verifyToken, hoanTien);

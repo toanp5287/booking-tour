@@ -268,6 +268,18 @@ const canRefund = (booking) => {
   if (getPaidAmount(booking) <= 0) return false;
 
   const status = normalizeStatus(booking.status);
+  if (status === "REFUND_PENDING" || status === "REFUNDED") return false;
+
+  const refundState = getRefundPaymentState(booking);
+  if (refundState === "REFUND_PENDING" || refundState === "REFUNDED") return false;
+
+  const refundStatus = String(booking?.refund_status || "")
+    .trim()
+    .toUpperCase();
+  if (["REFUND_PENDING", "REFUNDED", "COMPLETED"].includes(refundStatus)) {
+    return false;
+  }
+
   // Khách chỉ được xin hoàn tiền khi đơn ĐÃ XÁC NHẬN hoặc ĐÃ HỦY (chưa hoàn)
   return ["CONFIRMED", "CANCELLED"].includes(status);
 };
@@ -1115,7 +1127,11 @@ const handleViewDetail = async (booking) => {
 
                   <!-- Trạng thái chờ hoàn tiền -->
                   <span
-                    v-if="normalizeStatus(booking.status) === 'REFUND_PENDING'"
+                    v-if="
+                      normalizeStatus(booking.status) === 'REFUND_PENDING' ||
+                      booking.refund_status === 'REFUND_PENDING' ||
+                      getRefundPaymentState(booking) === 'REFUND_PENDING'
+                    "
                     class="inline-flex items-center gap-1 rounded-xl border border-orange-400/30 bg-orange-400/10 px-3 py-1.5 text-xs font-medium text-orange-200"
                   >
                     ⏳ Chờ duyệt hoàn tiền
@@ -1123,7 +1139,12 @@ const handleViewDetail = async (booking) => {
 
                   <!-- Đã hoàn tiền -->
                   <span
-                    v-if="normalizeStatus(booking.status) === 'REFUNDED'"
+                    v-if="
+                      normalizeStatus(booking.status) === 'REFUNDED' ||
+                      booking.refund_status === 'REFUNDED' ||
+                      booking.refund_status === 'COMPLETED' ||
+                      getRefundPaymentState(booking) === 'REFUNDED'
+                    "
                     class="inline-flex items-center gap-1 rounded-xl border border-teal-400/30 bg-teal-400/10 px-3 py-1.5 text-xs font-medium text-teal-200"
                   >
                     ✓ Đã hoàn tiền về ví

@@ -28,8 +28,11 @@ const bookingService = {
   duyetDon(id, data) {
     return api.patch(`/booking/${id}/duyet`, data);
   },
-  refund_pending(idBooking) {
-    return api.patch(`/booking/${idBooking}/refund_pending`);
+  refund_pending(idBooking, data = {}) {
+    return api.patch(`/booking/${idBooking}/refund_pending`, data);
+  },
+  cancelBooking(idBooking, reason) {
+    return api.patch(`/booking/${idBooking}/cancel`, { reason });
   },
   payFull(idBooking) {
     return api.post(`/booking/${idBooking}/pay-full`)

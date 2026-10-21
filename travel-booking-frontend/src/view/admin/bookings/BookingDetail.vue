@@ -1,11 +1,14 @@
 <script setup>
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import { useRoute, RouterLink } from "vue-router";
 import bookingService from "../../../services/booking.service";
-import { useQuery } from "@tanstack/vue-query";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
+import Swal from "sweetalert2";
 
 const route = useRoute();
+const queryClient = useQueryClient();
 const id = route.params.id;
+const isUpdating = ref(false);
 
 const { data: bookingDetail, isLoading } = useQuery({
   queryKey: ["bookingDetail", id],
@@ -118,6 +121,103 @@ const lastCancelHistory = computed(() => {
   const histories = bookingDetail.value?.status_histories || [];
   return histories.find((h) => normalizeStatus(h.new_status) === "CANCELLED");
 });
+
+const handleAdminAction = async (targetStatus) => {
+  const norm = normalizeStatus(targetStatus);
+  let reason = "";
+
+  if (norm === "CANCELLED") {
+    const result = await Swal.fire({
+      title: "Hủy đơn & hoàn tiền vào ví",
+      html: `
+        <div style="text-align:left;line-height:1.7;">
+          <p>Nhập lý do hủy booking <strong>#BK-${id}</strong>:</p>
+          <p style="color:#f59e0b;font-size:12px;margin-top:6px;">Hệ thống sẽ tính tỷ lệ hoàn tiền theo chính sách và hoàn tiền ngay vào ví người đặt.</p>
+        </div>
+      `,
+      input: "textarea",
+      inputPlaceholder: "Nhập lý do hủy đơn...",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận hủy & hoàn tiền",
+      cancelButtonText: "Quay lại",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+      inputValidator: (value) => {
+        if (!value || !value.trim()) return "Vui lòng nhập lý do hủy đơn";
+        return null;
+      },
+    });
+
+    if (!result.isConfirmed) return;
+    reason = (result.value || "").trim();
+  } else if (norm === "REFUNDED") {
+    const refundAmountText = bookingDetail.value?.refund_amount
+      ? formatCurrency(bookingDetail.value.refund_amount)
+      : "theo chính sách";
+    const result = await Swal.fire({
+      title: "Duyệt hoàn tiền vào ví",
+      html: `
+        <div style="text-align:left;line-height:1.7;">
+          <p>Xác nhận duyệt hoàn tiền <strong>${refundAmountText}</strong> vào ví nội bộ của khách hàng cho đơn <strong>#BK-${id}</strong>?</p>
+          <p style="color:#22c55e;font-size:12px;margin-top:6px;">Tiền sẽ được cộng ngay vào ví khách và khấu trừ từ ví đối tác trong cùng giao dịch an toàn.</p>
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận duyệt hoàn tiền",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#22c55e",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+  } else if (norm === "REFUND_PENDING") {
+    const result = await Swal.fire({
+      title: "Xử lý hoàn tiền",
+      text: "Chuyển đơn sang trạng thái chờ hoàn tiền để ban quản trị duyệt?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#f59e0b",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+  }
+
+  isUpdating.value = true;
+  try {
+    const payload = { status: norm };
+    if (reason) payload.reason = reason;
+
+    const res = await bookingService.duyetDon(id, payload);
+    if (!res?.data?.success) {
+      throw new Error(res?.data?.message || "Cập nhật đơn thất bại");
+    }
+
+    await Swal.fire({
+      title: "Thành công",
+      text: res?.data?.message || "Đã cập nhật trạng thái đơn thành công.",
+      icon: "success",
+      confirmButtonColor: "#f97316",
+    });
+
+    await queryClient.invalidateQueries({ queryKey: ["bookingDetail", id] });
+  } catch (err) {
+    await Swal.fire({
+      title: "Lỗi",
+      text: err?.response?.data?.message || err?.message || "Không thể thực hiện thao tác",
+      icon: "error",
+      confirmButtonColor: "#ef4444",
+    });
+  } finally {
+    isUpdating.value = false;
+  }
+};
 </script>
 
 <template>
@@ -658,7 +758,7 @@ const lastCancelHistory = computed(() => {
 
               <!-- THÔNG TIN HOÀN TIỀN -->
               <div
-                v-if="normalizeStatus(bookingDetail.status) === 'CANCELLED' || normalizeStatus(bookingDetail.status) === 'REFUNDED' || bookingDetail.refunds?.length"
+                v-if="normalizeStatus(bookingDetail.status) === 'CANCELLED' || normalizeStatus(bookingDetail.status) === 'REFUNDED' || normalizeStatus(bookingDetail.status) === 'REFUND_PENDING' || bookingDetail.refunds?.length"
                 class="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200"
               >
                 <div class="mb-2 flex items-center gap-2 font-semibold">
@@ -670,6 +770,46 @@ const lastCancelHistory = computed(() => {
                   <div>Số tiền đã hoàn: <span class="font-medium">{{ formatCurrency(bookingDetail.refund_amount || 0) }}</span></div>
                   <div>Tiền đã thu: <span class="font-medium">{{ formatCurrency(bookingDetail.paid_amount || 0) }}</span></div>
                   <div v-if="lastCancelHistory?.reason">Lý do hủy: <span class="font-medium">{{ lastCancelHistory.reason }}</span></div>
+                </div>
+              </div>
+
+              <!-- THAO TÁC QUẢN TRỊ (DUYỆT HOÀN TIỀN / HỦY ĐƠN) -->
+              <div
+                v-if="normalizeStatus(bookingDetail.status) === 'REFUND_PENDING' || ['CONFIRMED', 'READY', 'PAID'].includes(normalizeStatus(bookingDetail.status)) || (normalizeStatus(bookingDetail.status) === 'CANCELLED' && Number(bookingDetail.paid_amount || 0) > 0 && bookingDetail.refund_status !== 'COMPLETED' && bookingDetail.refund_status !== 'REFUNDED')"
+                class="space-y-2 border-t border-white/[0.06] pt-4"
+              >
+                <span class="block text-xs font-semibold uppercase tracking-wider text-white/40">Thao tác xử lý đơn</span>
+                <div class="flex flex-col gap-2">
+                  <button
+                    v-if="normalizeStatus(bookingDetail.status) === 'REFUND_PENDING'"
+                    type="button"
+                    :disabled="isUpdating"
+                    @click="handleAdminAction('REFUNDED')"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 px-4 py-2.5 text-xs font-bold text-white transition shadow-lg shadow-emerald-500/20"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">verified</span>
+                    Duyệt hoàn tiền vào ví khách
+                  </button>
+                  <button
+                    v-if="['CONFIRMED', 'READY', 'PAID'].includes(normalizeStatus(bookingDetail.status))"
+                    type="button"
+                    :disabled="isUpdating"
+                    @click="handleAdminAction('CANCELLED')"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 px-4 py-2.5 text-xs font-bold text-white transition shadow-lg shadow-rose-600/20"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">cancel</span>
+                    Hủy đơn & hoàn tiền vào ví
+                  </button>
+                  <button
+                    v-if="normalizeStatus(bookingDetail.status) === 'CANCELLED' && Number(bookingDetail.paid_amount || 0) > 0 && bookingDetail.refund_status !== 'COMPLETED' && bookingDetail.refund_status !== 'REFUNDED'"
+                    type="button"
+                    :disabled="isUpdating"
+                    @click="handleAdminAction('REFUND_PENDING')"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 px-4 py-2.5 text-xs font-bold text-slate-950 transition shadow-lg shadow-amber-500/20"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">currency_exchange</span>
+                    Xử lý hoàn tiền (Chờ duyệt)
+                  </button>
                 </div>
               </div>
 

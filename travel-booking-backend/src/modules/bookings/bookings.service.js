@@ -77,11 +77,12 @@ export const TERMINAL_BOOKING_STATUSES = [
 export const ALLOWED_BOOKING_TRANSITIONS = {
   [BOOKING_STATUS.PENDING]: [BOOKING_STATUS.CONFIRMED, BOOKING_STATUS.CANCELLED],
 
-  // Đã thanh toán hợp lệ: đón khách / đánh dấu vắng mặt / hủy
+  // Đã thanh toán hợp lệ: đón khách / đánh dấu vắng mặt / hủy / yêu cầu hoàn tiền
   [BOOKING_STATUS.CONFIRMED]: [
     BOOKING_STATUS.CHECKED_IN,
     BOOKING_STATUS.NO_SHOW,
     BOOKING_STATUS.CANCELLED,
+    BOOKING_STATUS.REFUND_PENDING,
   ],
 
   [BOOKING_STATUS.CHECKED_IN]: [BOOKING_STATUS.IN_PROGRESS],
