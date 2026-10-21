@@ -2,48 +2,65 @@ import { PrismaClient, TourType, TicketCategory } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Ngày tương lai tính từ thời điểm chạy seed để dữ liệu mẫu luôn còn hiệu lực.
+const dayFromNow = (days: number) => new Date(Date.now() + days * DAY_MS);
+
 async function cleanTourDataOnly() {
   console.log(
     "🧹 Đang dọn dữ liệu từ Tour trở xuống (GIỮ NGUYÊN Users & Phân quyền)..."
   );
 
-  // ============================================================
-  // 1. BOOKING & GIAO DỊCH
-  // ============================================================
-  await prisma.reviews.deleteMany();
-  await prisma.refunds.deleteMany();
-  await prisma.payments.deleteMany();
-  await prisma.payment_installments.deleteMany();
-  await prisma.tickets.deleteMany();
-  await prisma.booking_details.deleteMany();
-  await prisma.booking_ticket_items.deleteMany();
-  await prisma.booking_addons.deleteMany();
-  await prisma.booking_coupons.deleteMany();
-  await prisma.booking_status_histories.deleteMany();
-  await prisma.bookings.deleteMany();
-  await prisma.payment_holds.deleteMany();
+  // Toàn bộ bước dọn nằm trong 1 transaction: hoặc thành công hết, hoặc rollback hết.
+  await prisma.$transaction([
+    // ============================================================
+    // 1. BOOKING & GIAO DỊCH
+    // ============================================================
+    prisma.reviews.deleteMany(),
+    prisma.refunds.deleteMany(),
+    prisma.payments.deleteMany(),
+    prisma.payment_installments.deleteMany(),
+    prisma.tickets.deleteMany(),
+    prisma.booking_details.deleteMany(),
+    prisma.booking_ticket_items.deleteMany(),
+    prisma.booking_addons.deleteMany(),
+    prisma.booking_coupons.deleteMany(),
+    prisma.booking_status_histories.deleteMany(),
+    prisma.bookings.deleteMany(),
+    prisma.payment_holds.deleteMany(),
 
-  // ============================================================
-  // 2. CHI TIẾT TOUR
-  // ============================================================
-  await prisma.itinerary_activities.deleteMany();
-  await prisma.tour_itineraries.deleteMany();
-  await prisma.tour_destinations.deleteMany();
-  await prisma.tour_images.deleteMany();
-  await prisma.tour_pickup_points.deleteMany();
-  await prisma.ticket_types.deleteMany();
-  await prisma.tour_pricing_tiers.deleteMany();
-  await prisma.tour_addons.deleteMany();
-  await prisma.tour_schedules.deleteMany();
-  await prisma.custom_tour_requests.deleteMany();
+    // ============================================================
+    // 2. BÁO GIÁ / HỢP ĐỒNG / THƯƠNG LƯỢNG
+    //    (tour_contracts FK -> tour_quotations là Restrict:
+    //     phải xóa contracts TRƯỚC quotations, và cả 3 TRƯỚC custom_tour_requests)
+    // ============================================================
+    prisma.tour_negotiation_messages.deleteMany(),
+    prisma.tour_contracts.deleteMany(),
+    prisma.tour_quotations.deleteMany(),
+    prisma.custom_tour_requests.deleteMany(),
 
-  // ============================================================
-  // 3. TOUR / DESTINATION / CATEGORY / COUPON
-  // ============================================================
-  await prisma.tours.deleteMany();
-  await prisma.destinations.deleteMany();
-  await prisma.categories.deleteMany();
-  await prisma.coupons.deleteMany();
+    // ============================================================
+    // 3. CHI TIẾT TOUR
+    // ============================================================
+    prisma.itinerary_activities.deleteMany(),
+    prisma.tour_itineraries.deleteMany(),
+    prisma.tour_destinations.deleteMany(),
+    prisma.tour_images.deleteMany(),
+    prisma.tour_pickup_points.deleteMany(),
+    prisma.ticket_types.deleteMany(),
+    prisma.tour_pricing_tiers.deleteMany(),
+    prisma.tour_addons.deleteMany(),
+    prisma.tour_schedules.deleteMany(),
+
+    // ============================================================
+    // 4. TOUR / DESTINATION / CATEGORY / COUPON
+    // ============================================================
+    prisma.tours.deleteMany(),
+    prisma.destinations.deleteMany(),
+    prisma.categories.deleteMany(),
+    prisma.coupons.deleteMany(),
+  ]);
 
   console.log("✨ Đã dọn sạch dữ liệu Tour cũ thành công!\n");
 }
@@ -432,10 +449,10 @@ async function main() {
           {
             tour_type: TourType.SIC,
 
-            departure_date: new Date("2026-10-15"),
+            departure_date: dayFromNow(7),
             departure_time: new Date("1970-01-01T07:30:00Z"),
 
-            return_date: new Date("2026-10-17"),
+            return_date: dayFromNow(9),
             return_time: new Date("1970-01-01T17:30:00Z"),
 
             total_slots: 35,
@@ -450,10 +467,10 @@ async function main() {
           {
             tour_type: TourType.SIC,
 
-            departure_date: new Date("2026-10-22"),
+            departure_date: dayFromNow(14),
             departure_time: new Date("1970-01-01T07:30:00Z"),
 
-            return_date: new Date("2026-10-24"),
+            return_date: dayFromNow(16),
             return_time: new Date("1970-01-01T17:30:00Z"),
 
             total_slots: 35,
@@ -471,10 +488,10 @@ async function main() {
           {
             tour_type: TourType.PRIVATE,
 
-            departure_date: new Date("2026-10-20"),
+            departure_date: dayFromNow(10),
             departure_time: new Date("1970-01-01T08:00:00Z"),
 
-            return_date: new Date("2026-10-22"),
+            return_date: dayFromNow(12),
             return_time: new Date("1970-01-01T17:00:00Z"),
 
             total_slots: 7,
@@ -492,10 +509,10 @@ async function main() {
           {
             tour_type: TourType.GROUP,
 
-            departure_date: new Date("2026-10-25"),
+            departure_date: dayFromNow(17),
             departure_time: new Date("1970-01-01T07:30:00Z"),
 
-            return_date: new Date("2026-10-27"),
+            return_date: dayFromNow(19),
             return_time: new Date("1970-01-01T17:30:00Z"),
 
             total_slots: 35,
@@ -815,13 +832,13 @@ async function main() {
             tour_type: TourType.PRIVATE,
 
             departure_date:
-              new Date("2026-10-18"),
+              dayFromNow(12),
 
             departure_time:
               new Date("1970-01-01T08:00:00Z"),
 
             return_date:
-              new Date("2026-10-19"),
+              dayFromNow(13),
 
             return_time:
               new Date("1970-01-01T16:00:00Z"),
@@ -842,13 +859,13 @@ async function main() {
             tour_type: TourType.GROUP,
 
             departure_date:
-              new Date("2026-10-30"),
+              dayFromNow(20),
 
             departure_time:
               new Date("1970-01-01T08:00:00Z"),
 
             return_date:
-              new Date("2026-10-31"),
+              dayFromNow(21),
 
             return_time:
               new Date("1970-01-01T16:00:00Z"),
@@ -1014,10 +1031,10 @@ async function main() {
         used_count: 5,
 
         start_date:
-          new Date("2026-05-01"),
+          new Date(),
 
         end_date:
-          new Date("2026-12-31"),
+          dayFromNow(365),
 
         status: "active",
       },
@@ -1040,10 +1057,10 @@ async function main() {
         used_count: 2,
 
         start_date:
-          new Date("2026-01-01"),
+          new Date(),
 
         end_date:
-          new Date("2026-12-31"),
+          dayFromNow(365),
 
         status: "active",
       },
@@ -1066,10 +1083,10 @@ async function main() {
         used_count: 0,
 
         start_date:
-          new Date("2026-01-01"),
+          new Date(),
 
         end_date:
-          new Date("2026-12-31"),
+          dayFromNow(365),
 
         status: "active",
       },
@@ -1100,7 +1117,7 @@ async function main() {
         estimated_pax: 12,
 
         departure_date:
-          new Date("2026-11-10"),
+          dayFromNow(30),
 
         duration_days: 4,
 

@@ -204,7 +204,7 @@ const applyVoucher = () => {
 <template>
   <aside class="light-booking-summary">
     <div
-      class="sticky top-24 overflow-hidden rounded-[2rem] border border-white/20 bg-white/[0.11] shadow-[0_35px_100px_rgba(0,0,0,0.38)] backdrop-blur-2xl"
+      class="sticky top-24 overflow-hidden rounded-2xl border border-white/20 bg-white/[0.11] backdrop-blur-2xl"
     >
       <!-- HÌNH ẢNH & TÊN TOUR -->
       <div class="relative h-44">
@@ -401,13 +401,9 @@ const applyVoucher = () => {
           type="button"
           :disabled="isSubmitting"
           @click="handleThanhToan"
-          class="group relative mt-6 block w-full overflow-hidden rounded-xl bg-orange-400 py-4 text-sm font-bold text-slate-900 shadow-sm transition-colors duration-200 hover:bg-orange-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+          class="relative mt-6 block min-h-12 w-full overflow-hidden rounded-xl bg-orange-400 px-4 py-3 text-sm font-bold text-slate-900 transition-[background-color,box-shadow] duration-200 hover:bg-orange-500 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <span
-            class="absolute inset-y-0 -left-full w-1/2 skew-x-[-20deg] bg-gradient-to-r from-transparent via-black/5 to-transparent transition-all duration-700 group-hover:left-[130%]"
-          ></span>
-
-          <span class="relative flex items-center justify-center gap-2">
+          <span class="flex items-center justify-center gap-2">
             <svg
               v-if="isSubmitting"
               class="h-4 w-4 animate-spin text-slate-900"
@@ -478,7 +474,7 @@ const applyVoucher = () => {
 .light-booking-summary > div {
   border-color: #e2e8f0 !important;
   background-color: #fff !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+  box-shadow: var(--shadow-card);
 }
 
 .light-booking-summary :deep([class*="border-white/"]) {
@@ -499,11 +495,11 @@ const applyVoucher = () => {
 }
 
 .light-booking-summary :deep([class*="text-orange-200"]) {
-  color: #2563eb !important;
+  color: var(--travel-warning) !important;
 }
 
 .light-booking-summary :deep([class*="text-orange-300"]) {
-  color: #2563eb !important;
+  color: var(--travel-warning) !important;
 }
 
 .light-booking-summary :deep([class*="text-emerald-400"]) {

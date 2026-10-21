@@ -147,7 +147,7 @@ watch(
 
 <template>
   <div
-    class="light-surface rounded-[28px] border border-white/20 bg-black/45 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
+    class="light-surface rounded-2xl border border-white/20 bg-black/45 p-5 backdrop-blur-2xl sm:p-6"
   >
     <!-- ================= THÔNG TIN NGƯỜI ĐẶT ================= -->
     <div>
@@ -440,7 +440,7 @@ watch(
 .light-surface {
   border-color: #e2e8f0 !important;
   background: #fff !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
 }
 
 .light-surface :deep([class*="border-white/"]) {
@@ -461,7 +461,7 @@ watch(
 }
 
 .light-surface :deep([class*="text-orange-300"]) {
-  color: #2563eb !important;
+  color: var(--travel-warning) !important;
 }
 
 .light-surface :deep(input),
@@ -475,5 +475,13 @@ watch(
 .light-surface :deep(input::placeholder),
 .light-surface :deep(textarea::placeholder) {
   color: #94a3b8 !important;
+}
+
+.light-surface :deep(input:focus-visible),
+.light-surface :deep(select:focus-visible),
+.light-surface :deep(textarea:focus-visible) {
+  border-color: var(--travel-focus) !important;
+  outline: 2px solid color-mix(in srgb, var(--travel-focus) 20%, transparent);
+  outline-offset: 1px;
 }
 </style>

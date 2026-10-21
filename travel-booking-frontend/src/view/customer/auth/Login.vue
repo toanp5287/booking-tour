@@ -145,7 +145,7 @@ onMounted(() => {
         ================================================== -->
 
         <div
-          class="relative overflow-hidden rounded-[2.25rem] border border-white/30 bg-white/[0.13] backdrop-blur-[28px] shadow-[0_35px_100px_rgba(0,0,0,0.45)] p-7 sm:p-9"
+          class="travel-surface relative overflow-hidden rounded-2xl p-6 sm:p-9"
         >
           <!-- =================================================
                GLASS REFLECTION
@@ -153,16 +153,6 @@ onMounted(() => {
 
           <div
             class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/20 via-white/5 to-transparent"
-          ></div>
-
-          <!-- Top-right glow -->
-          <div
-            class="pointer-events-none absolute -top-32 -right-32 w-72 h-72 rounded-full bg-white/10 blur-[80px]"
-          ></div>
-
-          <!-- Bottom glow -->
-          <div
-            class="pointer-events-none absolute -bottom-32 -left-32 w-72 h-72 rounded-full bg-white/10 blur-[80px]"
           ></div>
 
           <!-- =================================================
@@ -180,10 +170,6 @@ onMounted(() => {
               >
                 <span class="relative flex w-2 h-2">
                   <span
-                    class="absolute inline-flex w-full h-full rounded-full bg-white/50 animate-ping"
-                  ></span>
-
-                  <span
                     class="relative inline-flex w-2 h-2 rounded-full bg-white"
                   ></span>
                 </span>
@@ -197,13 +183,11 @@ onMounted(() => {
             ================================================== -->
 
             <div class="text-center mb-8">
-              <h1
-                class="text-[32px] sm:text-[36px] font-bold tracking-[-0.03em] text-white drop-shadow-[0_4px_15px_rgba(0,0,0,0.25)]"
-              >
+              <h1 class="text-[32px] font-bold tracking-[-0.03em] text-travel-ink sm:text-[36px]">
                 Chào mừng trở lại
               </h1>
 
-              <p class="mt-3 text-sm leading-6 text-white/65">
+              <p class="mt-3 text-sm leading-6 text-travel-muted">
                 Đăng nhập để tiếp tục hành trình khám phá thế giới cùng
                 TravelGo.
               </p>
@@ -254,7 +238,7 @@ onMounted(() => {
                     name="email"
                     placeholder="you@example.com"
                     required
-                    class="peer w-full rounded-[17px] border border-white/20 bg-black/15 backdrop-blur-xl px-12 py-[15px] text-sm text-white placeholder-white/35 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 hover:border-white/30 focus:border-white/55 focus:bg-black/20 focus:ring-4 focus:ring-white/10"
+                    class="peer w-full rounded-xl border border-slate-200 bg-white px-12 py-3.5 text-sm text-travel-ink placeholder:text-slate-400 outline-none transition-[border-color,box-shadow] duration-200 hover:border-slate-300 focus:border-travel-teal focus:ring-4 focus:ring-teal-100"
                   />
                 </div>
               </div>
@@ -316,7 +300,7 @@ onMounted(() => {
                     name="password"
                     placeholder="Nhập mật khẩu"
                     required
-                    class="w-full rounded-[17px] border border-white/20 bg-black/15 backdrop-blur-xl px-12 py-[15px] text-sm text-white placeholder-white/35 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 hover:border-white/30 focus:border-white/55 focus:bg-black/20 focus:ring-4 focus:ring-white/10"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-12 py-3.5 text-sm text-travel-ink placeholder:text-slate-400 outline-none transition-[border-color,box-shadow] duration-200 hover:border-slate-300 focus:border-travel-teal focus:ring-4 focus:ring-teal-100"
                   />
                 </div>
               </div>
@@ -344,14 +328,8 @@ onMounted(() => {
 
               <button
                 type="submit"
-                class="group relative w-full overflow-hidden rounded-[17px] bg-white py-[15px] text-sm font-bold text-slate-900 shadow-[0_15px_35px_rgba(0,0,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(0,0,0,0.35)] active:translate-y-0"
+                class="group relative min-h-12 w-full overflow-hidden rounded-xl bg-travel-orange px-4 py-3 text-sm font-bold text-travel-blue transition-[background-color,box-shadow] duration-200 hover:bg-amber-500"
               >
-                <!-- Button shine -->
-
-                <span
-                  class="absolute inset-y-0 -left-full w-1/2 skew-x-[-20deg] bg-gradient-to-r from-transparent via-black/5 to-transparent transition-all duration-700 group-hover:left-[130%]"
-                ></span>
-
                 <span class="relative flex items-center justify-center gap-2">
                   Đăng nhập
 

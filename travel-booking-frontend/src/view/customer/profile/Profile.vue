@@ -156,7 +156,7 @@ const joinYear = computed(() => {
            PROFILE COVER
       ====================================================== -->
       <section
-        class="customer-hero relative overflow-hidden rounded-[32px] border border-white/15 bg-white/[0.08] shadow-2xl backdrop-blur-2xl"
+        class="customer-hero relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
         <!-- COVER -->
         <div class="relative h-[260px] sm:h-[320px]">

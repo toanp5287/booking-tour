@@ -41,51 +41,49 @@ const goToGroupRequests = () => {
   <div
     class="customer-redesign min-h-screen bg-[#07090d] text-white flex items-center justify-center px-4"
   >
-    <div
-      class="w-full max-w-lg rounded-[24px] border border-white/10 bg-white/[0.04] p-8 text-center shadow-2xl"
-    >
+    <div class="travel-surface w-full max-w-lg rounded-2xl p-6 text-center sm:p-8">
       <!-- SUCCESS -->
       <template v-if="isSuccess">
         <div
-          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15 text-green-400 text-3xl"
+          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-3xl text-emerald-700"
         >
           ✓
         </div>
 
         <h1 class="text-2xl font-bold">Thanh toán thành công</h1>
 
-        <p class="mt-3 text-white/60">Đơn đặt tour của bạn đã được xác nhận.</p>
+        <p class="mt-3 text-travel-muted">Đơn đặt tour của bạn đã được xác nhận.</p>
 
-        <div class="mt-6 rounded-xl bg-white/5 p-4 text-left">
-          <p class="text-sm text-white/50">Mã thanh toán</p>
+        <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+          <p class="text-sm text-travel-muted">Mã thanh toán</p>
 
           <p class="mt-1 break-all font-medium text-orange-300">
             {{ paymentCode }}
           </p>
 
-          <p class="mt-4 text-sm text-white/50">Mã booking</p>
+          <p class="mt-4 text-sm text-travel-muted">Mã booking</p>
 
           <p class="mt-1 font-medium">#{{ bookingId }}</p>
         </div>
 
-        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             @click="goToBooking"
-            class="flex-1 rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+            class="min-h-12 rounded-xl bg-travel-orange px-4 py-3 font-semibold text-travel-blue transition hover:bg-amber-500"
           >
             Xem booking
           </button>
 
           <button
             @click="goToGroupRequests"
-            class="flex-1 rounded-xl bg-blue-600/80 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+            class="min-h-12 rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-travel-blue transition hover:bg-slate-50"
           >
             Yêu cầu tour đoàn
           </button>
 
           <button
             @click="goHome"
-            class="flex-1 rounded-xl border border-slate-200 px-4 py-3 font-semibold text-slate-600 transition hover:bg-slate-50"
+            class="min-h-12 rounded-xl border border-slate-300 bg-white px-4 py-3 font-semibold text-slate-600 transition hover:bg-slate-50 sm:col-span-2"
           >
             Về trang chủ
           </button>
@@ -95,20 +93,20 @@ const goToGroupRequests = () => {
       <!-- FAILED -->
       <template v-else>
         <div
-          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 text-red-400 text-3xl"
+          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-red-200 bg-red-50 text-3xl text-red-700"
         >
           ✕
         </div>
 
         <h1 class="text-2xl font-bold">Thanh toán thất bại</h1>
 
-        <p class="mt-3 text-white/60">
+        <p class="mt-3 text-travel-muted">
           Giao dịch VNPAY không thành công hoặc đã bị hủy.
         </p>
 
         <button
           @click="goHome"
-          class="mt-6 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+          class="mt-6 min-h-12 rounded-xl bg-travel-orange px-6 py-3 font-semibold text-travel-blue transition hover:bg-amber-500"
         >
           Về trang chủ
         </button>

@@ -141,10 +141,10 @@ onMounted(loadRequests);
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 p-4 text-slate-800 sm:p-6 lg:p-8">
+  <div class="min-h-screen bg-slate-50 p-4 text-slate-800 sm:p-6 lg:p-8 mt-20">
     <div class="mx-auto max-w-6xl space-y-6">
       <header>
-        <p class="text-sm font-semibold text-sky-600">TOUR ĐOÀN</p>
+        <p class="text-sm font-semibold text-travel-teal">TOUR ĐOÀN</p>
         <h1 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
           Yêu cầu & báo giá của tôi
         </h1>
@@ -162,7 +162,7 @@ onMounted(loadRequests);
         </p>
         <RouterLink
           to="/login"
-          class="mt-4 inline-block rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+          class="mt-4 inline-flex min-h-11 items-center rounded-xl bg-travel-orange px-5 py-2.5 text-sm font-semibold text-travel-blue transition hover:bg-amber-500"
           >Đăng nhập</RouterLink
         >
       </div>
@@ -181,7 +181,7 @@ onMounted(loadRequests);
         <p class="text-rose-700">{{ errorMessage }}</p>
         <button
           type="button"
-          class="mt-3 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white"
+          class="mt-3 min-h-11 rounded-xl bg-travel-blue px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           @click="loadRequests"
         >
           Thử lại
@@ -199,7 +199,7 @@ onMounted(loadRequests);
         <article
           v-for="request in requests"
           :key="request.id"
-          class="rounded-2xl border border-sky-100 bg-white p-5 shadow-sm sm:p-6"
+          class="travel-surface-interactive rounded-2xl p-5 transition-[transform,border-color,box-shadow] sm:p-6"
         >
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -256,7 +256,7 @@ onMounted(loadRequests);
               </div>
               <button
                 type="button"
-                class="rounded-lg border border-sky-200 bg-white px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-50"
+                class="min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-travel-blue transition hover:bg-travel-primary-soft"
                 @click="openQuotation(quotation.id)"
               >
                 Xem chi tiết

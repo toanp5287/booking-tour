@@ -71,14 +71,14 @@ defineExpose({ clearAllFilters });
 <template>
   <aside class="tour-filter w-full">
     <div
-      class="rounded-2xl border border-white/[0.08] bg-[#0f131c] p-5 shadow-sm"
+      class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
     >
       <!-- HEADER -->
       <div
         class="flex items-center justify-between border-b border-white/[0.06] pb-3.5"
       >
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold uppercase tracking-wider text-white"
+          <span class="text-xs font-bold uppercase tracking-wider text-travel-ink"
             >Bộ lọc</span
           >
           <span
@@ -87,7 +87,7 @@ defineExpose({ clearAllFilters });
               selectedPrice ||
               selectedDurations.length
             "
-            class="flex h-5 items-center justify-center rounded-full bg-amber-400/20 px-1.5 font-mono text-[10px] font-bold text-amber-200"
+            class="flex h-5 items-center justify-center rounded-full bg-travel-secondary-soft px-1.5 font-mono text-[10px] font-bold text-teal-800"
           >
             {{
               selectedCategories.length +
@@ -100,7 +100,7 @@ defineExpose({ clearAllFilters });
         <button
           type="button"
           @click="clearAllFilters"
-          class="text-xs text-slate-400 transition hover:text-amber-200"
+          class="min-h-9 px-2 text-xs text-slate-500 transition hover:text-travel-teal"
         >
           Đặt lại
         </button>
@@ -109,7 +109,7 @@ defineExpose({ clearAllFilters });
       <!-- 1. LOẠI HÌNH TOUR -->
       <div class="mt-5">
         <span
-          class="block text-[11px] font-bold uppercase tracking-wider text-slate-400"
+          class="block text-[11px] font-bold uppercase tracking-wider text-travel-muted"
         >
           Loại hình tour
         </span>
@@ -122,7 +122,7 @@ defineExpose({ clearAllFilters });
         <!-- Error -->
         <div
           v-else-if="isError"
-          class="mt-3 rounded-lg bg-rose-500/10 p-2.5 text-xs text-rose-300"
+          class="mt-3 rounded-lg bg-rose-50 p-2.5 text-xs text-rose-700"
         >
           Không thể tải danh mục
         </div>
@@ -132,11 +132,11 @@ defineExpose({ clearAllFilters });
           <label
             v-for="cat in categoryData"
             :key="cat.id"
-            class="flex cursor-pointer items-center justify-between rounded-xl px-2.5 py-2 text-xs transition hover:bg-white/[0.04]"
+            class="flex min-h-10 cursor-pointer items-center justify-between rounded-xl px-2.5 py-2 text-sm transition hover:bg-slate-50"
             :class="
               selectedCategories.includes(cat.id)
-                ? 'bg-amber-400/10 font-semibold text-amber-200'
-                : 'text-slate-300'
+                ? 'bg-teal-50 font-semibold text-teal-800'
+                : 'text-slate-700'
             "
           >
             <div class="flex items-center gap-2.5">
@@ -144,24 +144,24 @@ defineExpose({ clearAllFilters });
                 v-model="selectedCategories"
                 :value="cat.id"
                 type="checkbox"
-                class="h-3.5 w-3.5 rounded border-white/20 bg-[#090b10] accent-amber-300"
+                class="h-4 w-4 rounded border-slate-300 accent-teal-700"
               />
               <span>{{ cat.name }}</span>
             </div>
 
-            <span class="font-mono text-[11px] text-slate-500">
+            <span class="font-mono text-xs text-slate-500">
               {{ cat.tour_count || 0 }}
             </span>
           </label>
         </div>
       </div>
 
-      <div class="my-5 h-px bg-white/[0.06]"></div>
+      <div class="my-5 h-px bg-slate-100"></div>
 
       <!-- 2. KHOẢNG GIÁ (CHIP BUTTONS) -->
       <div>
         <span
-          class="block text-[11px] font-bold uppercase tracking-wider text-slate-400"
+          class="block text-[11px] font-bold uppercase tracking-wider text-travel-muted"
         >
           Khoảng giá
         </span>
@@ -175,8 +175,8 @@ defineExpose({ clearAllFilters });
             class="rounded-xl border px-2.5 py-2 text-center text-xs font-medium transition"
             :class="
               selectedPrice === p.value
-                ? 'border-amber-300/40 bg-amber-400/10 font-semibold text-amber-200 shadow-sm'
-                : 'border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/10 hover:text-white'
+                ? 'border-teal-300 bg-teal-50 font-semibold text-teal-800 shadow-sm'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-travel-blue'
             "
           >
             {{ p.label }}
@@ -184,12 +184,12 @@ defineExpose({ clearAllFilters });
         </div>
       </div>
 
-      <div class="my-5 h-px bg-white/[0.06]"></div>
+      <div class="my-5 h-px bg-slate-100"></div>
 
       <!-- 3. THỜI GIAN ĐI (PILL BUTTONS) -->
       <div>
         <span
-          class="block text-[11px] font-bold uppercase tracking-wider text-slate-400"
+          class="block text-[11px] font-bold uppercase tracking-wider text-travel-muted"
         >
           Thời gian đi
         </span>
@@ -203,8 +203,8 @@ defineExpose({ clearAllFilters });
             class="rounded-xl border px-3 py-1.5 text-xs font-medium transition"
             :class="
               selectedDurations.includes(d.value)
-                ? 'border-amber-300/40 bg-amber-400/10 font-semibold text-amber-200 shadow-sm'
-                : 'border-white/[0.06] bg-white/[0.02] text-slate-400 hover:border-white/10 hover:text-white'
+                ? 'border-teal-300 bg-teal-50 font-semibold text-teal-800 shadow-sm'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-travel-blue'
             "
           >
             {{ d.label }}
@@ -217,9 +217,9 @@ defineExpose({ clearAllFilters });
 
 <style scoped>
 .tour-filter :deep(> div) {
-  border-color: #e2e8f0 !important;
-  background-color: #fff !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  border-color: var(--travel-border) !important;
+  background-color: var(--travel-surface) !important;
+  box-shadow: var(--shadow-card);
 }
 
 .tour-filter :deep([class*="bg-[#090b10"]),
@@ -236,11 +236,11 @@ defineExpose({ clearAllFilters });
 }
 
 .tour-filter :deep([class*="text-amber-200"]) {
-  color: #2563eb !important;
+  color: #0f766e !important;
 }
 
 .tour-filter :deep([class*="bg-amber-400/"]) {
-  background-color: #eff6ff !important;
+  background-color: #e7f6f3 !important;
 }
 
 .tour-filter :deep([class*="border-amber-300/"]) {

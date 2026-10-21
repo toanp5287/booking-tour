@@ -37,11 +37,11 @@ const bookingData = ref({
     <main class="relative z-10 mx-auto max-w-3xl px-5 sm:px-8">
       <!-- THẺ THÔNG BÁO CHÍNH -->
       <section
-        class="overflow-hidden rounded-[2.5rem] border border-white/20 bg-white/[0.08] p-8 backdrop-blur-2xl shadow-[0_30px_90px_rgba(0,0,0,0.45)] sm:p-10 text-center"
+        class="travel-surface overflow-hidden rounded-2xl p-6 text-center sm:p-10"
       >
         <!-- Icon thành công -->
         <div
-          class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 shadow-[0_0_40px_rgba(52,211,153,0.3)]"
+          class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 sm:h-20 sm:w-20"
         >
           <svg
             class="h-10 w-10"
@@ -60,18 +60,18 @@ const bookingData = ref({
 
         <div class="mt-6">
           <div
-            class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-300"
+            class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-800"
           >
             <span>✦</span> Đặt tour thành công
           </div>
           <h1
-            class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl text-white"
+            class="mt-3 text-3xl font-extrabold tracking-tight text-travel-ink sm:text-4xl"
           >
             Cảm ơn bạn đã đồng hành!
           </h1>
-          <p class="mt-2 text-sm text-white/80 leading-6">
+          <p class="mt-2 text-sm leading-6 text-travel-muted">
             Mã đặt tour của bạn là
-            <span class="font-bold text-white tracking-wider"
+            <span             class="font-bold tracking-wider text-travel-blue"
               >#{{ bookingData.bookingCode }}</span
             >. Chi tiết hành trình và vé điện tử đã được gửi tới email của bạn.
           </p>
@@ -79,15 +79,15 @@ const bookingData = ref({
 
         <!-- THẺ TÓM TẮT ĐƠN HÀNG (BILL TICKET) -->
         <div
-          class="mt-8 rounded-2xl border border-white/15 bg-black/30 p-6 text-left space-y-4"
+          class="mt-8 space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-5 text-left sm:p-6"
         >
           <div class="border-b border-white/10 pb-4">
             <p
-              class="text-xs uppercase tracking-widest text-white/60 font-semibold"
+              class="text-xs font-semibold uppercase tracking-widest text-travel-muted"
             >
               Chuyến đi đã chọn
             </p>
-            <h3 class="mt-1 text-lg font-bold text-white">
+            <h3 class="mt-1 text-lg font-bold text-travel-ink">
               {{ bookingData.tourName }}
             </h3>
           </div>
@@ -133,7 +133,7 @@ const bookingData = ref({
 
         <!-- THÔNG TIN LIÊN HỆ -->
         <div
-          class="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-left text-xs text-white/75 space-y-2"
+          class="mt-6 space-y-2 rounded-xl border border-slate-200 bg-white p-5 text-left text-sm text-travel-muted"
         >
           <div class="flex justify-between">
             <span class="text-white/60">Người đặt:</span>
@@ -159,14 +159,14 @@ const bookingData = ref({
         <div class="mt-8 flex flex-col sm:flex-row gap-3">
           <RouterLink
             to="/my-trips"
-            class="flex-1 rounded-2xl bg-white py-3.5 text-sm font-bold text-slate-900 shadow-xl transition hover:-translate-y-0.5 hover:bg-slate-100 text-center"
+            class="flex min-h-12 flex-1 items-center justify-center rounded-xl bg-travel-orange px-4 py-3 text-center text-sm font-bold text-travel-blue transition hover:bg-amber-500"
           >
             Quản lý chuyến đi
           </RouterLink>
 
           <RouterLink
             to="/tours"
-            class="flex-1 rounded-2xl border border-white/20 bg-white/10 py-3.5 text-sm font-bold text-white backdrop-blur-xl transition hover:bg-white/20 text-center"
+            class="flex min-h-12 flex-1 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-sm font-bold text-travel-blue transition hover:bg-slate-50"
           >
             Khám phá thêm tour khác
           </RouterLink>

@@ -2,6 +2,7 @@
 import { ref, computed, watch } from "vue";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import bookingService from "../../../services/booking.service";
+import Swal from "sweetalert2";
 
 const queryClient = useQueryClient();
 
@@ -96,6 +97,10 @@ const STATUS_MAP = {
     name: "Đã xác nhận",
     badgeClass: "bg-sky-500/10 text-sky-300 border-sky-500/20",
   },
+  LOCKED: {
+    name: "Đã khóa",
+    badgeClass: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
+  },
   CHECKED_IN: {
     name: "Đã đón khách",
     badgeClass: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
@@ -161,6 +166,7 @@ const STATUS_MAP = {
 const BOOKING_STATUSES = [
   "PENDING",
   "CONFIRMED",
+  "LOCKED",
   "CHECKED_IN",
   "IN_PROGRESS",
   "COMPLETED",
@@ -311,6 +317,25 @@ const getPaymentMethodText = (booking) => {
 // =====================================================
 // 8. STATE MACHINE - HÀNH ĐỘNG HỢP LỆ (TỐI ĐA 1-2 NÚT)
 // =====================================================
+const classifyBookingKind = (booking) => {
+  if (!booking) return "REGULAR";
+
+  const tourType = String(booking.selected_tour_type ?? "")
+    .trim()
+    .toUpperCase();
+
+  if (booking.quotation_id) return "GROUP";
+  if (booking.custom_request_id) return "CUSTOM";
+
+  if (tourType === "GROUP") return "GROUP";
+  if (tourType === "CUSTOM") return "CUSTOM";
+
+  return "REGULAR";
+};
+
+const isRegularTicketBooking = (booking) =>
+  classifyBookingKind(booking) === "REGULAR";
+
 const getAvailableActions = (booking) => {
   if (!booking) return [];
   const status = normalizeStatus(booking.status);
@@ -325,33 +350,9 @@ const getAvailableActions = (booking) => {
           status: "CONFIRMED",
           label: "Duyệt đơn",
           icon: "check_circle",
-          variant: "primary", // Cam
+          variant: "primary",
         });
       }
-      actions.push({
-        status: "CANCELLED",
-        label: "Hủy đơn",
-        icon: "cancel",
-        variant: "danger", // Đỏ
-      });
-      break;
-
-    // 2. CONFIRMED (hoặc READY/PAID) -> CHECKED_IN, NO_SHOW hoặc CANCELLED
-    case "CONFIRMED":
-    case "READY":
-    case "PAID":
-      actions.push({
-        status: "CHECKED_IN",
-        label: "Đã đón khách",
-        icon: "how_to_reg",
-        variant: "primary",
-      });
-      actions.push({
-        status: "NO_SHOW",
-        label: "Vắng mặt",
-        icon: "person_off",
-        variant: "secondary", // Xám
-      });
       actions.push({
         status: "CANCELLED",
         label: "Hủy đơn",
@@ -360,30 +361,50 @@ const getAvailableActions = (booking) => {
       });
       break;
 
-    // 3. CHECKED_IN -> IN_PROGRESS hoặc NO_SHOW (Khớp backend)
-    case "CHECKED_IN":
+    // 2. CONFIRMED -> CHECKED_IN, NO_SHOW (chỉ regular) hoặc CANCELLED
+    case "CONFIRMED":
+    case "READY":
+    case "PAID":
       actions.push({
-        status: "IN_PROGRESS",
-        label: "Bắt đầu tour",
-        icon: "play_circle",
+        status: "CHECKED_IN",
+        label: "Check-in",
+        icon: "how_to_reg",
         variant: "primary",
       });
+      if (isRegularTicketBooking(booking)) {
+        actions.push({
+          status: "NO_SHOW",
+          label: "Vắng mặt",
+          icon: "person_off",
+          variant: "secondary",
+        });
+      }
       actions.push({
-        status: "NO_SHOW",
-        label: "Báo vắng mặt",
-        icon: "person_off",
-        variant: "secondary",
+        status: "CANCELLED",
+        label: "Hủy đơn và hoàn tiền",
+        icon: "cancel",
+        variant: "danger",
       });
       break;
 
-    // 4. IN_PROGRESS (hoặc ONGOING) -> COMPLETED
+    // 3. CHECKED_IN -> IN_PROGRESS
+    case "CHECKED_IN":
+      actions.push({
+        status: "IN_PROGRESS",
+        label: "Bắt đầu chuyến đi",
+        icon: "play_circle",
+        variant: "primary",
+      });
+      break;
+
+    // 4. IN_PROGRESS -> COMPLETED
     case "IN_PROGRESS":
     case "ONGOING":
       actions.push({
         status: "COMPLETED",
-        label: "Hoàn thành tour",
+        label: "Hoàn thành chuyến đi",
         icon: "task_alt",
-        variant: "success", // Xanh lá
+        variant: "success",
       });
       break;
 
@@ -394,7 +415,7 @@ const getAvailableActions = (booking) => {
           status: "REFUND_PENDING",
           label: "Xử lý hoàn tiền",
           icon: "currency_exchange",
-          variant: "warning", // Vàng cam
+          variant: "warning",
         });
       }
       break;
@@ -409,7 +430,7 @@ const getAvailableActions = (booking) => {
       });
       break;
 
-    // Các trạng thái kết thúc (COMPLETED, NO_SHOW, REFUNDED): Không hiện nút
+    // Các trạng thái kết thúc: COMPLETED, NO_SHOW, REFUNDED
     default:
       break;
   }
@@ -420,27 +441,125 @@ const getAvailableActions = (booking) => {
 // =====================================================
 // 9. CẬP NHẬT TRẠNG THÁI
 // =====================================================
+// =====================================================
+// 9. CẬP NHẬT TRẠNG THÁI
+// =====================================================
+const actionLoading = ref(new Set());
+
 const duyetDon = async (id, targetStatus) => {
   const norm = normalizeStatus(targetStatus);
   if (!BOOKING_STATUSES.includes(norm)) {
     showNotification("error", "Trạng thái không hợp lệ");
     return;
   }
-  console.log(norm);
+
+  if (actionLoading.value.has(id)) return;
+
+  let reason = "";
+
+  // Hủy booking: bắt buộc nhập lý do
+  if (norm === "CANCELLED") {
+    const result = await Swal.fire({
+      title: "Hủy booking",
+      html: `
+        <div style="text-align:left;line-height:1.7;">
+          <p>Vui lòng nhập lý do hủy đơn <strong>#${id}</strong></p>
+        </div>
+      `,
+      input: "textarea",
+      inputPlaceholder: "Nhập lý do hủy booking...",
+      inputAttributes: { "aria-label": "Lý do hủy booking" },
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận hủy",
+      cancelButtonText: "Quay lại",
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+      inputValidator: (value) => {
+        if (!value || !value.trim()) return "Vui lòng nhập lý do hủy booking";
+        return null;
+      },
+    });
+
+    if (!result.isConfirmed) return;
+    reason = (result.value || "").trim();
+  }
+
+  // Vắng mặt: cảnh báo rõ không hoàn tiền
+  if (norm === "NO_SHOW") {
+    const result = await Swal.fire({
+      title: "Xác nhận khách vắng mặt",
+      html: `
+        <div style="text-align:left;line-height:1.7;">
+          <p>Khách vắng mặt sẽ <strong>mất khoản tiền đã thanh toán</strong> và <strong>không được hoàn tiền</strong>.</p>
+          <p style="margin-top:8px;color:#f59e0b;">Thao tác này không thể hoàn tác.</p>
+        </div>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận vắng mặt",
+      cancelButtonText: "Quay lại",
+      confirmButtonColor: "#6b7280",
+      cancelButtonColor: "#9ca3af",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+  }
+
+  // Các thao tác nguy hiểm khác cũng có xác nhận
+  if (norm === "REFUNDED") {
+    const result = await Swal.fire({
+      title: "Xác nhận đã hoàn tiền",
+      text: "Xác nhận đã chuyển tiền hoàn vào ví khách hàng?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#22c55e",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+  }
+
+  if (norm === "REFUND_PENDING") {
+    const result = await Swal.fire({
+      title: "Gửi yêu cầu hoàn tiền",
+      text: "Chuyển đơn sang trạng thái chờ hoàn tiền?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Xác nhận",
+      cancelButtonText: "Hủy",
+      confirmButtonColor: "#f59e0b",
+      cancelButtonColor: "#6b7280",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+  }
+
+  actionLoading.value.add(id);
   try {
-    const res = await bookingService.duyetDon(id, { status: norm });
+    const payload = { status: norm };
+    if (reason) payload.reason = reason;
+
+    const res = await bookingService.duyetDon(id, payload);
     if (!res?.data?.success) {
       showNotification("error", res?.data?.message || "Cập nhật đơn thất bại");
       return;
     }
 
-    showNotification("success", `Đã chuyển sang "${getStatusName(norm)}"`);
+    showNotification("success", res?.data?.message || `Đã chuyển sang "${getStatusName(norm)}"`);
     await queryClient.invalidateQueries({ queryKey: ["bookings"] });
   } catch (err) {
     showNotification(
       "error",
       err?.response?.data?.message || "Lỗi cập nhật trạng thái",
     );
+  } finally {
+    actionLoading.value.delete(id);
   }
 };
 
@@ -896,7 +1015,7 @@ const changePage = (page) => {
         </div>
 
         <!-- DESKTOP TABLE -->
-        <div v-else class="hidden overflow-x-auto xl:block">
+        <div v-else class="hidden overflow-x-auto 2xl:block">
           <table class="w-full min-w-[1300px] border-collapse text-left">
             <thead>
               <tr
@@ -1017,32 +1136,33 @@ const changePage = (page) => {
                 <td class="whitespace-nowrap px-5 py-5 text-right">
                   <div class="flex items-center justify-end gap-2">
                     <!-- Nút thao tác hợp lệ theo State Machine -->
-                    <template v-if="getAvailableActions(item).length > 0">
-                      <button
-                        v-for="action in getAvailableActions(item)"
-                        :key="action.status"
-                        type="button"
-                        @click="duyetDon(item.id, action.status)"
-                        class="inline-flex h-8 select-none items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition active:scale-95"
-                        :class="[
-                          action.variant === 'primary' &&
-                            'border-orange-500/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20',
-                          action.variant === 'secondary' &&
-                            'border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/20 hover:text-white',
-                          action.variant === 'success' &&
-                            'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20',
-                          action.variant === 'danger' &&
-                            'border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20',
-                          action.variant === 'warning' &&
-                            'border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20',
-                        ]"
-                      >
-                        <span class="material-symbols-outlined text-[15px]">{{
-                          action.icon
-                        }}</span>
-                        {{ action.label }}
-                      </button>
-                    </template>
+            <template v-if="getAvailableActions(item).length > 0">
+              <button
+                v-for="action in getAvailableActions(item)"
+                :key="action.status"
+                type="button"
+                :disabled="actionLoading.has(item.id)"
+                @click="duyetDon(item.id, action.status)"
+                class="inline-flex h-8 select-none items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                :class="[
+                  action.variant === 'primary' &&
+                    'border-orange-500/30 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20',
+                  action.variant === 'secondary' &&
+                    'border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/20 hover:text-white',
+                  action.variant === 'success' &&
+                    'border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20',
+                  action.variant === 'danger' &&
+                    'border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20',
+                  action.variant === 'warning' &&
+                    'border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20',
+                ]"
+              >
+                <span class="material-symbols-outlined text-[15px]">
+                  {{ actionLoading.has(item.id) ? "progress_activity" : action.icon }}
+                </span>
+                {{ action.label }}
+              </button>
+            </template>
 
                     <!-- Trạng thái kết thúc không có nút -->
                     <span v-else class="text-xs italic text-slate-500">
@@ -1058,12 +1178,12 @@ const changePage = (page) => {
         <!-- MOBILE / TABLET CARDS -->
         <div
           v-if="paginatedBookings.length > 0"
-          class="grid grid-cols-1 gap-4 p-3 sm:p-5 xl:hidden"
+          class="grid grid-cols-1 gap-4 p-3 sm:p-5 2xl:hidden"
         >
           <article
             v-for="item in paginatedBookings"
             :key="item.id"
-            class="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#10151f]"
+            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
           >
             <!-- TOP CARD -->
             <div class="flex items-start justify-between gap-3 p-4">
@@ -1086,7 +1206,7 @@ const changePage = (page) => {
               </span>
             </div>
 
-            <div class="mx-4 h-px bg-white/[0.06]"></div>
+            <div class="mx-4 h-px bg-slate-100"></div>
 
             <!-- TOUR & GIÁ -->
             <div class="space-y-2 p-4 text-xs">
@@ -1123,7 +1243,7 @@ const changePage = (page) => {
             </div>
 
             <!-- ACTION FOOTER MOBILE -->
-            <div class="border-t border-white/[0.06] bg-white/[0.015] p-3">
+            <div class="border-t border-slate-100 bg-slate-50 p-3">
               <div
                 v-if="getAvailableActions(item).length > 0"
                 class="flex items-center gap-2"

@@ -61,7 +61,7 @@ const formatDate = (isoStr) => {
 
 <template>
   <section
-    class="light-surface rounded-[26px] border border-white/10 bg-black/25 p-6 backdrop-blur-xl sm:p-8"
+    class="light-surface rounded-2xl border border-white/10 bg-black/25 p-5 backdrop-blur-xl sm:p-7"
   >
     <div class="flex items-end justify-between">
       <div>
@@ -155,7 +155,7 @@ const formatDate = (isoStr) => {
 .light-surface {
   border-color: #e2e8f0 !important;
   background: #fff !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .light-surface :deep([class*="border-white/"]) {

@@ -17,7 +17,7 @@ const { data: bookingDetail, isLoading } = useQuery({
 
 // Helper định dạng tiền tệ VND
 const formatCurrency = (amount) => {
-  if (!amount && amount !== 0) return "0 ₫";
+  if (amount === null || amount === undefined || amount === "") return "0 ₫";
   return Number(amount).toLocaleString("vi-VN") + " ₫";
 };
 
@@ -25,6 +25,7 @@ const formatCurrency = (amount) => {
 const formatDate = (isoString) => {
   if (!isoString) return "--/--/----";
   const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "--/--/----";
   return date.toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -36,6 +37,7 @@ const formatDate = (isoString) => {
 const formatDateTime = (isoString) => {
   if (!isoString) return "--/--/---- --:--";
   const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "--/--/---- --:--";
   return (
     date.toLocaleDateString("vi-VN", {
       day: "2-digit",
@@ -54,11 +56,39 @@ const formatDateTime = (isoString) => {
 const formatTimeOnly = (isoString) => {
   if (!isoString) return "";
   const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "";
   return date.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
   });
 };
+
+const normalizeStatus = (status) => String(status ?? "").trim().toUpperCase();
+
+const statusMeta = computed(() => {
+  const s = normalizeStatus(bookingDetail.value?.status);
+  const map = {
+    PENDING: { text: "Chờ duyệt", cls: "border-amber-400/20 bg-amber-400/10 text-amber-300" },
+    CONFIRMED: { text: "Đã xác nhận", cls: "border-sky-400/20 bg-sky-400/10 text-sky-300" },
+    LOCKED: { text: "Đã khóa", cls: "border-cyan-400/20 bg-cyan-400/10 text-cyan-300" },
+    CHECKED_IN: { text: "Đã đón khách", cls: "border-indigo-400/20 bg-indigo-400/10 text-indigo-300" },
+    IN_PROGRESS: { text: "Tour đang chạy", cls: "border-blue-400/20 bg-blue-400/10 text-blue-300" },
+    COMPLETED: { text: "Đã hoàn thành", cls: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300" },
+    CANCELLED: { text: "Đã hủy", cls: "border-rose-400/20 bg-rose-400/10 text-rose-300" },
+    NO_SHOW: { text: "Khách không đến", cls: "border-zinc-400/20 bg-zinc-400/10 text-zinc-300" },
+    REFUND_PENDING: { text: "Chờ hoàn tiền", cls: "border-orange-400/20 bg-orange-400/10 text-orange-300" },
+    REFUNDED: { text: "Đã hoàn tiền", cls: "border-teal-400/20 bg-teal-400/10 text-teal-300" },
+  };
+  return map[s] || { text: bookingDetail.value?.status || "Chưa xác định", cls: "border-slate-400/20 bg-slate-400/10 text-slate-300" };
+});
+
+const paymentStatusMeta = computed(() => {
+  const st = String(bookingDetail.value?.payment_status ?? "").trim().toLowerCase();
+  if (st === "paid") return { text: "Đã thanh toán đủ", cls: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300" };
+  if (st === "partial") return { text: "Đã cọc / Thanh toán một phần", cls: "border-amber-400/20 bg-amber-400/10 text-amber-300" };
+  if (st === "refunded") return { text: "Đã hoàn tiền", cls: "border-teal-400/20 bg-teal-400/10 text-teal-300" };
+  return { text: "Chưa thanh toán", cls: "border-red-400/20 bg-red-400/10 text-red-300" };
+});
 
 // Xử lý link thumbnail tour từ đường dẫn backend
 const tourThumbnailUrl = computed(() => {
@@ -74,6 +104,19 @@ const tourThumbnailUrl = computed(() => {
 const latestPayment = computed(() => {
   const payments = bookingDetail.value?.payments;
   return payments && payments.length > 0 ? payments[0] : null;
+});
+
+const bookingKindLabel = computed(() => {
+  if (bookingDetail.value?.booking_kind_label) return bookingDetail.value.booking_kind_label;
+  const kind = bookingDetail.value?.booking_kind;
+  if (kind === "GROUP") return "Tour đoàn";
+  if (kind === "CUSTOM") return "Tour theo yêu cầu";
+  return "Vé thông thường";
+});
+
+const lastCancelHistory = computed(() => {
+  const histories = bookingDetail.value?.status_histories || [];
+  return histories.find((h) => normalizeStatus(h.new_status) === "CANCELLED");
 });
 </script>
 
@@ -112,7 +155,7 @@ const latestPayment = computed(() => {
         class="sticky top-0 z-40 w-full border-b border-white/[0.08] bg-[#07090d]/85 backdrop-blur-2xl"
       >
         <div
-          class="mx-auto flex h-[80px] max-w-[1500px] items-center justify-between px-5 sm:px-8"
+          class="mx-auto flex min-h-[72px] max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:min-h-[80px] sm:flex-nowrap sm:px-8 sm:py-0"
         >
           <div class="flex items-center gap-4">
             <RouterLink
@@ -130,24 +173,24 @@ const latestPayment = computed(() => {
                 Chi tiết đơn hàng #BK-{{ bookingDetail.id }}
               </div>
               <h1
-                class="mt-1 text-xl font-bold tracking-tight text-white sm:text-2xl capitalize"
+                class="mt-1 text-base font-bold tracking-tight text-white sm:text-2xl capitalize"
               >
                 Hồ sơ đặt tour: {{ bookingDetail.booker_name }}
               </h1>
             </div>
           </div>
 
-          <div class="flex items-center gap-3">
+          <div class="flex shrink-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onclick="window.print()"
-              class="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-white/60 transition hover:bg-white/10 hover:text-white"
+              class="hidden min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-travel-blue transition hover:bg-slate-50 sm:inline-flex sm:items-center"
             >
               🖨 In hợp đồng / Vé
             </button>
             <RouterLink
               to="/admin/bookingList"
-              class="rounded-xl bg-white/10 px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
+              class="hidden min-h-10 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-travel-blue transition hover:bg-slate-50 sm:inline-flex sm:items-center"
             >
               Quay lại danh sách
             </RouterLink>
@@ -579,18 +622,23 @@ const latestPayment = computed(() => {
                 >
                 <div
                   class="flex h-11 items-center justify-between rounded-xl border px-4 text-xs font-bold uppercase tracking-wider"
-                  :class="
-                    bookingDetail.status === 'confirmed'
-                      ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300'
-                      : 'border-amber-400/20 bg-amber-400/10 text-amber-300'
-                  "
+                  :class="statusMeta.cls"
                 >
-                  <span>● {{ bookingDetail.status }}</span>
-                  <span
-                    class="text-[10px] font-normal lowercase font-mono opacity-70"
-                  >
+                  <span>● {{ statusMeta.text }}</span>
+                  <span class="text-[10px] font-normal lowercase font-mono opacity-70">
                     #{{ bookingDetail.status }}
                   </span>
+                </div>
+              </div>
+
+              <!-- LOẠI BOOKING -->
+              <div>
+                <span class="mb-2 block text-xs font-semibold text-white/40"
+                  >Loại booking</span
+                >
+                <div class="flex h-11 items-center justify-between rounded-xl border px-4 text-xs font-semibold border-slate-400/20 bg-slate-400/10 text-slate-200">
+                  <span>Phân loại</span>
+                  <span>{{ bookingKindLabel }}</span>
                 </div>
               </div>
 
@@ -601,20 +649,56 @@ const latestPayment = computed(() => {
                 >
                 <div
                   class="flex h-11 items-center gap-2 rounded-xl border px-4 text-xs font-bold"
-                  :class="
-                    latestPayment?.status === 'paid'
-                      ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300'
-                      : 'border-red-400/20 bg-red-400/10 text-red-300'
-                  "
+                  :class="paymentStatusMeta.cls"
                 >
                   <span>●</span>
-                  <span class="uppercase">
-                    {{
-                      latestPayment?.status === "paid"
-                        ? "Đã thanh toán đủ"
-                        : "Chưa thanh toán"
-                    }}
-                  </span>
+                  <span class="uppercase">{{ paymentStatusMeta.text }}</span>
+                </div>
+              </div>
+
+              <!-- THÔNG TIN HOÀN TIỀN -->
+              <div
+                v-if="normalizeStatus(bookingDetail.status) === 'CANCELLED' || normalizeStatus(bookingDetail.status) === 'REFUNDED' || bookingDetail.refunds?.length"
+                class="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200"
+              >
+                <div class="mb-2 flex items-center gap-2 font-semibold">
+                  <span class="material-symbols-outlined text-[18px]">currency_exchange</span>
+                  Thông tin hoàn tiền
+                </div>
+                <div class="space-y-1 text-xs text-amber-100/80">
+                  <div>Trạng thái hoàn: <span class="font-medium">{{ bookingDetail.refund_status || 'NONE' }}</span></div>
+                  <div>Số tiền đã hoàn: <span class="font-medium">{{ formatCurrency(bookingDetail.refund_amount || 0) }}</span></div>
+                  <div>Tiền đã thu: <span class="font-medium">{{ formatCurrency(bookingDetail.paid_amount || 0) }}</span></div>
+                  <div v-if="lastCancelHistory?.reason">Lý do hủy: <span class="font-medium">{{ lastCancelHistory.reason }}</span></div>
+                </div>
+              </div>
+
+              <!-- VẮNG MẶT -->
+              <div
+                v-if="normalizeStatus(bookingDetail.status) === 'NO_SHOW'"
+                class="rounded-xl border border-zinc-400/20 bg-zinc-400/10 p-4 text-sm text-zinc-200"
+              >
+                <div class="mb-2 flex items-center gap-2 font-semibold">
+                  <span class="material-symbols-outlined text-[18px]">person_off</span>
+                  Khách vắng mặt
+                </div>
+                <div class="text-xs text-zinc-100/80">
+                  Khách không có mặt trong thời gian điểm danh hợp lệ. Khách mất khoản tiền đã thanh toán và không được hoàn tiền.
+                </div>
+              </div>
+
+              <!-- LỊCH SỬ TRẠNG THÁI -->
+              <div v-if="bookingDetail.status_histories?.length" class="space-y-2">
+                <div class="text-xs font-semibold uppercase tracking-wider text-white/40">Lịch sử thay đổi trạng thái</div>
+                <div class="space-y-2">
+                  <div v-for="h in bookingDetail.status_histories" :key="h.id" class="rounded-xl border border-white/10 bg-black/25 p-3 text-xs">
+                    <div class="flex items-center justify-between">
+                      <div class="font-medium text-white/90">{{ h.old_status || '-' }} → {{ h.new_status }}</div>
+                      <div class="text-white/40">{{ formatDateTime(h.created_at) }}</div>
+                    </div>
+                    <div v-if="h.changed_by_user?.full_name" class="mt-1 text-white/50">Người thực hiện: {{ h.changed_by_user.full_name }}</div>
+                    <div v-if="h.reason" class="mt-1 text-white/60">Lý do: {{ h.reason }}</div>
+                  </div>
                 </div>
               </div>
 
@@ -668,6 +752,10 @@ const latestPayment = computed(() => {
                   >
                 </div>
                 <div class="flex justify-between text-white/50">
+                  <span>Tiền đã thu</span>
+                  <span class="font-mono text-white">{{ formatCurrency(bookingDetail.paid_amount || 0) }}</span>
+                </div>
+                <div class="flex justify-between text-white/50">
                   <span>Bảo hiểm &amp; Thuế GTGT</span>
                   <span class="text-emerald-400 font-semibold">Đã bao gồm</span>
                 </div>
@@ -685,13 +773,9 @@ const latestPayment = computed(() => {
                     </span>
                     <span
                       class="rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase"
-                      :class="
-                        bookingDetail.status === 'confirmed'
-                          ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-300'
-                          : 'border-amber-400/20 bg-amber-400/10 text-amber-300'
-                      "
+                      :class="statusMeta.cls"
                     >
-                      {{ bookingDetail.status }}
+                      {{ statusMeta.text }}
                     </span>
                   </div>
                 </div>

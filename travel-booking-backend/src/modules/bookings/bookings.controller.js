@@ -5,6 +5,26 @@ import {
   createVNPayUrl,
   verifyVNPayReturn,
 } from "../payments/vnpay.service.js";
+import {
+  ALLOWED_BOOKING_TRANSITIONS,
+  BOOKING_KIND,
+  BOOKING_KIND_LABEL,
+  BOOKING_STATUS,
+  REFUND_STATE,
+  VALID_TARGET_STATUSES,
+  calcRefundPolicy,
+  canTransitionBooking,
+  classifyBookingKind,
+  distributeRefundAmount,
+  getCheckinWindow,
+  getCollectedAmount,
+  getPaidAmount,
+  getPaidPayments,
+  getRefundAmount,
+  getRefundState,
+  isTerminalBookingStatus,
+  normalizeBookingStatus,
+} from "./bookings.service.js";
 
 const serializeBigInt = (value) => {
   if (typeof value === "bigint") {
@@ -134,12 +154,10 @@ export const getAll = async (req, res, next) => {
 
       // --------------------------------------
       // TÍNH TIỀN ĐÃ THANH TOÁN
-      // CHỈ PAYMENT CÓ STATUS = paid
+      // CHỈ PAYMENT CÓ STATUS = PAID
       // --------------------------------------
 
-      const paidAmount = (booking.payments || [])
-        .filter((payment) => payment.status === "paid")
-        .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+      const paidAmount = getPaidAmount(booking.payments);
 
       // --------------------------------------
       // TIỀN CÒN LẠI
@@ -175,6 +193,9 @@ export const getAll = async (req, res, next) => {
         paymentType = "full";
       }
 
+      const bookingKind = classifyBookingKind(booking);
+      const refundState = getRefundState(booking);
+
       // --------------------------------------
       // RETURN
       // --------------------------------------
@@ -191,6 +212,12 @@ export const getAll = async (req, res, next) => {
         payment_status: paymentStatus,
 
         payment_type: paymentType,
+
+        booking_kind: bookingKind,
+        booking_kind_label: BOOKING_KIND_LABEL[bookingKind],
+
+        refund_status: refundState,
+        refund_amount: getRefundAmount(booking.refunds).toString(),
       };
     });
 
@@ -2934,11 +2961,10 @@ export const getDetailBooking = async (req, res, next) => {
 
         // Thông tin tour
         tour: {
-          select: {
-            id: true,
-            name: true,
-            thumbnail: true,
-            price: true,
+          include: {
+            operator: {
+              select: { user_id: true },
+            },
           },
         },
 
@@ -2973,6 +2999,29 @@ export const getDetailBooking = async (req, res, next) => {
             updated_at: true,
           },
         },
+
+        // Lịch sử hoàn tiền
+        refunds: {
+          orderBy: {
+            requested_at: "desc",
+          },
+        },
+
+        // Lịch sử thay đổi trạng thái
+        status_histories: {
+          orderBy: {
+            created_at: "desc",
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                full_name: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -2982,6 +3031,14 @@ export const getDetailBooking = async (req, res, next) => {
         message: "Booking không tồn tại",
       });
     }
+
+    const bookingKind = classifyBookingKind(booking);
+    const refundState = getRefundState(booking);
+    const paidAmount = getPaidAmount(booking.payments);
+    const totalAmount = Number(booking.total_amount || 0);
+    const collectedAmount = getCollectedAmount(booking.payments);
+    const refundAmount = getRefundAmount(booking.refunds);
+    const netPaid = Math.max(collectedAmount - refundAmount, 0);
 
     const dataResult = {
       id: booking.id.toString(),
@@ -2998,7 +3055,19 @@ export const getDetailBooking = async (req, res, next) => {
       total_amount: booking.total_amount
         ? booking.total_amount.toString()
         : "0",
+      original_amount: booking.original_amount ? booking.original_amount.toString() : "0",
+      discount_amount: booking.discount_amount ? booking.discount_amount.toString() : "0",
+      paid_amount: netPaid.toString(),
+      remaining_amount: Math.max(totalAmount - netPaid, 0).toString(),
       status: booking.status,
+      payment_status: booking.payment_status,
+      selected_tour_type: booking.selected_tour_type,
+      quotation_id: booking.quotation_id ? booking.quotation_id.toString() : null,
+      custom_request_id: booking.custom_request_id ? booking.custom_request_id.toString() : null,
+      booking_kind: bookingKind,
+      booking_kind_label: BOOKING_KIND_LABEL[bookingKind],
+      refund_status: refundState,
+      refund_amount: refundAmount.toString(),
       special_request: booking.special_request,
       created_at: booking.created_at,
       updated_at: booking.updated_at,
@@ -3060,6 +3129,39 @@ export const getDetailBooking = async (req, res, next) => {
         gateway_response: p.gateway_response,
         created_at: p.created_at,
         updated_at: p.updated_at,
+      })),
+
+      // Lịch sử hoàn tiền
+      refunds: (booking.refunds || []).map((r) => ({
+        id: r.id.toString(),
+        payment_id: r.payment_id ? r.payment_id.toString() : null,
+        booking_id: r.booking_id ? r.booking_id.toString() : null,
+        amount: r.amount ? r.amount.toString() : "0",
+        reason: r.reason,
+        refund_method: r.refund_method,
+        transaction_code: r.transaction_code,
+        status: r.status,
+        requested_at: r.requested_at,
+        processed_at: r.processed_at,
+        note: r.note,
+      })),
+
+      // Lịch sử thay đổi trạng thái
+      status_histories: (booking.status_histories || []).map((h) => ({
+        id: h.id.toString(),
+        booking_id: h.booking_id ? h.booking_id.toString() : null,
+        old_status: h.old_status,
+        new_status: h.new_status,
+        changed_by: h.changed_by ? h.changed_by.toString() : null,
+        changed_by_user: h.user
+          ? {
+              id: h.user.id.toString(),
+              full_name: h.user.full_name,
+              email: h.user.email,
+            }
+          : null,
+        reason: h.reason,
+        created_at: h.created_at,
       })),
     };
 
@@ -3200,6 +3302,334 @@ export const getLatestBookingsByTour = async (req, res, next) => {
   }
 };
 
+// ==========================================
+// HELPER CHO LUỒNG QUẢN LÝ BOOKING
+// ==========================================
+
+// Lỗi nghiệp vụ có mã HTTP, dùng để trả lỗi nghiệp vụ ra ngoài
+class BookingFlowError extends Error {
+  constructor(message, status = 400) {
+    super(message);
+    this.name = "BookingFlowError";
+    this.status = status;
+  }
+}
+
+const formatCheckinWindow = (checkinWindow) => {
+  const format = (date) =>
+    date.toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  return `${format(checkinWindow.open)} - ${format(checkinWindow.close)}`;
+};
+
+const defaultReasonForStatus = (status) => {
+  const reasons = {
+    [BOOKING_STATUS.CONFIRMED]: "Admin xác nhận chuyến đi",
+    [BOOKING_STATUS.CHECKED_IN]: "Khách đã có mặt tại điểm tập trung",
+    [BOOKING_STATUS.IN_PROGRESS]: "Bắt đầu chuyến đi",
+    [BOOKING_STATUS.COMPLETED]: "Chuyến đi đã kết thúc",
+    [BOOKING_STATUS.NO_SHOW]: "Khách không có mặt trong thời gian điểm danh",
+    [BOOKING_STATUS.CANCELLED]: "Admin hủy booking",
+    [BOOKING_STATUS.REFUND_PENDING]: "Gửi yêu cầu xử lý hoàn tiền",
+    [BOOKING_STATUS.REFUNDED]: "Xác nhận đã hoàn tiền",
+  };
+
+  return reasons[status] || null;
+};
+
+const buildSuccessMessage = (targetStatus, refundSummary) => {
+  if (targetStatus === BOOKING_STATUS.CANCELLED) {
+    if (refundSummary?.status === REFUND_STATE.COMPLETED) {
+      return `Đã hủy booking và hoàn ${refundSummary.refundAmount.toLocaleString("vi-VN")}đ (${refundSummary.refundPercent}%) vào ví khách hàng`;
+    }
+
+    if (refundSummary?.status === REFUND_STATE.REJECTED) {
+      return "Đã hủy booking. Đơn không đủ điều kiện hoàn tiền theo chính sách";
+    }
+
+    return "Đã hủy booking";
+  }
+
+  if (targetStatus === BOOKING_STATUS.REFUNDED) {
+    return (
+      refundSummary?.message ||
+      "Đã hoàn tiền vào ví khách hàng"
+    );
+  }
+
+  if (targetStatus === BOOKING_STATUS.NO_SHOW) {
+    return "Đã đánh dấu khách vắng mặt. Khách mất khoản tiền đã thanh toán và không được hoàn tiền";
+  }
+
+  const messages = {
+    [BOOKING_STATUS.CONFIRMED]: "Đã xác nhận chuyến đi",
+    [BOOKING_STATUS.CHECKED_IN]: "Đã check-in khách",
+    [BOOKING_STATUS.IN_PROGRESS]: "Đã bắt đầu chuyến đi",
+    [BOOKING_STATUS.COMPLETED]: "Đã hoàn thành chuyến đi",
+  };
+
+  return messages[targetStatus] || `Đã chuyển đơn sang trạng thái "${targetStatus}"`;
+};
+
+// Cập nhật lại paid_amount / remaining_amount / payment_status của booking
+// sau khi xử lý tiền (hủy + hoàn).
+const syncBookingPaymentTotals = async ({ tx, booking, refundAmount = 0 }) => {
+  const totalAmount = Number(booking.total_amount || 0);
+  const collectedAmount = getCollectedAmount(booking.payments);
+  const netAmount = Math.max(collectedAmount - refundAmount, 0);
+
+  let paymentStatus = "unpaid";
+
+  if (refundAmount > 0) {
+    paymentStatus = "refunded";
+  } else if (netAmount <= 0) {
+    paymentStatus = "unpaid";
+  } else if (netAmount < totalAmount) {
+    paymentStatus = "partial";
+  } else {
+    paymentStatus = "paid";
+  }
+
+  await tx.bookings.update({
+    where: { id: booking.id },
+    data: {
+      paid_amount: netAmount,
+      remaining_amount: Math.max(totalAmount - netAmount, 0),
+      payment_status: paymentStatus,
+    },
+  });
+};
+
+// ==========================================
+// XỬ LÝ HOÀN TIỀN VÀO VÍ
+// ------------------------------------------------------------
+// Dùng chung cho:
+//  - Hủy booking của Admin (hủy + hoàn tiền trong 1 transaction)
+//  - Xác nhận hoàn tiền cho đơn đang chờ hoàn (REFUND_PENDING -> REFUNDED)
+//
+// Số tiền hoàn luôn được tính từ các giao dịch thanh toán THÀNH CÔNG,
+// không dùng tổng giá trị booking.
+// ==========================================
+
+const executeWalletRefund = async ({
+  tx,
+  booking,
+  refundablePayments = [],
+  reason = null,
+}) => {
+  if (!refundablePayments || refundablePayments.length === 0) {
+    return {
+      status: REFUND_STATE.NONE,
+      refundAmount: 0,
+      refundPercent: 0,
+      refunds: [],
+      message: "Booking không có giao dịch thanh toán thành công nào để hoàn",
+    };
+  }
+
+  // Chống hoàn tiền hai lần: đã có bản ghi hoàn COMPLETED thì dừng lại
+  const completedRefund = await tx.refunds.findFirst({
+    where: {
+      booking_id: booking.id,
+      status: "COMPLETED",
+    },
+  });
+
+  if (completedRefund) {
+    throw new BookingFlowError(
+      "Đơn này đã được hoàn tiền trước đó, không thể hoàn thêm lần nữa",
+      409,
+    );
+  }
+
+  // Áp dụng chính sách hoàn tiền hiện có
+  const policy = calcRefundPolicy({
+    createdAt: booking.created_at,
+    departureDate: booking.schedule?.departure_date,
+  });
+
+  const { totalPaid, refundTotal, items } = distributeRefundAmount(
+    refundablePayments,
+    policy.percent,
+  );
+
+  // Không đủ điều kiện hoàn: ghi nhận để tra cứu, KHÔNG đụng ví
+  if (refundTotal <= 0) {
+    for (const payment of refundablePayments) {
+      await tx.refunds.create({
+        data: {
+          payment_id: payment.id,
+          booking_id: booking.id,
+          amount: 0,
+          reason: reason
+            ? `Hủy đơn #${booking.id}: ${reason}`
+            : `Hủy đơn #${booking.id}`,
+          refund_method: "WALLET",
+          status: "REJECTED",
+          processed_at: new Date(),
+          note: `Không đủ điều kiện hoàn tiền (đặt trước ${policy.hoursSinceBooking.toFixed(1)}h, còn ${policy.diffDays} ngày trước ngày đi)`,
+        },
+      });
+    }
+
+    return {
+      status: REFUND_STATE.REJECTED,
+      refundAmount: 0,
+      refundPercent: policy.percent,
+      totalPaid,
+      refunds: [],
+      message: "Đơn không đủ điều kiện hoàn tiền theo chính sách",
+    };
+  }
+
+  // Chủ tour / nhà điều hành
+  const ownerId = booking.tour?.operator?.user_id;
+
+  if (!ownerId) {
+    throw new BookingFlowError(
+      "Không xác định được chủ tour liên kết để trừ tiền hoàn",
+      400,
+    );
+  }
+
+  const ownerWallet = await tx.wallets.findUnique({
+    where: { user_id: ownerId },
+  });
+
+  if (!ownerWallet) {
+    throw new BookingFlowError("Chủ tour chưa mở ví hệ thống", 400);
+  }
+
+  const ownerBalanceBefore = Number(ownerWallet.balance || 0);
+
+  if (ownerBalanceBefore < refundTotal) {
+    throw new BookingFlowError(
+      `Ví chủ tour không đủ số dư để hoàn tiền. Cần: ${refundTotal.toLocaleString("vi-VN")}đ, hiện có: ${ownerBalanceBefore.toLocaleString("vi-VN")}đ`,
+      400,
+    );
+  }
+
+  // Ví khách hàng (tạo nếu chưa có)
+  let customerWallet = await tx.wallets.findUnique({
+    where: { user_id: booking.user_id },
+  });
+
+  if (!customerWallet) {
+    customerWallet = await tx.wallets.create({
+      data: {
+        user_id: booking.user_id,
+        balance: 0,
+      },
+    });
+  }
+
+  const customerBalanceBefore = Number(customerWallet.balance || 0);
+
+  // Tạo bản ghi hoàn tiền cho từng giao dịch
+  const refunds = [];
+
+  for (const item of items) {
+    if (item.refundAmount <= 0) continue;
+
+    const refundRecord = await tx.refunds.create({
+      data: {
+        payment_id: item.payment.id,
+        booking_id: booking.id,
+        amount: item.refundAmount,
+        reason: reason
+          ? `Hoàn tiền ${policy.percent}% do hủy đơn #${booking.id}: ${reason}`
+          : `Hoàn tiền ${policy.percent}% do hủy đơn #${booking.id}`,
+        refund_method: "WALLET",
+        status: "COMPLETED",
+        processed_at: new Date(),
+        note: `Đặt tour ${policy.hoursSinceBooking.toFixed(1)}h trước; còn ${policy.diffDays} ngày trước khởi hành`,
+      },
+    });
+
+    refunds.push(refundRecord);
+  }
+
+  if (refunds.length === 0) {
+    throw new BookingFlowError("Không thể khởi tạo bản ghi hoàn tiền", 400);
+  }
+
+  // Trừ tiền ví chủ tour
+  await tx.wallets.update({
+    where: { id: ownerWallet.id },
+    data: {
+      balance: {
+        decrement: refundTotal,
+      },
+    },
+  });
+
+  // Cộng tiền vào ví khách hàng
+  await tx.wallets.update({
+    where: { id: customerWallet.id },
+    data: {
+      balance: {
+        increment: refundTotal,
+      },
+    },
+  });
+
+  // Lịch sử giao dịch ví chủ tour (tiền ra)
+  await tx.wallet_transactions.create({
+    data: {
+      wallet_id: ownerWallet.id,
+      user_id: ownerId,
+      from_user_id: ownerId,
+      to_user_id: booking.user_id,
+      booking_id: booking.id,
+      refund_id: refunds[0].id,
+      amount: -refundTotal,
+      balance_before: ownerBalanceBefore,
+      balance_after: ownerBalanceBefore - refundTotal,
+      type: "REFUND",
+      description: `Hoàn tiền ${policy.percent}% cho khách hàng từ đơn tour #${booking.id}`,
+    },
+  });
+
+  // Lịch sử giao dịch ví khách hàng (tiền vào)
+  await tx.wallet_transactions.create({
+    data: {
+      wallet_id: customerWallet.id,
+      user_id: booking.user_id,
+      from_user_id: ownerId,
+      to_user_id: booking.user_id,
+      booking_id: booking.id,
+      refund_id: refunds[0].id,
+      amount: refundTotal,
+      balance_before: customerBalanceBefore,
+      balance_after: customerBalanceBefore + refundTotal,
+      type: "REFUND",
+      description: `Nhận hoàn tiền ${policy.percent}% từ đơn tour #${booking.id}`,
+    },
+  });
+
+  // Các giao dịch đã hoàn -> REFUNDED (giữ nguyên lịch sử thanh toán VNPAY)
+  await tx.payments.updateMany({
+    where: {
+      id: { in: items.map((item) => item.payment.id) },
+    },
+    data: { status: "REFUNDED" },
+  });
+
+  return {
+    status: REFUND_STATE.COMPLETED,
+    refundAmount: refundTotal,
+    refundPercent: policy.percent,
+    totalPaid,
+    refunds,
+    message: `Đã hoàn trả thành công ${policy.percent}% (${refundTotal.toLocaleString("vi-VN")}đ) vào ví khách hàng.`,
+  };
+};
+
 export const duyetDon = async (req, res, next) => {
   try {
     // 1. Kiểm tra ID booking
@@ -3230,45 +3660,36 @@ export const duyetDon = async (req, res, next) => {
 
     const inputStatus = String(req.body.status).trim().toUpperCase();
 
-    // Chuẩn hóa các trạng thái cũ
-    const statusAliasMap = {
-      READY: "CONFIRMED",
-      ONGOING: "IN_PROGRESS",
-      PAID: "CONFIRMED",
-      CANCELED: "CANCELLED",
-      CANCEL: "CANCELLED",
-      COMPLETE: "COMPLETED",
-      FINISHED: "COMPLETED",
-      NOT_ATTENDED: "NO_SHOW",
-    };
+    // Chuẩn hóa trạng thái (bao gồm cả các trạng thái cũ: READY/PAID/LOCKED/...)
+    const targetStatus = normalizeBookingStatus(inputStatus);
 
-    const targetStatus = statusAliasMap[inputStatus] || inputStatus;
-
-    const VALID_STATUSES = [
-      "PENDING",
-      "CONFIRMED",
-      "LOCKED",
-      "CHECKED_IN",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "CANCELLED",
-      "NO_SHOW",
-      "REFUND_PENDING",
-      "REFUNDED",
-    ];
-
-    if (!VALID_STATUSES.includes(targetStatus)) {
+    if (!VALID_TARGET_STATUSES.includes(targetStatus)) {
       return res.status(400).json({
         success: false,
         message: `Trạng thái "${inputStatus}" không hợp lệ`,
       });
     }
 
+    // Lý do thao tác (bắt buộc khi hủy booking)
+    const reason = String(req.body?.reason ?? "").trim();
+
+    // Người thực hiện (lấy từ token, không tin frontend)
+    const actorId = BigInt(req.user.id);
+
     // 3. Lấy thông tin booking và thanh toán
     const booking = await prisma.bookings.findUnique({
       where: { id: bookingId },
       include: {
         payments: true,
+        refunds: true,
+        schedule: true,
+        tour: {
+          include: {
+            operator: {
+              select: { user_id: true },
+            },
+          },
+        },
       },
     });
 
@@ -3279,11 +3700,10 @@ export const duyetDon = async (req, res, next) => {
       });
     }
 
-    const rawCurrentStatus = String(booking.status ?? "")
-      .trim()
-      .toUpperCase();
+    // Trạng thái thô đang lưu trong DB (dùng cho điều kiện chống thao tác trùng)
+    const rawStoredStatus = booking.status;
 
-    const currentStatus = statusAliasMap[rawCurrentStatus] || rawCurrentStatus;
+    const currentStatus = normalizeBookingStatus(rawStoredStatus);
 
     // 4. Không cập nhật nếu trạng thái không thay đổi
     if (currentStatus === targetStatus) {
@@ -3293,10 +3713,8 @@ export const duyetDon = async (req, res, next) => {
       });
     }
 
-    // 5. Các trạng thái kết thúc
-    const TERMINAL_STATUSES = ["COMPLETED", "CANCELLED", "NO_SHOW", "REFUNDED"];
-
-    if (TERMINAL_STATUSES.includes(currentStatus)) {
+    // 5. Các trạng thái kết thúc: không được chuyển ngược
+    if (isTerminalBookingStatus(currentStatus)) {
       return res.status(400).json({
         success: false,
         message: `Đơn đã kết thúc (${currentStatus}), không thể cập nhật`,
@@ -3304,29 +3722,9 @@ export const duyetDon = async (req, res, next) => {
     }
 
     // 6. Ma trận chuyển trạng thái
-    const ALLOWED_TRANSITIONS = {
-      PENDING: ["CONFIRMED", "CANCELLED"],
+    const allowedNext = ALLOWED_BOOKING_TRANSITIONS[currentStatus] || [];
 
-      // Booking đã thanh toán:
-      // Admin có thể khóa hủy hoặc hủy booking
-      CONFIRMED: ["LOCKED", "CANCELLED"],
-
-      // Đã khóa hủy: chỉ được đón khách hoặc đánh dấu vắng mặt
-      LOCKED: ["CHECKED_IN", "NO_SHOW"],
-
-      CHECKED_IN: ["IN_PROGRESS"],
-
-      IN_PROGRESS: ["COMPLETED"],
-
-      // Chỉ booking đã hủy mới được chuyển sang xử lý hoàn tiền
-      CANCELLED: ["REFUND_PENDING"],
-
-      REFUND_PENDING: ["REFUNDED"],
-    };
-
-    const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
-
-    if (!allowedNext.includes(targetStatus)) {
+    if (!canTransitionBooking(currentStatus, targetStatus)) {
       return res.status(400).json({
         success: false,
         message: `Không thể chuyển đơn từ "${currentStatus}" sang "${targetStatus}"`,
@@ -3334,163 +3732,215 @@ export const duyetDon = async (req, res, next) => {
     }
 
     // 7. Kiểm tra thanh toán thành công
-    const hasPaid = (booking.payments || []).some(
-      (payment) =>
-        String(payment?.status ?? "")
-          .trim()
-          .toUpperCase() === "PAID",
-    );
+    const paidPayments = getPaidPayments(booking.payments);
+    const hasPaid = paidPayments.length > 0;
 
-    // Booking phải thanh toán thành công trước khi xác nhận
-    // hoặc khóa hủy
-    if (["CONFIRMED", "LOCKED"].includes(targetStatus) && !hasPaid) {
+    // Booking phải thanh toán thành công trước khi xác nhận chuyến đi
+    if (targetStatus === BOOKING_STATUS.CONFIRMED && !hasPaid) {
       return res.status(400).json({
         success: false,
         message: "Booking chưa có giao dịch thanh toán thành công",
       });
     }
 
-    // 8. HỦY BOOKING
-    // Ma trận chuyển trạng thái đã chặn LOCKED -> CANCELLED.
-    // Transaction cập nhật trạng thái và hoàn lại chỗ cùng lúc.
-    if (targetStatus === "CANCELLED") {
-      const updatedBooking = await prisma.$transaction(async (tx) => {
-        const updated = await tx.bookings.update({
-          where: { id: bookingId },
+    // 8. Điều kiện riêng cho bước điểm danh (check-in / vắng mặt)
+    if (
+      targetStatus === BOOKING_STATUS.CHECKED_IN ||
+      targetStatus === BOOKING_STATUS.NO_SHOW
+    ) {
+      if (!hasPaid) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Booking chưa có giao dịch thanh toán thành công nên không thể thực hiện thao tác này",
+        });
+      }
+    }
+
+    if (targetStatus === BOOKING_STATUS.NO_SHOW) {
+      // Chỉ áp dụng cho booking mua vé thông thường
+      const bookingKind = classifyBookingKind(booking);
+
+      if (bookingKind !== BOOKING_KIND.REGULAR) {
+        return res.status(400).json({
+          success: false,
+          message: `Chỉ áp dụng đánh dấu vắng mặt cho booking mua vé thông thường. Đơn này thuộc nhóm "${BOOKING_KIND_LABEL[bookingKind]}".`,
+        });
+      }
+
+      // Chỉ cho phép trong khoảng thời gian điểm danh hợp lệ
+      const checkinWindow = getCheckinWindow(booking.schedule);
+
+      if (!checkinWindow) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Không xác định được lịch khởi hành nên không thể kiểm tra thời gian điểm danh",
+        });
+      }
+
+      if (!checkinWindow.isOpen) {
+        return res.status(400).json({
+          success: false,
+          message: `Chỉ được đánh dấu vắng mặt trong khung giờ điểm danh (${formatCheckinWindow(checkinWindow)})`,
+        });
+      }
+    }
+
+    if (targetStatus === BOOKING_STATUS.CHECKED_IN) {
+      // Booking có lịch khởi hành thì bắt buộc nằm trong khung giờ điểm danh
+      const checkinWindow = getCheckinWindow(booking.schedule);
+
+      if (checkinWindow && !checkinWindow.isOpen) {
+        return res.status(400).json({
+          success: false,
+          message: `Chỉ check-in trong khung giờ điểm danh (${formatCheckinWindow(checkinWindow)})`,
+        });
+      }
+    }
+
+    // 9. Hủy booking bắt buộc có lý do
+    if (targetStatus === BOOKING_STATUS.CANCELLED && !reason) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập lý do hủy booking",
+      });
+    }
+
+    // 10. CẬP NHẬT TRẠNG THÁI + GHI LỊCH SỬ + XỬ LÝ TIỀN
+    // Toàn bộ nằm trong 1 transaction:
+    //  - Claim trạng thái bằng updateMany có điều kiện (chống thao tác trùng/song song)
+    //  - Ghi lịch sử thay đổi trạng thái (lý do + người thực hiện + thời gian)
+    //  - Hủy booking: hoàn slot + hoàn tiền theo chính sách hiện có vào ví
+    //  - Vắng mặt: KHÔNG hoàn tiền, KHÔNG đụng ví
+    let transactionResult;
+
+    try {
+      transactionResult = await prisma.$transaction(async (tx) => {
+        // 10.1 Claim trạng thái: chỉ một request được thắng
+        const claimed = await tx.bookings.updateMany({
+          where: { id: bookingId, status: rawStoredStatus },
+          data: { status: targetStatus },
+        });
+
+        if (claimed.count !== 1) {
+          throw new BookingFlowError(
+            "Đơn đặt tour vừa được cập nhật bởi người khác. Vui lòng tải lại trang.",
+            409,
+          );
+        }
+
+        // 10.2 Ghi lịch sử thay đổi trạng thái
+        await tx.booking_status_histories.create({
           data: {
-            status: "CANCELLED",
+            booking_id: bookingId,
+            old_status: currentStatus,
+            new_status: targetStatus,
+            changed_by: actorId,
+            reason: reason || defaultReasonForStatus(targetStatus),
           },
         });
 
-        // Booking từ báo giá tour đoàn chưa từng trừ slot nên không hoàn slot.
+        // 10.3 Lấy các giao dịch có thể hoàn (đọc lại trong transaction)
+        const refundablePayments = await tx.payments.findMany({
+          where: {
+            booking_id: bookingId,
+            status: { in: ["PAID", "REFUND_PENDING"] },
+          },
+          orderBy: { paid_at: "asc" },
+        });
+
+        // 10.4 Hủy booking: hoàn lại chỗ trống cho tour
         if (
-          updated.schedule_id &&
-          updated.total_people > 0 &&
-          !updated.quotation_id
+          targetStatus === BOOKING_STATUS.CANCELLED &&
+          booking.schedule_id &&
+          booking.total_people > 0 &&
+          !booking.quotation_id
         ) {
           await tx.tour_schedules.update({
-            where: {
-              id: updated.schedule_id,
-            },
+            where: { id: booking.schedule_id },
             data: {
               available_slots: {
-                increment: updated.total_people,
+                increment: booking.total_people,
               },
             },
           });
         }
 
-        return updated;
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Hủy booking thành công và đã hoàn lại chỗ trống cho tour",
-        data: {
-          booking_id: updatedBooking.id.toString(),
-          old_status: currentStatus,
-          status: updatedBooking.status,
-        },
-      });
-    }
-
-    // 9. YÊU CẦU HOÀN TIỀN
-    if (targetStatus === "REFUND_PENDING") {
-      if (!hasPaid) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Đơn chưa phát sinh thanh toán thành công, không thể yêu cầu hoàn tiền",
-        });
-      }
-
-      const bookingUpdated = await prisma.bookings.update({
-        where: { id: bookingId },
-        data: {
-          status: "REFUND_PENDING",
-        },
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Đã gửi yêu cầu xử lý hoàn tiền",
-        data: {
-          booking_id: bookingUpdated.id.toString(),
-          old_status: currentStatus,
-          status: bookingUpdated.status,
-        },
-      });
-    }
-
-    // 10. XÁC NHẬN HOÀN TIỀN
-    if (targetStatus === "REFUNDED") {
-      const result = await prisma.$transaction(async (tx) => {
-        const refundResult = await hoanTien(bookingId, tx);
-
-        if (!refundResult?.refund || refundResult?.refundAmount <= 0) {
-          return {
-            noRefund: true,
-            refundResult,
-          };
+        // 10.5 Đưa các giao dịch đã thanh toán vào hàng đợi hoàn tiền
+        if (
+          targetStatus === BOOKING_STATUS.REFUND_PENDING &&
+          refundablePayments.length > 0
+        ) {
+          await tx.payments.updateMany({
+            where: { id: { in: refundablePayments.map((p) => p.id) } },
+            data: { status: "REFUND_PENDING" },
+          });
         }
 
-        const bookingUpdated = await tx.bookings.update({
-          where: { id: bookingId },
-          data: {
-            status: "REFUNDED",
-          },
-        });
+        // 10.6 Xử lý tiền
+        let refundSummary = null;
 
-        return {
-          noRefund: false,
-          refundResult,
-          bookingUpdated,
-        };
+        if (targetStatus === BOOKING_STATUS.CANCELLED) {
+          // Hủy booking: áp dụng chính sách hoàn tiền hiện có
+          refundSummary = await executeWalletRefund({
+            tx,
+            booking,
+            refundablePayments,
+            reason,
+          });
+        }
+
+        if (targetStatus === BOOKING_STATUS.REFUNDED) {
+          // Xác nhận hoàn tiền cho đơn đang chờ hoàn
+          refundSummary = await executeWalletRefund({
+            tx,
+            booking,
+            refundablePayments,
+            reason,
+          });
+        }
+
+        // 10.7 Cập nhật lại số liệu tiền của booking
+        if (
+          targetStatus === BOOKING_STATUS.CANCELLED ||
+          targetStatus === BOOKING_STATUS.REFUNDED
+        ) {
+          await syncBookingPaymentTotals({
+            tx,
+            booking,
+            refundAmount: refundSummary?.refundAmount || 0,
+          });
+        }
+
+        return { refundSummary };
       });
-
-      if (result.noRefund) {
-        return res.status(400).json({
+    } catch (error) {
+      if (error instanceof BookingFlowError) {
+        return res.status(error.status).json({
           success: false,
-          message:
-            result.refundResult?.message ||
-            "Booking không đủ điều kiện hoàn tiền",
-          data: {
-            booking_id: bookingId.toString(),
-            status: currentStatus,
-            refund_amount: 0,
-          },
+          message: error.message,
         });
       }
 
-      return res.status(200).json({
-        success: true,
-        message: result.refundResult.message || "Hoàn tiền thành công",
-        data: {
-          booking_id: result.bookingUpdated.id.toString(),
-          old_status: currentStatus,
-          status: result.bookingUpdated.status,
-          refund_amount: result.refundResult.refundAmount,
-          refund_percent: result.refundResult.refundPercent,
-        },
-      });
+      throw error;
     }
 
-    // 11. CẬP NHẬT CÁC TRẠNG THÁI CÒN LẠI
-    // Bao gồm LOCKED, CHECKED_IN, IN_PROGRESS, COMPLETED, NO_SHOW.
-    const bookingUpdated = await prisma.bookings.update({
-      where: { id: bookingId },
-      data: {
-        status: targetStatus,
-      },
-    });
+    const refundSummary = transactionResult.refundSummary;
+
+    const successMessage = buildSuccessMessage(targetStatus, refundSummary);
 
     return res.status(200).json({
       success: true,
-      message: `Đã chuyển đơn sang trạng thái "${targetStatus}"`,
+      message: successMessage,
       data: {
-        booking_id: bookingUpdated.id.toString(),
+        booking_id: bookingId.toString(),
         old_status: currentStatus,
-        status: bookingUpdated.status,
+        status: targetStatus,
+        booking_kind: classifyBookingKind(booking),
+        refund_status: refundSummary?.status || REFUND_STATE.NONE,
+        refund_amount: refundSummary?.refundAmount || 0,
+        refund_percent: refundSummary?.refundPercent || 0,
       },
     });
   } catch (error) {
@@ -3663,238 +4113,37 @@ export const hoanTien = async (bookingId, tx) => {
   const currentBookingStatus = String(booking.status ?? "")
     .trim()
     .toUpperCase();
+
   if (currentBookingStatus !== "REFUND_PENDING") {
     throw new Error(
       `Booking đang ở trạng thái "${booking.status}", không phải chờ hoàn tiền (REFUND_PENDING)`,
     );
   }
 
-  const payments = booking.payments || [];
-  if (payments.length === 0) {
+  if ((booking.payments || []).length === 0) {
     throw new Error(
       "Không tìm thấy giao dịch thanh toán nào đang ở trạng thái chờ hoàn tiền",
     );
   }
 
-  // 3. Tính số giờ từ thời điểm đặt tour đến thời điểm hiện tại
-  const bookingCreatedAt = booking.created_at;
-  if (!bookingCreatedAt) {
-    throw new Error("Không tìm thấy thời điểm đặt tour");
-  }
-
-  const createdAt = new Date(bookingCreatedAt);
-  const now = new Date();
-  if (Number.isNaN(createdAt.getTime())) {
-    throw new Error("Thời điểm tạo đơn tour không hợp lệ");
-  }
-
-  const hoursSinceBooking =
-    (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-
-  // 4. Tính số ngày còn lại trước ngày khởi hành
-  if (!booking.schedule?.departure_date) {
-    throw new Error("Không tìm thấy ngày khởi hành của tour");
-  }
-
-  const departureDate = new Date(booking.schedule.departure_date);
-  if (Number.isNaN(departureDate.getTime())) {
-    throw new Error("Ngày khởi hành không hợp lệ");
-  }
-
-  const departureDay = new Date(departureDate);
-  const today = new Date();
-  departureDay.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.ceil(
-    (departureDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-  );
-
-  // 5. Áp dụng chính sách hoàn tiền
-  let refundPercent = 0;
-  if (hoursSinceBooking >= 0 && hoursSinceBooking <= 48) {
-    // Trong 48 giờ đầu kể từ khi đặt tour: Hoàn 100%
-    refundPercent = 100;
-  } else if (hoursSinceBooking > 48 && diffDays >= 3) {
-    // Quá 48 giờ nhưng còn cách ngày đi >= 3 ngày: Hoàn 50%
-    refundPercent = 50;
-  } else {
-    // Quá 48 giờ và cận ngày đi (< 3 ngày): Không hoàn tiền
-    refundPercent = 0;
-  }
-
-  // 6. Tính tổng tiền đã trả và số tiền hoàn (làm tròn số nguyên VND)
-  const totalPaid = payments.reduce(
-    (total, p) => total + Number(p.amount || 0),
-    0,
-  );
-
-  const refundAmount = Math.round((totalPaid * refundPercent) / 100);
-
-  console.log("========== THÔNG TIN HOÀN TIỀN ==========");
-  console.log("Mã đơn:", booking.id.toString());
-  console.log("Số giờ từ lúc đặt:", hoursSinceBooking.toFixed(1));
-  console.log("Số ngày trước khởi hành:", diffDays);
-  console.log("Tổng tiền đã thanh toán:", totalPaid);
-  console.log("Tỷ lệ hoàn:", `${refundPercent}%`);
-  console.log("Số tiền hoàn thực tế:", refundAmount);
-  console.log("=========================================");
-
-  // 7. Trường hợp không đủ điều kiện hoàn (0%)
-  if (refundAmount <= 0) {
-    return {
-      refund: null,
-      refunds: [],
-      refundAmount: 0,
-      refundPercent,
-      totalPaid,
-      diffDays,
-      hoursSinceBooking,
-      customerId: booking.user_id,
-      ownerId: booking.tour?.operator?.user_id,
-      message: `Đơn không đủ điều kiện hoàn tiền (Đặt trước ${hoursSinceBooking.toFixed(1)}h, còn ${diffDays} ngày trước ngày đi)`,
-    };
-  }
-
-  // 8. Xác định chủ tour / nhà điều hành
-  const ownerId = booking.tour?.operator?.user_id;
-  if (!ownerId) {
-    throw new Error("Không xác định được chủ tour liên kết để trừ tiền hoàn");
-  }
-
-  // 9. Kiểm tra số dư ví chủ tour
-  const ownerWallet = await prismaClient.wallets.findUnique({
-    where: { user_id: ownerId },
+  // 3. Dùng chung logic hoàn tiền với luồng hủy booking của Admin
+  const result = await executeWalletRefund({
+    tx: prismaClient,
+    booking,
+    refundablePayments: booking.payments,
+    reason: null,
   });
 
-  if (!ownerWallet) {
-    throw new Error("Chủ tour chưa mở ví hệ thống");
-  }
-
-  const ownerBalanceBefore = Number(ownerWallet.balance || 0);
-  if (ownerBalanceBefore < refundAmount) {
-    throw new Error(
-      `Ví chủ tour không đủ số dư để hoàn tiền. Cần: ${refundAmount.toLocaleString("vi-VN")}đ, hiện có: ${ownerBalanceBefore.toLocaleString("vi-VN")}đ`,
-    );
-  }
-
-  // 10. Tìm hoặc khởi tạo ví khách hàng
-  let customerWallet = await prismaClient.wallets.findUnique({
-    where: { user_id: booking.user_id },
-  });
-
-  if (!customerWallet) {
-    customerWallet = await prismaClient.wallets.create({
-      data: {
-        user_id: booking.user_id,
-        balance: 0,
-      },
-    });
-  }
-
-  const customerBalanceBefore = Number(customerWallet.balance || 0);
-
-  // 11. Tạo bản ghi hoàn tiền (refunds table) cho từng payment
-  const refunds = [];
-  for (const payment of payments) {
-    const paymentAmount = Number(payment.amount || 0);
-    const paymentRefundAmount = Math.round(
-      (paymentAmount * refundPercent) / 100,
-    );
-
-    if (paymentRefundAmount <= 0) continue;
-
-    const refundRecord = await prismaClient.refunds.create({
-      data: {
-        payment_id: payment.id,
-        booking_id: booking.id,
-        amount: paymentRefundAmount,
-        reason: `Hoàn tiền ${refundPercent}% do hủy đơn #${booking.id}`,
-        refund_method: "WALLET",
-        status: "COMPLETED",
-        processed_at: new Date(),
-        note: `Đặt tour ${hoursSinceBooking.toFixed(1)}h trước; còn ${diffDays} ngày trước khởi hành`,
-      },
-    });
-
-    refunds.push(refundRecord);
-  }
-
-  if (refunds.length === 0) {
-    throw new Error("Không thể khởi tạo bản ghi hoàn tiền");
-  }
-
-  // 12. Trừ tiền ví chủ tour
-  await prismaClient.wallets.update({
-    where: { id: ownerWallet.id },
-    data: {
-      balance: { decrement: refundAmount },
-    },
-  });
-
-  // 13. Cộng tiền vào ví khách hàng
-  await prismaClient.wallets.update({
-    where: { id: customerWallet.id },
-    data: {
-      balance: { increment: refundAmount },
-    },
-  });
-
-  // 14. Ghi lịch sử giao dịch ví chủ tour (tiền ra)
-  await prismaClient.wallet_transactions.create({
-    data: {
-      wallet_id: ownerWallet.id,
-      user_id: ownerId,
-      from_user_id: ownerId,
-      to_user_id: booking.user_id,
-      booking_id: booking.id,
-      refund_id: refunds[0].id,
-      amount: -refundAmount,
-      balance_before: ownerBalanceBefore,
-      balance_after: ownerBalanceBefore - refundAmount,
-      type: "REFUND",
-      description: `Hoàn tiền ${refundPercent}% cho khách hàng từ đơn tour #${booking.id}`,
-    },
-  });
-
-  // 15. Ghi lịch sử giao dịch ví khách (tiền vào)
-  await prismaClient.wallet_transactions.create({
-    data: {
-      wallet_id: customerWallet.id,
-      user_id: booking.user_id,
-      from_user_id: ownerId,
-      to_user_id: booking.user_id,
-      booking_id: booking.id,
-      refund_id: refunds[0].id,
-      amount: refundAmount,
-      balance_before: customerBalanceBefore,
-      balance_after: customerBalanceBefore + refundAmount,
-      type: "REFUND",
-      description: `Nhận hoàn tiền ${refundPercent}% từ đơn tour #${booking.id}`,
-    },
-  });
-
-  // 16. Chuyển trạng thái các payments sang REFUNDED
-  await prismaClient.payments.updateMany({
-    where: {
-      booking_id: booking.id,
-      status: { in: ["REFUND_PENDING", "refund_pending"] },
-    },
-    data: { status: "REFUNDED" },
-  });
-
-  // 17. Trả kết quả về cho controller duyetDon
   return {
-    refund: refunds,
-    refunds,
-    refundAmount,
-    refundPercent,
-    totalPaid,
-    diffDays,
-    hoursSinceBooking,
+    refund: result.refunds,
+    refunds: result.refunds,
+    refundAmount: result.refundAmount,
+    refundPercent: result.refundPercent,
+    totalPaid: result.totalPaid,
+    status: result.status,
     customerId: booking.user_id,
-    ownerId,
-    message: `Đã hoàn trả thành công ${refundPercent}% (${refundAmount.toLocaleString("vi-VN")}đ) vào ví khách hàng.`,
+    ownerId: booking.tour?.operator?.user_id,
+    message: result.message,
   };
 };
 

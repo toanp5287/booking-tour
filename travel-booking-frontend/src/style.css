@@ -8,6 +8,10 @@
   --color-travel-panel: #ffffff;
   --color-travel-blue: #172b4d;
   --color-travel-teal: #0f9d8a;
+  --color-travel-ink: #172b4d;
+  --color-travel-muted: #64748b;
+  --color-travel-primary-soft: #edf2f8;
+  --color-travel-secondary-soft: #e7f6f3;
   --color-travel-orange: #f59e0b;
   --color-travel-gold: #f59e0b;
   --color-travel-success: #15803d;
@@ -61,6 +65,8 @@
   --travel-info: #2563eb;
   --travel-info-soft: #eff6ff;
   --travel-focus: #2563eb;
+  --travel-radius-card: 1.25rem;
+  --travel-shadow-hover: 0 12px 28px rgba(23, 43, 77, 0.1);
 }
 
 html {
@@ -84,6 +90,12 @@ textarea {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+:where(.customer-redesign, .admin-page) :is(button, a) {
+  touch-action: manipulation;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
 }
 
 :focus-visible {
@@ -650,6 +662,26 @@ a {
   background-color: #f5f7fa !important;
 }
 
+.travel-surface {
+  border: 1px solid var(--travel-border);
+  border-radius: var(--travel-radius-card);
+  background: var(--travel-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.travel-surface-interactive {
+  transition:
+    transform 180ms ease-out,
+    border-color 180ms ease-out,
+    box-shadow 180ms ease-out;
+}
+
+.travel-surface-interactive:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--travel-shadow-hover);
+  transform: translateY(-2px);
+}
+
 @media (max-width: 640px) {
   .site-header > div {
     padding-right: 0.75rem;
@@ -670,5 +702,14 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

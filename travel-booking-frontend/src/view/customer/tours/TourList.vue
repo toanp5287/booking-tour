@@ -12,6 +12,7 @@ interface FilterPayload {
 
 const shearch = ref("");
 const sortBy = ref("popular");
+const isMobileFilterOpen = ref(false);
 
 const activeFilters = ref<FilterPayload>({
   categories: [],
@@ -49,7 +50,7 @@ const handleFilterChange = (filters: FilterPayload) => {
 
     <main class="relative z-10 pt-20">
       <!-- HERO SEARCH HEADER -->
-      <section class="border-b border-white/[0.06] pb-14 pt-8">
+      <section class="border-b border-slate-200 pb-10 pt-8 sm:pb-14">
         <div class="mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
           <div class="max-w-2xl">
             <!-- Badge -->
@@ -80,7 +81,7 @@ const handleFilterChange = (filters: FilterPayload) => {
           <!-- COMPACT MODERN SEARCH BAR -->
           <div class="mt-8 w-full max-w-3xl">
             <div
-              class="flex items-center rounded-2xl border border-white/[0.08] bg-[#0f131c] p-2 shadow-sm transition focus-within:border-travel-info/60 focus-within:shadow-md"
+              class="flex items-center rounded-2xl border border-slate-200 bg-white p-2 shadow-sm transition focus-within:border-travel-teal focus-within:shadow-md"
             >
               <!-- Search Icon -->
               <div
@@ -149,15 +150,37 @@ const handleFilterChange = (filters: FilterPayload) => {
       <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
         <div class="grid gap-8 lg:grid-cols-[260px_1fr]">
           <!-- SIDEBAR BỘ LỌC -->
-          <aside class="sticky top-24 h-fit">
-            <TourFilter @filter-change="handleFilterChange" />
-          </aside>
+          <div class="min-w-0">
+            <button
+              type="button"
+              class="mb-3 flex min-h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-travel-blue shadow-sm transition hover:bg-slate-50 lg:hidden"
+              :aria-expanded="isMobileFilterOpen"
+              @click="isMobileFilterOpen = !isMobileFilterOpen"
+            >
+              <span class="flex items-center gap-2">
+                <span aria-hidden="true">☷</span>
+                Bộ lọc tour
+              </span>
+              <span
+                class="transition-transform"
+                :class="{ 'rotate-180': isMobileFilterOpen }"
+                aria-hidden="true"
+                >⌄</span
+              >
+            </button>
+            <aside
+              class="h-fit lg:sticky lg:top-24"
+              :class="{ 'hidden lg:block': !isMobileFilterOpen }"
+            >
+              <TourFilter @filter-change="handleFilterChange" />
+            </aside>
+          </div>
 
           <!-- KHU VỰC DANH SÁCH TOUR -->
           <div>
             <!-- Controls Bar -->
             <div
-              class="mb-6 flex flex-col justify-between gap-3 border-b border-white/[0.06] pb-4 sm:flex-row sm:items-center"
+              class="mb-6 flex flex-col justify-between gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center"
             >
               <div>
                 <h2

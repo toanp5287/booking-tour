@@ -1074,11 +1074,11 @@ function getErrorMessage(err, fallback) {
       <Transition name="modal">
         <div
           v-if="selectedRequest"
-          class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/60 px-3 py-6 backdrop-blur-sm sm:px-6 sm:py-10"
+          class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-900/40 px-3 py-4 sm:px-6 sm:py-8"
           @click.self="closeDetail"
         >
           <section
-            class="my-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+            class="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-[0_16px_48px_rgba(23,43,77,0.18)] sm:max-h-[calc(100dvh-4rem)]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="request-detail-title"
@@ -1128,7 +1128,7 @@ function getErrorMessage(err, fallback) {
 
             <!-- Nội dung modal -->
             <div
-              class="max-h-[calc(100vh-180px)] space-y-6 overflow-y-auto px-5 py-6 sm:px-7"
+              class="max-h-[calc(100dvh-10rem)] space-y-6 overflow-y-auto overscroll-contain px-4 py-5 sm:max-h-[calc(100dvh-12rem)] sm:px-7 sm:py-6"
             >
               <!-- Thông tin khách hàng -->
               <section>

@@ -225,7 +225,7 @@ const handleChangePassword = async () => {
 
       <!-- FORM CARD -->
       <section
-        class="overflow-hidden rounded-[2.5rem] border border-white/20 bg-white/[0.08] p-7 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-9"
+        class="travel-surface overflow-hidden rounded-2xl p-6 sm:p-9"
       >
         <!-- HEADER -->
         <div class="mb-8">
@@ -239,11 +239,11 @@ const handleChangePassword = async () => {
             Security
           </div>
 
-          <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <h1 class="text-2xl font-bold tracking-tight text-travel-ink sm:text-3xl">
             Đổi mật khẩu
           </h1>
 
-          <p class="mt-2 text-xs leading-5 text-white/70">
+          <p class="mt-2 text-sm leading-5 text-travel-muted">
             Cập nhật mật khẩu định kỳ để tăng tính an toàn và bảo mật cho tài
             khoản của bạn.
           </p>

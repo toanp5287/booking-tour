@@ -21,7 +21,7 @@ const displayedItineraries = computed(() => {
 
 <template>
   <section
-    class="light-surface rounded-[26px] border border-white/10 bg-black/25 p-6 backdrop-blur-xl sm:p-8"
+    class="light-surface rounded-2xl border border-white/10 bg-black/25 p-5 backdrop-blur-xl sm:p-7"
   >
     <div class="mb-8">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
@@ -76,7 +76,7 @@ const displayedItineraries = computed(() => {
           <div
             v-for="activity in itinerary.activities"
             :key="activity.id"
-            class="rounded-xl border border-white/10 bg-white/5 p-4"
+            class="rounded-xl border border-slate-200 bg-slate-50 p-4"
           >
             <!-- THỜI GIAN + LOẠI -->
             <div class="flex flex-wrap items-center gap-2">
@@ -154,7 +154,7 @@ const displayedItineraries = computed(() => {
       <!-- KHÔNG CÓ LỊCH TRÌNH -->
       <div
         v-if="!props.itineraries.length"
-        class="rounded-xl border border-white/10 bg-white/5 p-6 text-center"
+        class="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center"
       >
         <p class="text-sm text-white/60">Tour này chưa có lịch trình.</p>
       </div>
@@ -177,7 +177,7 @@ const displayedItineraries = computed(() => {
 .light-surface {
   border-color: #e2e8f0 !important;
   background: #fff !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .light-surface :deep([class*="border-white/"]) {

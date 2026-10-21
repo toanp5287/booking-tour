@@ -10,11 +10,11 @@
          CONTENT
     ====================================================== -->
 
-    <div class="px-5 py-8 sm:px-8 lg:px-10">
+    <div class="px-0 py-4 sm:py-6">
       <!-- WELCOME -->
 
       <section
-        class="admin-welcome relative mb-8 overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.04]"
+        class="admin-welcome relative mb-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] sm:mb-8"
       >
         <img
           src="https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1800&q=85"
@@ -53,7 +53,7 @@
       <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <!-- REVENUE -->
 
-        <div class="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
+        <div class="travel-surface rounded-2xl p-5">
           <div class="flex items-start justify-between">
             <div
               class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-300/10 text-emerald-200"
@@ -77,7 +77,7 @@
 
         <!-- BOOKINGS -->
 
-        <div class="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
+        <div class="travel-surface rounded-2xl p-5">
           <div class="flex items-start justify-between">
             <div
               class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-300/10 text-orange-200"
@@ -103,7 +103,7 @@
 
         <!-- USERS -->
 
-        <div class="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
+        <div class="travel-surface rounded-2xl p-5">
           <div class="flex items-start justify-between">
             <div
               class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-300/10 text-blue-200"
@@ -127,7 +127,7 @@
 
         <!-- TOURS -->
 
-        <div class="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
+        <div class="travel-surface rounded-2xl p-5">
           <div class="flex items-start justify-between">
             <div
               class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-300/10 text-purple-200"
@@ -160,7 +160,7 @@
         ==================================================== -->
 
         <div
-          class="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 sm:p-7"
+          class="travel-surface rounded-2xl p-5 sm:p-7"
         >
           <div class="flex flex-col justify-between gap-4 sm:flex-row">
             <div>
@@ -500,7 +500,7 @@
 
         <!-- QUICK ACTIONS -->
 
-        <div class="rounded-[28px] border border-white/10 bg-white/[0.04] p-6">
+        <div         class="travel-surface rounded-2xl p-5 sm:p-6">
           <p class="text-[10px] uppercase tracking-[0.22em] text-white/30">
             Management
           </p>

@@ -745,10 +745,10 @@ const handleViewDetail = async (booking) => {
     <main class="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- STATS SECTION -->
       <section
-        class="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
+        class="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5"
       >
         <div
-          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          class="travel-surface rounded-2xl p-4 sm:p-5"
         >
           <div class="flex items-center justify-between">
             <span
@@ -764,7 +764,7 @@ const handleViewDetail = async (booking) => {
         </div>
 
         <div
-          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          class="travel-surface rounded-2xl p-4 sm:p-5"
         >
           <div class="flex items-center justify-between">
             <span
@@ -780,7 +780,7 @@ const handleViewDetail = async (booking) => {
         </div>
 
         <div
-          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          class="travel-surface rounded-2xl p-4 sm:p-5"
         >
           <div class="flex items-center justify-between">
             <span
@@ -796,7 +796,7 @@ const handleViewDetail = async (booking) => {
         </div>
 
         <div
-          class="rounded-3xl border border-emerald-400/20 bg-emerald-500/[0.08] p-5 backdrop-blur-2xl"
+          class="travel-surface rounded-2xl p-4 sm:p-5"
         >
           <div class="flex items-center justify-between">
             <span
@@ -812,7 +812,7 @@ const handleViewDetail = async (booking) => {
         </div>
 
         <div
-          class="rounded-3xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl"
+          class="travel-surface rounded-2xl p-4 sm:p-5"
         >
           <div class="flex items-center justify-between">
             <span
@@ -857,7 +857,7 @@ const handleViewDetail = async (booking) => {
 
         <!-- TABS LỌC THEO HỆ THỐNG TRẠNG THÁI MỚI -->
         <div
-          class="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.05] p-1.5 backdrop-blur-xl"
+          class="mb-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm"
         >
           <button
             v-for="tab in [
@@ -899,7 +899,7 @@ const handleViewDetail = async (booking) => {
           <article
             v-for="booking in filteredBookings"
             :key="booking.id"
-            class="group overflow-hidden rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-2xl transition hover:border-white/25 hover:bg-white/[0.09]"
+            class="travel-surface-interactive group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-[transform,border-color,box-shadow]"
           >
             <div class="flex flex-col md:flex-row">
               <!-- IMAGE -->
@@ -907,13 +907,13 @@ const handleViewDetail = async (booking) => {
                 <img
                   :src="getThumbnailUrl(booking.tour?.thumbnail)"
                   :alt="booking.tour?.name || 'Tour'"
-                  class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 />
                 <div
                   class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
                 ></div>
                 <div
-                  class="absolute bottom-4 left-4 rounded-full border border-white/20 bg-black/40 px-3 py-1 font-mono text-xs font-semibold text-white backdrop-blur-md"
+                  class="absolute bottom-4 left-4 rounded-full border border-white/20 bg-travel-blue/85 px-3 py-1 font-mono text-xs font-semibold text-white"
                 >
                   #BK-{{ booking.id }}
                 </div>

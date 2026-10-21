@@ -565,42 +565,42 @@ const handleThanhToan = async () => {
       ></div>
     </div>
 
-    <main class="relative z-10 text-white">
+    <main class="relative z-10">
       <div class="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
         <!-- BREADCRUMB -->
         <div
-          class="mb-7 flex items-center gap-2 text-xs font-medium text-white/70"
+          class="mb-7 flex flex-wrap items-center gap-2 text-xs font-medium text-travel-muted"
         >
-          <router-link to="/" class="transition hover:text-white">
+          <router-link to="/" class="transition hover:text-travel-blue">
             Trang chủ
           </router-link>
 
-          <span class="text-white/40">/</span>
+          <span class="text-slate-300">/</span>
 
-          <router-link to="/tours" class="transition hover:text-white">
+          <router-link to="/tours" class="transition hover:text-travel-blue">
             Tour
           </router-link>
 
-          <span class="text-white/40">/</span>
+          <span class="text-slate-300">/</span>
 
-          <span class="font-semibold text-white"> Đặt tour </span>
+          <span class="font-semibold text-travel-ink"> Đặt tour </span>
         </div>
 
         <!-- HEADER -->
         <div class="mb-9">
           <div
-            class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/80 backdrop-blur-xl"
+            class="mb-3 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-teal-800"
           >
-            <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
+            <span class="h-1.5 w-1.5 rounded-full bg-travel-teal"></span>
 
             {{ isGroupOrFamily ? "Tour Đoàn / Gia Đình" : "Khách Lẻ" }}
           </div>
 
-          <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h1 class="text-3xl font-bold tracking-tight text-travel-ink sm:text-4xl">
             Hoàn tất đặt tour
           </h1>
 
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-white/80">
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-travel-muted">
             Điền thông tin chuyến đi của bạn để giữ chỗ và bắt đầu hành trình.
           </p>
         </div>
@@ -617,15 +617,15 @@ const handleThanhToan = async () => {
 
             <!-- ==================== THANH TOÁN ==================== -->
             <section
-              class="rounded-[2rem] border border-white/15 bg-white/[0.08] p-6 backdrop-blur-2xl sm:p-7"
+              class="travel-surface rounded-2xl p-5 sm:p-7"
             >
               <!-- TITLE -->
               <div class="mb-6">
-                <h2 class="text-lg font-semibold text-white">
+                <h2 class="text-lg font-semibold text-travel-ink">
                   Phương thức thanh toán
                 </h2>
 
-                <p class="mt-1 text-xs font-medium text-white/70">
+                <p class="mt-1 text-sm font-medium text-travel-muted">
                   Chọn hình thức thanh toán cho đơn đặt tour của bạn.
                 </p>
               </div>
@@ -635,11 +635,11 @@ const handleThanhToan = async () => {
                 <!-- THANH TOÁN FULL 100% -->
                 <!-- ================================================= -->
                 <label
-                  class="relative flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all duration-200"
+                  class="relative flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-[border-color,background-color,box-shadow] duration-200"
                   :class="
                     paymentType === 'full'
-                      ? 'border-white/70 bg-white/[0.20] shadow-[0_0_0_2px_rgba(255,255,255,0.08)]'
-                      : 'border-white/15 bg-black/15 hover:border-white/30 hover:bg-white/[0.10]'
+                      ? 'border-teal-500 bg-teal-50 shadow-[0_0_0_2px_rgba(15,157,138,0.12)]'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                   "
                 >
                   <!-- RADIO -->
@@ -647,7 +647,7 @@ const handleThanhToan = async () => {
                     v-model="paymentType"
                     type="radio"
                     value="full"
-                    class="mt-1 h-5 w-5 shrink-0 accent-white"
+                    class="mt-1 h-5 w-5 shrink-0 accent-teal-700"
                   />
 
                   <!-- ICON -->
@@ -660,19 +660,19 @@ const handleThanhToan = async () => {
                   <!-- CONTENT -->
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
-                      <p class="text-sm font-semibold text-white">
+                      <p class="text-sm font-semibold text-travel-ink">
                         Thanh toán toàn bộ qua VNPAY (100%)
                       </p>
 
                       <span
                         v-if="paymentType === 'full'"
-                        class="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-bold text-black"
+                        class="rounded-full bg-teal-100 px-2.5 py-0.5 text-[10px] font-bold text-teal-900"
                       >
                         ĐANG CHỌN
                       </span>
                     </div>
 
-                    <p class="mt-1 text-xs font-medium leading-5 text-white/70">
+                    <p class="mt-1 text-sm leading-5 text-travel-muted">
                       Thanh toán toàn bộ giá trị đơn hàng qua VNPAY. Hỗ trợ mã
                       QR, App Ngân hàng hoặc thẻ ATM/Visa/Mastercard.
                     </p>
@@ -680,14 +680,14 @@ const handleThanhToan = async () => {
                     <!-- FULL AMOUNT -->
                     <div
                       v-if="paymentType === 'full' && currentTotalAmount > 0"
-                      class="mt-3 rounded-xl border border-white/10 bg-black/35 p-3"
+                      class="mt-3 rounded-xl border border-slate-200 bg-white p-3"
                     >
                       <div class="flex items-center justify-between gap-3">
-                        <span class="text-xs text-white/70">
+                        <span class="text-xs text-travel-muted">
                           Số tiền thanh toán:
                         </span>
 
-                        <span class="font-mono text-sm font-bold text-white">
+                        <span class="font-mono text-sm font-bold text-travel-ink">
                           {{ formatMoney(currentTotalAmount) }} VNĐ
                         </span>
                       </div>
@@ -702,8 +702,8 @@ const handleThanhToan = async () => {
                   class="relative flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all duration-200"
                   :class="
                     paymentType === 'deposit'
-                      ? 'border-amber-400/80 bg-amber-500/[0.15] shadow-[0_0_0_2px_rgba(251,191,36,0.15)]'
-                      : 'border-white/15 bg-black/15 hover:border-white/30 hover:bg-white/[0.10]'
+                      ? 'border-amber-500 bg-amber-50 shadow-[0_0_0_2px_rgba(245,158,11,0.12)]'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                   "
                 >
                   <!-- RADIO -->
@@ -711,7 +711,7 @@ const handleThanhToan = async () => {
                     v-model="paymentType"
                     type="radio"
                     value="deposit"
-                    class="mt-1 h-5 w-5 shrink-0 accent-amber-400"
+                    class="mt-1 h-5 w-5 shrink-0 accent-amber-600"
                   />
 
                   <!-- ICON -->
@@ -724,19 +724,19 @@ const handleThanhToan = async () => {
                   <!-- CONTENT -->
                   <div class="min-w-0 flex-1">
                     <div class="flex flex-wrap items-center gap-2">
-                      <p class="text-sm font-semibold text-white">
+                      <p class="text-sm font-semibold text-travel-ink">
                         Đặt cọc giữ chỗ (30%)
                       </p>
 
                       <span
                         v-if="paymentType === 'deposit'"
-                        class="rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-bold text-slate-950"
+                        class="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-bold text-amber-900"
                       >
                         ĐANG CHỌN
                       </span>
                     </div>
 
-                    <p class="mt-1 text-xs font-medium leading-5 text-white/70">
+                    <p class="mt-1 text-sm leading-5 text-travel-muted">
                       Chỉ thanh toán trước 30% để xác nhận giữ chỗ. 70% còn lại
                       sẽ thanh toán trước ngày khởi hành.
                     </p>
@@ -744,16 +744,16 @@ const handleThanhToan = async () => {
                     <!-- DEPOSIT DETAIL -->
                     <div
                       v-if="paymentType === 'deposit' && currentTotalAmount > 0"
-                      class="mt-3 space-y-2 rounded-xl border border-white/10 bg-black/35 p-3"
+                      class="mt-3 space-y-2 rounded-xl border border-slate-200 bg-white p-3"
                     >
                       <!-- 30% -->
                       <div class="flex items-center justify-between gap-3">
-                        <span class="text-xs text-white/80">
+                        <span class="text-xs text-travel-muted">
                           Tiền cọc cần thanh toán (30%):
                         </span>
 
                         <span
-                          class="font-mono text-sm font-bold text-amber-300"
+                          class="font-mono text-sm font-bold text-amber-700"
                         >
                           {{ formatMoney(depositAmount) }} VNĐ
                         </span>
@@ -761,24 +761,24 @@ const handleThanhToan = async () => {
 
                       <!-- 70% -->
                       <div class="flex items-center justify-between gap-3">
-                        <span class="text-[11px] text-white/50">
+                        <span class="text-[11px] text-travel-muted">
                           Số tiền còn lại (70%):
                         </span>
 
-                        <span class="font-mono text-xs text-white/60">
+                        <span class="font-mono text-xs text-slate-500">
                           {{ formatMoney(remainingAmount) }} VNĐ
                         </span>
                       </div>
 
                       <!-- TOTAL -->
-                      <div class="border-t border-white/10 pt-2">
+                      <div class="border-t border-slate-200 pt-2">
                         <div class="flex items-center justify-between gap-3">
-                          <span class="text-[11px] text-white/50">
+                          <span class="text-[11px] text-travel-muted">
                             Tổng giá trị tour:
                           </span>
 
                           <span
-                            class="font-mono text-xs font-semibold text-white/80"
+                            class="font-mono text-xs font-semibold text-travel-ink"
                           >
                             {{ formatMoney(currentTotalAmount) }} VNĐ
                           </span>

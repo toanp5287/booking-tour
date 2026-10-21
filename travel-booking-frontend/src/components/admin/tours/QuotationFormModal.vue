@@ -292,16 +292,18 @@ async function submit() {
   <Teleport to="body">
     <div
       v-if="visible"
-      class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto bg-slate-900/50 p-3 backdrop-blur-sm sm:p-6"
+      class="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-900/40 p-3 sm:p-6"
       @click.self="emit('close')"
+      @keydown.esc.stop="emit('close')"
+      tabindex="-1"
     >
-      <section class="my-auto w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <section class="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl overflow-hidden rounded-2xl bg-white shadow-[0_16px_48px_rgba(23,43,77,0.18)] sm:max-h-[calc(100dvh-3rem)]" role="dialog" aria-modal="true" aria-labelledby="quotation-form-title">
         <header class="flex items-start justify-between gap-4 border-b border-slate-100 bg-sky-50/70 px-5 py-5 sm:px-7">
           <div>
             <p class="text-xs font-semibold uppercase tracking-wider text-sky-600">
               {{ quotation?.id ? 'Chỉnh sửa báo giá' : 'Tạo báo giá' }}
             </p>
-            <h2 class="mt-1 text-xl font-bold">
+            <h2 id="quotation-form-title" class="mt-1 text-xl font-bold">
               Yêu cầu #{{ request?.id }}
             </h2>
             <p class="mt-1 text-sm text-slate-500">
@@ -317,7 +319,7 @@ async function submit() {
           </button>
         </header>
 
-        <div class="max-h-[75vh] space-y-6 overflow-y-auto p-5 sm:p-7">
+        <div class="max-h-[calc(100dvh-11rem)] space-y-6 overflow-y-auto overscroll-contain p-4 sm:max-h-[calc(100dvh-13rem)] sm:p-7">
           <div
             v-if="errorMessage"
             class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"

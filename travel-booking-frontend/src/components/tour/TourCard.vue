@@ -120,14 +120,14 @@ const filteredTours = computed(() => {
     </div>
 
     <!-- TOUR GRID KHI CÓ DỮ LIỆU -->
-    <div v-else class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    <div v-else class="grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-3">
       <article
         v-for="value in filteredTours"
         :key="value.id"
-        class="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0e121a] transition-all duration-300 hover:-translate-y-1 hover:border-amber-300/25 hover:bg-[#121622]"
+        class="travel-surface-interactive group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-[transform,border-color,box-shadow] duration-200"
       >
         <!-- IMAGE WRAPPER -->
-        <div class="relative h-56 w-full overflow-hidden bg-slate-900">
+        <div class="tour-card-image relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
           <img
             :src="
               value.thumbnail
@@ -135,7 +135,7 @@ const filteredTours = computed(() => {
                 : '/default-tour.jpg'
             "
             :alt="value.name"
-            class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
 
           <div
@@ -147,15 +147,15 @@ const filteredTours = computed(() => {
             class="absolute left-3.5 right-3.5 top-3.5 flex items-center justify-between"
           >
             <span
-              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200/60 bg-slate-950/75 px-2.5 py-1 text-[10px] font-medium tracking-wide text-blue-100 backdrop-blur-md"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-travel-blue/90 px-2.5 py-1 text-[10px] font-medium tracking-wide text-white"
             >
-              <span class="h-1.5 w-1.5 rounded-full bg-blue-300"></span>
+              <span class="h-1.5 w-1.5 rounded-full bg-travel-orange"></span>
               Nổi bật
             </span>
 
             <button
               type="button"
-              class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-[#07090d]/70 text-slate-300 transition hover:border-white/20 hover:text-white active:scale-95"
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 bg-travel-blue/80 text-white transition hover:bg-travel-blue active:scale-[0.98]"
               title="Lưu tour"
             >
               <svg
@@ -185,9 +185,7 @@ const filteredTours = computed(() => {
               </span>
             </div>
 
-            <div
-              class="flex items-center gap-1 rounded-md bg-[#07090d]/80 px-2 py-0.5 font-mono text-amber-200/90 backdrop-blur-sm"
-            >
+            <div class="flex items-center gap-1 rounded-md bg-travel-blue/85 px-2 py-0.5 font-mono text-travel-orange">
               <span class="text-[10px]">★</span>
               <span class="font-semibold">4.9</span>
             </div>
@@ -199,7 +197,7 @@ const filteredTours = computed(() => {
           <!-- TAGS THỜI GIAN / SỐ KHÁCH -->
           <div class="flex items-center gap-2 text-[11px] text-slate-400">
             <span
-              class="rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-0.5"
+            class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5"
             >
               {{
                 value.duration_days
@@ -208,7 +206,7 @@ const filteredTours = computed(() => {
               }}
             </span>
             <span
-              class="rounded-md border border-white/[0.06] bg-white/[0.02] px-2 py-0.5"
+              class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5"
             >
               Tối đa {{ value.max_people || 25 }} khách
             </span>
@@ -216,13 +214,13 @@ const filteredTours = computed(() => {
 
           <!-- TÊN TOUR -->
           <h3
-            class="mt-2.5 line-clamp-2 text-sm font-semibold leading-snug text-slate-100 transition group-hover:text-amber-200"
+            class="mt-3 line-clamp-2 min-h-10 text-base font-semibold leading-snug text-travel-ink transition-colors group-hover:text-travel-teal"
           >
             {{ value.name }}
           </h3>
 
           <!-- MÔ TẢ NGẮN -->
-          <p class="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-400">
+          <p class="mt-2 line-clamp-2 min-h-10 text-sm leading-relaxed text-travel-muted">
             {{
               value.description ||
               "Hành trình trọn gói khám phá danh lam thắng cảnh với dịch vụ chu đáo và linh hoạt."
@@ -231,18 +229,18 @@ const filteredTours = computed(() => {
 
           <!-- FOOTER: GIÁ & NÚT CHI TIẾT -->
           <div
-            class="mt-auto flex items-end justify-between border-t border-white/[0.06] pt-4"
+            class="mt-auto flex items-end justify-between gap-3 border-t border-slate-100 pt-4"
           >
             <div>
               <span class="block text-[10px] text-slate-500"> mỗi khách</span>
-              <p class="mt-0.5 font-mono text-base font-bold text-amber-200/95">
+              <p class="mt-0.5 font-mono text-base font-bold text-travel-blue">
                 {{ Number(value.price || 0).toLocaleString("vi-VN") }}₫
               </p>
             </div>
 
             <RouterLink
               :to="`/tours/${value.id}`"
-              class="flex h-8 items-center gap-1 rounded-lg border border-amber-200/25 bg-amber-300/[0.08] px-3 text-xs font-medium text-amber-200 transition hover:bg-amber-300 hover:text-slate-950"
+              class="flex h-10 shrink-0 items-center gap-1 rounded-lg border border-travel-blue bg-white px-3 text-xs font-semibold text-travel-blue transition hover:bg-travel-blue hover:text-white focus-visible:outline-offset-2"
             >
               <span>Chi tiết</span>
               <span class="text-[11px]">→</span>
@@ -255,40 +253,32 @@ const filteredTours = computed(() => {
 </template>
 
 <style scoped>
-.tour-card-list :deep([class*="bg-[#0e121a"]),
-.tour-card-list :deep([class*="bg-[#121622"]) {
-  background-color: #fff !important;
+.tour-card-list :deep(article) {
+  border-color: var(--travel-border);
+  background-color: var(--travel-surface);
+  box-shadow: var(--shadow-card);
 }
 
-.tour-card-list :deep([class*="border-white/"]) {
-  border-color: #e2e8f0 !important;
-}
-
-.tour-card-list :deep([class*="bg-white/"]) {
-  background-color: #f8fafc !important;
+.tour-card-list :deep(article:hover) {
+  border-color: #cbd5e1;
+  box-shadow: var(--travel-shadow-hover);
 }
 
 .tour-card-list :deep(article h3) {
-  color: #1e293b !important;
+  color: var(--travel-ink);
 }
 
 .tour-card-list :deep(article:hover h3) {
-  color: #2563eb !important;
+  color: var(--travel-secondary);
 }
 
-.tour-card-list :deep(article p[class*="text-amber-200/95"]) {
-  color: #2563eb !important;
+.tour-card-list :deep(.tour-card-image [class*="text-white"]),
+.tour-card-list :deep(.tour-card-image [class*="text-slate-200"]),
+.tour-card-list :deep(.tour-card-image [class*="text-slate-300"]) {
+  color: #ffffff !important;
 }
 
-.tour-card-list :deep(article > div:last-child a) {
-  border-color: #bfdbfe !important;
-  background-color: #eff6ff !important;
-  color: #2563eb !important;
-}
-
-.tour-card-list :deep(article > div:last-child a:hover) {
-  border-color: #2563eb !important;
-  background-color: #2563eb !important;
-  color: #fff !important;
+.tour-card-list :deep(article .tour-card-image [class*="bg-[#07090d]"]) {
+  background-color: rgba(23, 43, 77, 0.86);
 }
 </style>

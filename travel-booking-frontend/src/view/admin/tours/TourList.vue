@@ -526,7 +526,7 @@ const stats = computed(() => {
         </div>
 
         <!-- BẢNG -->
-        <div v-else class="overflow-x-auto">
+        <div v-else class="overflow-x-auto overscroll-x-contain">
           <table class="w-full min-w-[1250px]">
             <thead>
               <tr class="border-b border-white/[0.07] bg-white/[0.02]">

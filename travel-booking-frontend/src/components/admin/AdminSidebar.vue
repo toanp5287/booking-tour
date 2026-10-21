@@ -19,14 +19,24 @@ const isOperator = computed(() => {
 const canAccessOperations = computed(() => {
   return isAdminOrStaff.value || isOperator.value;
 });
+
+const props = defineProps({
+  mobileOpen: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(["close"]);
 </script>
 
 <template>
   <aside
-    class="admin-sidebar fixed inset-y-0 left-0 z-50 hidden w-[265px] border-r lg:flex lg:flex-col"
+    class="admin-sidebar pointer-events-auto fixed inset-y-0 left-0 z-50 hidden w-[min(84vw,265px)] border-r lg:flex lg:w-[265px] lg:flex-col"
+    :class="{ '!flex': props.mobileOpen }"
   >
     <!-- LOGO -->
-    <div class="flex h-[82px] items-center border-b border-white/[0.07] px-6">
+    <div class="flex h-[68px] items-center justify-between border-b border-white/[0.07] px-4 sm:h-[76px] sm:px-6 lg:h-[82px]">
       <RouterLink to="/" class="flex items-center gap-3">
         <div
           class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.07]"
@@ -57,10 +67,18 @@ const canAccessOperations = computed(() => {
           </div>
         </div>
       </RouterLink>
+      <button
+        type="button"
+        aria-label="Đóng menu quản trị"
+        class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 lg:hidden"
+        @click="emit('close')"
+      >
+        ×
+      </button>
     </div>
 
     <!-- NAVIGATION -->
-    <nav class="flex-1 overflow-y-auto px-4 py-6">
+    <nav class="flex-1 overflow-y-auto px-4 py-5 lg:py-6" @click="emit('close')">
       <!-- 1. TỔNG QUAN -->
       <p
         class="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/25"

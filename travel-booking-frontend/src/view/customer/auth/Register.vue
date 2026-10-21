@@ -186,19 +186,11 @@ const handleRegister = async () => {
       <!-- REGISTER CARD -->
       <div class="relative z-20 w-full max-w-[520px]">
         <div
-          class="relative overflow-hidden rounded-[2.25rem] border border-white/25 bg-white/[0.13] p-7 shadow-[0_35px_100px_rgba(0,0,0,0.5)] backdrop-blur-[28px] sm:p-9"
+          class="travel-surface relative overflow-hidden rounded-2xl p-6 sm:p-9"
         >
           <!-- DECORATION -->
           <div
             class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/20 via-white/5 to-transparent"
-          ></div>
-
-          <div
-            class="pointer-events-none absolute -right-32 -top-32 h-72 w-72 rounded-full bg-white/10 blur-[80px]"
-          ></div>
-
-          <div
-            class="pointer-events-none absolute -bottom-32 -left-32 h-72 w-72 rounded-full bg-white/10 blur-[80px]"
           ></div>
 
           <div class="relative">
@@ -208,10 +200,6 @@ const handleRegister = async () => {
                 class="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/80 backdrop-blur-xl"
               >
                 <span class="relative flex h-2 w-2">
-                  <span
-                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/50"
-                  ></span>
-
                   <span
                     class="relative inline-flex h-2 w-2 rounded-full bg-white"
                   ></span>
@@ -223,13 +211,11 @@ const handleRegister = async () => {
 
             <!-- TITLE -->
             <div class="mb-7 text-center">
-              <h1
-                class="text-[32px] font-bold tracking-[-0.03em] text-white sm:text-[36px]"
-              >
+              <h1 class="text-[32px] font-bold tracking-[-0.03em] text-travel-ink sm:text-[36px]">
                 Tạo tài khoản
               </h1>
 
-              <p class="mt-3 text-sm leading-6 text-white/65">
+              <p class="mt-3 text-sm leading-6 text-travel-muted">
                 Bắt đầu hành trình khám phá những điểm đến tuyệt vời cùng
                 TravelGo.
               </p>
@@ -461,7 +447,7 @@ const handleRegister = async () => {
               <button
                 type="submit"
                 :disabled="loading"
-                class="group relative w-full overflow-hidden rounded-[17px] bg-white py-[15px] text-sm font-bold text-slate-900 shadow-[0_15px_35px_rgba(0,0,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-100 hover:shadow-[0_20px_45px_rgba(0,0,0,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
+                class="group relative min-h-12 w-full overflow-hidden rounded-xl bg-travel-orange px-4 py-3 text-sm font-bold text-travel-blue transition-[background-color,box-shadow] duration-200 hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span class="relative flex items-center justify-center gap-2">
                   <span v-if="loading"> Đang tạo tài khoản... </span>

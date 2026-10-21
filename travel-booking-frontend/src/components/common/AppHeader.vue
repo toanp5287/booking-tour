@@ -71,25 +71,23 @@ const isOperator = () => {
   >
     <div class="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10">
       <div
-        class="mt-4 flex h-[68px] items-center justify-between rounded-2xl border border-white/[0.08] bg-[#07090d]/80 px-4 shadow-[0_16px_36px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition hover:border-white/[0.14] sm:px-6"
+        class="mt-3 flex min-h-[64px] items-center justify-between rounded-2xl border border-slate-200 bg-white/95 px-3 shadow-[0_4px_18px_rgba(23,43,77,0.08)] transition-[box-shadow,border-color] duration-200 hover:border-slate-300 sm:mt-4 sm:h-[68px] sm:px-6"
       >
         <!-- ================= LOGO ================= -->
         <RouterLink to="/" class="group flex items-center gap-3">
           <div
-            class="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50 text-blue-700 shadow-md shadow-blue-500/10 transition-transform duration-300 group-hover:scale-105"
+            class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-travel-primary-soft text-travel-blue transition-transform duration-200 group-hover:scale-[1.03]"
           >
             <Compass
-              class="h-5 w-5 stroke-[2] transition-transform duration-500 group-hover:rotate-45"
+              class="h-5 w-5 stroke-[2] transition-transform duration-300 group-hover:rotate-[12deg]"
             />
           </div>
 
           <div>
-            <div class="text-lg font-black tracking-tight text-white">
-              Travel<span class="text-blue-600">Go</span>
+            <div class="text-lg font-black tracking-tight text-travel-blue">
+              Travel<span class="text-travel-teal">Go</span>
             </div>
-            <div
-              class="text-[8px] font-bold uppercase tracking-[0.3em] text-blue-600/70"
-            >
+            <div class="hidden text-[8px] font-bold uppercase tracking-[0.3em] text-slate-500 sm:block">
               Sunset Horizon
             </div>
           </div>
@@ -99,40 +97,40 @@ const isOperator = () => {
         <nav class="hidden items-center gap-1 lg:flex">
           <RouterLink
             to="/"
-            class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
-            exact-active-class="!bg-blue-50 !text-blue-800 !border-blue-200 border"
+            class="rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-travel-blue xl:px-4"
+            exact-active-class="!border !border-slate-200 !bg-travel-primary-soft !font-semibold !text-travel-blue"
           >
             Trang chủ
           </RouterLink>
 
           <RouterLink
             to="/tours"
-            class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
-            active-class="!bg-blue-50 !text-blue-800 !border-blue-200 border"
+            class="rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-travel-blue xl:px-4"
+            active-class="!border !border-slate-200 !bg-travel-primary-soft !font-semibold !text-travel-blue"
           >
             Tours
           </RouterLink>
 
           <RouterLink
             to="/destinations"
-            class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
-            active-class="!bg-blue-50 !text-blue-800 !border-blue-200 border"
+            class="rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-travel-blue xl:px-4"
+            active-class="!border !border-slate-200 !bg-travel-primary-soft !font-semibold !text-travel-blue"
           >
             Điểm đến
           </RouterLink>
 
           <RouterLink
             to="/community"
-            class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
-            active-class="!bg-blue-50 !text-blue-800 !border-blue-200 border"
+            class="rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-travel-blue xl:px-4"
+            active-class="!border !border-slate-200 !bg-travel-primary-soft !font-semibold !text-travel-blue"
           >
             Cộng đồng
           </RouterLink>
 
           <RouterLink
             to="/aboutUs"
-            class="rounded-xl px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
-            active-class="!bg-blue-50 !text-blue-800 !border-blue-200 border"
+            class="rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-travel-blue xl:px-4"
+            active-class="!border !border-slate-200 !bg-travel-primary-soft !font-semibold !text-travel-blue"
           >
             Về chúng tôi
           </RouterLink>
@@ -140,10 +138,10 @@ const isOperator = () => {
           <!-- AI TRIP BADGE LINK -->
           <RouterLink
             to="/aiTripPlanner"
-            class="ml-1.5 flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-bold text-blue-700 shadow-sm transition hover:bg-blue-100 hover:border-blue-300"
-            active-class="!bg-blue-100 !text-blue-800 !border-blue-200"
+            class="ml-1.5 flex items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-800 transition hover:bg-teal-100 xl:px-3.5"
+            active-class="!border-teal-300 !bg-teal-100 !text-teal-900"
           >
-            <Sparkles class="h-3.5 w-3.5 fill-blue-600 text-blue-600" />
+            <Sparkles class="h-3.5 w-3.5 text-travel-teal" />
             <span>Lập lịch AI</span>
           </RouterLink>
         </nav>
@@ -154,7 +152,7 @@ const isOperator = () => {
           <RouterLink
             v-if="user && isStaffOrAdmin()"
             to="/admin"
-            class="hidden items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 md:flex"
+            class="hidden items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-travel-blue transition hover:bg-travel-primary-soft md:flex"
           >
             <ShieldCheck class="h-4 w-4" />
             <span>Quản trị</span>
@@ -163,7 +161,7 @@ const isOperator = () => {
           <RouterLink
             v-else-if="user && isOperator()"
             to="/tour-manager"
-            class="hidden items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 md:flex"
+            class="hidden items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-travel-blue transition hover:bg-travel-primary-soft md:flex"
           >
             <BriefcaseBusiness class="h-4 w-4" />
             <span>Cổng nhà tour</span>
@@ -174,17 +172,17 @@ const isOperator = () => {
             <button
               type="button"
               @click="isMenuOpen = !isMenuOpen"
-              class="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] p-1.5 pr-3 text-xs font-medium text-white transition hover:border-white/20 hover:bg-white/[0.08]"
+              class="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-1.5 pr-3 text-xs font-medium text-travel-ink transition hover:border-slate-300 hover:bg-slate-50"
             >
               <div
-                class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-cyan-600 font-bold text-white"
+                class="flex h-8 w-8 items-center justify-center rounded-lg bg-travel-primary-soft font-bold text-travel-blue"
               >
                 {{
                   user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"
                 }}
               </div>
               <span
-                class="max-w-[120px] truncate text-slate-200 sm:max-w-[150px]"
+                class="max-w-[120px] truncate text-travel-ink sm:max-w-[150px]"
               >
                 {{ user.full_name || "Tài khoản" }}
               </span>
@@ -282,17 +280,17 @@ const isOperator = () => {
           </div>
 
           <!-- CHƯA ĐĂNG NHẬP -->
-          <div v-else class="flex items-center gap-2">
+          <div v-else class="hidden items-center gap-2 sm:flex">
             <RouterLink
               to="/login"
-              class="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-medium text-slate-200 transition hover:bg-white/[0.08] hover:text-white"
+              class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 hover:text-travel-blue sm:px-4"
             >
               Đăng nhập
             </RouterLink>
 
             <RouterLink
               to="/register"
-              class="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 active:scale-95"
+              class="rounded-xl bg-travel-orange px-3 py-2 text-xs font-bold text-travel-blue transition hover:bg-amber-500 active:scale-[0.98] sm:px-4"
             >
               Đăng ký
             </RouterLink>
@@ -302,7 +300,9 @@ const isOperator = () => {
           <button
             type="button"
             @click="isMobileNavOpen = !isMobileNavOpen"
-            class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 lg:hidden hover:text-white"
+            :aria-expanded="isMobileNavOpen"
+            aria-label="Mở hoặc đóng menu"
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-travel-blue lg:hidden"
           >
             <X v-if="isMobileNavOpen" class="h-5 w-5" />
             <Menu v-else class="h-5 w-5" />
@@ -315,50 +315,70 @@ const isOperator = () => {
     <Transition name="slide-down">
       <div
         v-if="isMobileNavOpen"
-        class="mx-4 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-lg lg:hidden"
+        class="mx-4 mt-2 max-h-[calc(100dvh-6rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-lg lg:hidden"
       >
-        <nav class="flex flex-col gap-2 text-sm">
+        <nav         class="flex flex-col gap-1.5 text-sm">
           <RouterLink
             to="/"
             @click="isMobileNavOpen = false"
-            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-blue-50"
-            exact-active-class="bg-blue-50 text-blue-800 font-bold"
+            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-slate-50"
+              exact-active-class="bg-travel-primary-soft text-travel-blue font-bold"
           >
             Trang chủ
           </RouterLink>
           <RouterLink
             to="/tours"
             @click="isMobileNavOpen = false"
-            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-blue-50"
-            active-class="bg-blue-50 text-blue-800 font-bold"
+            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-slate-50"
+              active-class="bg-travel-primary-soft text-travel-blue font-bold"
           >
             Tours du lịch
           </RouterLink>
           <RouterLink
             to="/destinations"
             @click="isMobileNavOpen = false"
-            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-blue-50"
-            active-class="bg-blue-50 text-blue-800 font-bold"
+            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-slate-50"
+              active-class="bg-travel-primary-soft text-travel-blue font-bold"
           >
             Điểm đến
           </RouterLink>
           <RouterLink
             to="/community"
             @click="isMobileNavOpen = false"
-            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-blue-50"
-            active-class="bg-blue-50 text-blue-800 font-bold"
+            class="rounded-xl px-4 py-2.5 text-slate-700 hover:bg-slate-50"
+              active-class="bg-travel-primary-soft text-travel-blue font-bold"
           >
             Cộng đồng
           </RouterLink>
           <RouterLink
             to="/aiTripPlanner"
             @click="isMobileNavOpen = false"
-            class="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 font-bold text-blue-800"
+            class="flex items-center gap-2 rounded-xl bg-travel-secondary-soft px-4 py-2.5 font-bold text-travel-teal"
           >
             <Sparkles class="h-4 w-4" />
             <span>TravelGo AI Lập lịch</span>
           </RouterLink>
         </nav>
+
+        <div
+          v-if="!user"
+          class="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 sm:hidden"
+        >
+          <RouterLink
+            to="/login"
+            @click="isMobileNavOpen = false"
+            class="rounded-xl border border-slate-200 px-4 py-2.5 text-center font-semibold text-travel-blue transition hover:bg-slate-50"
+          >
+            Đăng nhập
+          </RouterLink>
+          <RouterLink
+            to="/register"
+            @click="isMobileNavOpen = false"
+            class="rounded-xl bg-travel-accent px-4 py-2.5 text-center font-semibold text-travel-ink transition hover:bg-amber-500"
+          >
+            Đăng ký
+          </RouterLink>
+        </div>
       </div>
     </Transition>
   </header>
@@ -380,7 +400,9 @@ const isOperator = () => {
 
 .slide-down-enter-active,
 .slide-down-leave-active {
-  transition: all 0.25s ease-out;
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.2s ease-out;
 }
 
 .slide-down-enter-from,

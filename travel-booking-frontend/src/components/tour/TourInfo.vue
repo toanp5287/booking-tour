@@ -9,7 +9,7 @@ const props = defineProps({
 
 <template>
   <section
-    class="light-surface rounded-[26px] border border-white/10 bg-black/25 p-6 backdrop-blur-xl sm:p-8"
+    class="light-surface travel-surface-interactive rounded-2xl border border-white/10 bg-black/25 p-5 backdrop-blur-xl transition-[border-color,box-shadow] sm:p-7"
   >
     <div class="mb-6">
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
@@ -82,7 +82,7 @@ const props = defineProps({
 .light-surface {
   border-color: #e2e8f0 !important;
   background: #fff !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-card);
 }
 
 .light-surface :deep([class*="border-white/"]) {
@@ -100,5 +100,10 @@ const props = defineProps({
 
 .light-surface :deep([class*="text-white/"]) {
   color: #64748b !important;
+}
+
+.light-surface :deep([class*="bg-white/"]),
+.light-surface :deep([class*="bg-black/"]) {
+  border-radius: 0.875rem;
 }
 </style>

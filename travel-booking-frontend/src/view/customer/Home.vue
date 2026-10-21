@@ -82,14 +82,6 @@ const clearSearch = () => {
         class="home-hero-bottom absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-slate-950/15"
       ></div>
 
-      <!-- SUNSET GLOW ORBS -->
-      <div
-        class="pointer-events-none absolute left-[8%] top-[25%] h-[460px] w-[460px] rounded-full bg-gradient-to-tr from-blue-500/20 to-cyan-300/10 blur-[140px]"
-      ></div>
-      <div
-        class="pointer-events-none absolute right-[10%] top-[40%] h-[380px] w-[380px] rounded-full bg-rose-500/10 blur-[130px]"
-      ></div>
-
       <!-- HERO CONTENT -->
       <div
         class="relative mx-auto flex min-h-[92vh] max-w-[1440px] items-center px-6 pb-28 pt-36 sm:px-8 lg:min-h-screen lg:px-12"
@@ -100,9 +92,6 @@ const clearSearch = () => {
             class="inline-flex items-center gap-2.5 rounded-full border border-orange-400/25 bg-[#0d1118]/70 px-4 py-1.5 text-xs font-medium text-orange-200 shadow-xl backdrop-blur-xl"
           >
             <span class="relative flex h-2 w-2">
-              <span
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"
-              ></span>
               <span
                 class="relative inline-flex h-2 w-2 rounded-full bg-orange-400"
               ></span>
@@ -133,7 +122,7 @@ const clearSearch = () => {
           <!-- SEARCH BAR COMPONENT -->
           <div class="mt-10 w-full max-w-2xl">
             <div
-              class="relative flex items-center rounded-2xl border border-white/10 bg-[#0d1118]/85 p-2 shadow-2xl backdrop-blur-2xl transition-all duration-300 hover:border-white/20 focus-within:border-blue-300/60 focus-within:bg-[#111720]/95 focus-within:shadow-[0_0_35px_rgba(37,99,235,0.22)]"
+              class="relative flex items-center rounded-2xl border border-white/20 bg-travel-blue/90 p-2 shadow-[0_12px_32px_rgba(15,23,42,0.22)] transition-[border-color,box-shadow] duration-200 hover:border-white/35 focus-within:border-travel-orange focus-within:shadow-[0_12px_36px_rgba(15,23,42,0.28)]"
             >
               <!-- ICON -->
               <div
@@ -433,7 +422,7 @@ const clearSearch = () => {
               <article
                 v-for="tour in filteredTours"
                 :key="`search-${tour.id}`"
-                class="group overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1118] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-300/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+                class="home-tour-card travel-surface-interactive group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-[transform,border-color,box-shadow] duration-200"
               >
                 <!-- IMAGE -->
                 <div class="relative h-64 overflow-hidden">
@@ -443,7 +432,7 @@ const clearSearch = () => {
                       'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
                     "
                     :alt="tour.name"
-                    class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
 
                   <div
@@ -539,7 +528,7 @@ const clearSearch = () => {
                 <article
                   v-for="tour in toursList"
                   :key="`tour-1-${tour.id}`"
-                  class="group w-[340px] shrink-0 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1118] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-300/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] sm:w-[370px]"
+                  class="home-tour-card travel-surface-interactive group w-[min(82vw,340px)] shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white transition-[transform,border-color,box-shadow] duration-200 sm:w-[370px]"
                 >
                   <!-- IMAGE -->
                   <div class="relative h-72 overflow-hidden">
@@ -549,7 +538,7 @@ const clearSearch = () => {
                         'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
                       "
                       :alt="tour.name"
-                      class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
 
                     <div
@@ -633,7 +622,7 @@ const clearSearch = () => {
                 <article
                   v-for="tour in toursList"
                   :key="`tour-2-${tour.id}`"
-                  class="group w-[340px] shrink-0 overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0d1118] shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-orange-300/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] sm:w-[370px]"
+                  class="home-tour-card travel-surface-interactive group w-[min(82vw,340px)] shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white transition-[transform,border-color,box-shadow] duration-200 sm:w-[370px]"
                 >
                   <!-- IMAGE -->
                   <div class="relative h-72 overflow-hidden">
@@ -643,7 +632,7 @@ const clearSearch = () => {
                         'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=1200&q=85'
                       "
                       :alt="tour.name"
-                      class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                      class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
 
                     <div
@@ -1263,6 +1252,31 @@ const clearSearch = () => {
     rgba(15, 23, 42, 0.38) 55%,
     transparent
   );
+}
+
+.customer-redesign .home-tour-card [class*="text-white"] {
+  color: #ffffff !important;
+}
+
+.customer-redesign .home-tour-card [class*="text-orange-"],
+.customer-redesign .home-tour-card [class*="text-amber-"] {
+  color: #fed7aa !important;
+}
+
+.customer-redesign .home-tour-card .p-5 {
+  background-color: var(--travel-surface);
+}
+
+.customer-redesign .home-tour-card .p-5 [class*="text-white"],
+.customer-redesign .home-tour-card .p-5 [class*="text-slate-100"],
+.customer-redesign .home-tour-card .p-5 [class*="text-slate-200"],
+.customer-redesign .home-tour-card .p-5 [class*="text-slate-300"] {
+  color: var(--travel-ink) !important;
+}
+
+.customer-redesign .home-tour-card .p-5 [class*="text-slate-400"],
+.customer-redesign .home-tour-card .p-5 [class*="text-slate-500"] {
+  color: var(--travel-muted) !important;
 }
 
 </style>

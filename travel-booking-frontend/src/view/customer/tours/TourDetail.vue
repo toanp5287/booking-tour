@@ -874,7 +874,7 @@ const booking = async (tourId) => {
       <!-- TOUR HEADER -->
       <section class="mx-auto max-w-7xl px-5 pt-7 sm:px-8 lg:px-10">
         <div
-          class="overflow-hidden rounded-[30px] border border-white/15 bg-black/25 shadow-2xl backdrop-blur-xl"
+          class="travel-surface overflow-hidden rounded-2xl"
         >
           <div class="relative h-[360px] sm:h-[450px]">
             <img
@@ -911,9 +911,9 @@ const booking = async (tourId) => {
         class="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[1fr_450px] lg:px-10"
       >
         <!-- LEFT: TOUR INFORMATION -->
-        <div class="space-y-7">
+        <div class="space-y-6">
           <section
-            class="rounded-[26px] border border-white/10 bg-black/25 p-6 backdrop-blur-xl sm:p-8"
+            class="travel-surface p-5 sm:p-7"
           >
             <h2 class="text-2xl font-bold text-white">
               Giới thiệu chuyến đi
@@ -934,9 +934,7 @@ const booking = async (tourId) => {
 
         <!-- RIGHT: BOOKING SIDEBAR -->
         <aside class="lg:sticky lg:top-[100px] lg:self-start">
-          <div
-            class="overflow-hidden rounded-[28px] border border-white/20 bg-black/60 p-6 shadow-2xl backdrop-blur-2xl"
-          >
+          <div class="travel-surface overflow-hidden p-5 sm:p-6">
             <!-- PRICE -->
             <div class="border-b border-white/10 pb-4">
               <div
